@@ -2,6 +2,7 @@
 import cubejs, { CubejsApi } from '@cubejs-client/core';
 
 const CUBEJS_TOKEN = process.env.REACT_APP_CUBEJS_TOKEN;
+
 if (!CUBEJS_TOKEN) {
   throw new Error('REACT_APP_CUBEJS_TOKEN is not defined');
 }

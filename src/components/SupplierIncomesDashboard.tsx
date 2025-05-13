@@ -5,7 +5,6 @@ import cubeApi from '../utils/cubeApi';
 
 const SupplierIncomesDashboard: React.FC = () => {
   // 1️⃣ Запрашиваем данные через Cube.js
-  console.log('start');
   const { resultSet, isLoading, error } = useCubeQuery(
     {
       measures: [
@@ -20,6 +19,7 @@ const SupplierIncomesDashboard: React.FC = () => {
     { cubeApi }
   );
 
+  console.log('step1');
   // 1.1 Логируем «сырые» строки при каждом обновлении данных
   useEffect(() => {
     if (resultSet) {
@@ -28,6 +28,7 @@ const SupplierIncomesDashboard: React.FC = () => {
       console.log('Cube pivot:', resultSet.chartPivot());
     }
   }, [resultSet]);
+  console.log('step2');
 
   // 2️⃣ Формируем конфиг ECharts, когда придут данные
   const chartOption = useMemo(() => {
@@ -64,6 +65,7 @@ const SupplierIncomesDashboard: React.FC = () => {
       <ReactECharts option={chartOption} style={{ height: '100%', width: '100%' }} />
     </div>
   );
+  
 };
 
 export default SupplierIncomesDashboard;
