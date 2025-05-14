@@ -1,5 +1,5 @@
 // src/utils/cubeApi.ts
-import cubejs, { CubejsApi } from '@cubejs-client/core';
+import cube, { CubejsApi } from '@cubejs-client/core';
 
 const CUBEJS_TOKEN = process.env.REACT_APP_CUBEJS_TOKEN;
 
@@ -15,5 +15,5 @@ if (!API_URL_BASE) {
 const API_URL = `${API_URL_BASE}/cubejs-api/v1`;
 
 // Экспорт типизированного клиента
-const cubeApi: CubejsApi = cubejs(CUBEJS_TOKEN, { apiUrl: API_URL });
+const cubeApi: CubejsApi = cube(CUBEJS_TOKEN, { apiUrl: API_URL });
 export default cubeApi;
