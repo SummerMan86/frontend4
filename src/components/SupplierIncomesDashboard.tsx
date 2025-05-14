@@ -5,14 +5,7 @@ const SupplierIncomesDashboard = () => {
   console.log('step 1');
   
   const { resultSet, isLoading, error } = useCubeQuery({
-    measures: ['SupplierIncomes.totalAmount'],
-    dimensions: ['SupplierIncomes.supplierName'],
-    timeDimensions: [
-      {
-        dimension: 'SupplierIncomes.date',
-        granularity: 'month'
-      }
-    ]
+    measures: ['SupplierIncomes.totalQuantity']
   });
   console.log(error);
 
