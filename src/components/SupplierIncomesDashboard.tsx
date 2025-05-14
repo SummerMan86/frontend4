@@ -1,38 +1,77 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCubeQuery } from '@cubejs-client/react';
 
+// Define a type for Cube.js errors
+interface CubejsError extends Error {
+  response?: {
+    error?: string;
+    stack?: string;
+    requestId?: string;
+    [key: string]: any;
+  };
+  status?: number;
+}
+
 const SupplierIncomesDashboard = () => {
-  console.log('step 1');
+  console.log("step 1");
   
-  const { resultSet, isLoading, error } = useCubeQuery({
-    measures: ['SupplierIncomes.totalQuantity']
+  const queryResult = useCubeQuery({
+    measures: ['SupplierIncomes.count'],
+    dimensions: ['SupplierIncomes.warehouseName'],
+    timeDimensions: [
+      {
+        dimension: 'SupplierIncomes.lastChangeDate',
+        granularity: 'month'
+      }
+    ]
   });
-  console.log(error);
+  
+  const { resultSet, isLoading, error } = queryResult;
+  
+  useEffect(() => {
+    // Log for debugging
+    console.log("Query result:", queryResult);
+    console.log("Query status:", { 
+      isLoading, 
+      hasError: !!error, 
+      errorDetails: error,
+      hasData: !!resultSet
+    });
+  }, [queryResult, resultSet, isLoading, error]);
 
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
   if (error) {
-    const errorStyle = {
-      color: 'red',
-      padding: '10px',
-      border: '1px solid red',
-      borderRadius: '4px',
-      backgroundColor: '#ffebee',
-    };
-    return <div style={errorStyle}>Error: {error.toString()}</div>;
+    // Cast error to our custom interface
+    const cubejsError = error as CubejsError;
+    
+    return (
+      <div style={{color: 'red', padding: '10px', border: '1px solid red'}}>
+        <h3>Error Details:</h3>
+        <p>Message: {cubejsError.message || "Unknown error"}</p>
+        <p>Type: {typeof cubejsError === 'object' ? Object.prototype.toString.call(cubejsError) : typeof cubejsError}</p>
+        
+        {cubejsError.response && (
+          <div>
+            <h4>Server Error:</h4>
+            <pre style={{background: '#f5f5f5', padding: '10px'}}>
+              {cubejsError.response.error || JSON.stringify(cubejsError.response, null, 2)}
+            </pre>
+          </div>
+        )}
+        
+        <h4>Full Error Object:</h4>
+        <pre>{JSON.stringify(cubejsError, null, 2)}</pre>
+      </div>
+    );
   }
 
   if (!resultSet) {
-    const warningStyle = {
-      color: '#856404',
-      padding: '10px',
-      border: '1px solid #ffeeba',
-      borderRadius: '4px',
-      backgroundColor: '#fff3cd',
-    };
-    return <div style={warningStyle}>No data available.</div>;
+    return <div style={{color: '#856404', padding: '10px'}}>
+      No data available. This could mean your cube doesn't have any matching data.
+    </div>;
   }
 
   const data = resultSet.tablePivot();
