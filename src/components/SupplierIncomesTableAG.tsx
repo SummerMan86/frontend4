@@ -50,17 +50,19 @@ const SupplierIncomesTableAG: React.FC = () => {
   console.log('columnDefs: ', columnDefs);
 
   return (
-      <div
-        className="ag-theme-alpine"
-        style={{ height: 400, width: '100%' }}
-      >
-        <AgGridReact
-          rowData={rowData}
-          columnDefs={columnDefs}
-          rowHeight={35}
-          headerHeight={35}
-        />
-      </div>
+    <div className="ag-theme-alpine" style={{ height: '500px', width: '100%', margin: '20px 0' }}>
+      <AgGridReact
+        rowData={rowData}
+        columnDefs={columnDefs}
+        defaultColDef={{
+          flex: 1,
+          minWidth: 100,
+          resizable: true
+        }}
+        // Tell AG Grid to use legacy CSS-based themes
+        theme="legacy"
+      />
+    </div>
   );
 };
 
