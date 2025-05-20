@@ -5,7 +5,7 @@ import SupplierIncomesDashboard from '../components/SupplierIncomesDashboard';
 
 const SupplierIncomesPage: React.FC = () => {
   return (
-    <div> <SupplierIncomesDashboard/></div>    
+    <div> test </div>    
   );
 };
 
