@@ -1,68 +1,179 @@
-import React from 'react';
+/* SupplierIncomesTableAG.tsx */
+import React, { useState, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
+import { AllCommunityModule, ColDef } from 'ag-grid-community';
+import { Menu, Button, Checkbox, Flex, Loader } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
 import { useCubeQuery } from '@cubejs-client/react';
-
+import { useFiltersStore } from '../stores/useFiltersStore';
+// AG Grid CSS
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import './SupplierIncomesTableAG.css';
 
-// Define a type for Cube.js errors
-interface CubejsError extends Error {
-  response?: {
-    error?: string;
-    stack?: string;
-    requestId?: string;
-    [key: string]: any;
-  };
-  status?: number;
+interface SupplierIncomeRow {
+  sid: number;
+  nmid: number;
+  subject: string;
+  barcode: string;
+  supplierArticle: string;
+  techSize: string;
+  warehouseName: string;
+  incomeId: number;
+  date: string;
+  lastChangeDate: string;
+  count: number;
+  totalQuantity: number;
+  totalRevenue: number;
+  avgPrice: number;
 }
 
 const SupplierIncomesTableAG: React.FC = () => {
-  const { resultSet, isLoading, error } = useCubeQuery(
-    {
-      measures: ['SupplierIncomes.count', 'SupplierIncomes.totalQuantity', 'SupplierIncomes.totalRevenue', 'SupplierIncomes.avgPrice'],
-      dimensions: ['SupplierIncomes.warehouseName'],
-      order: { 'SupplierIncomes.totalRevenue': 'desc' },
-    }
-  );
+  const { filters, setFilter, removeFilter } = useFiltersStore();
 
-  
-
-  if (isLoading) return <div className="flex items-center justify-center w-full h-full">Загрузка таблицы…</div>;
-  if (error) return <div>Ошибка: {error.toString()}</div>;
-  if (!resultSet) return <div>Нет данных</div>;
-
-  const rowData = resultSet.tablePivot().map((row) => {
-    const flat: Record<string, any> = {};
-    Object.entries(row).forEach(([key, value]) => {
-      flat[key.split('.').pop()!] = value;
-    });
-    return flat;
+  const { resultSet, isLoading, error } = useCubeQuery({
+    measures: [
+      'SupplierIncomes.count',
+      'SupplierIncomes.totalQuantity',
+      'SupplierIncomes.totalRevenue',
+      'SupplierIncomes.avgPrice',
+    ],
+    dimensions: [
+      'SupplierIncomes.sid',
+      'SupplierIncomes.nmid',
+      'SupplierIncomes.subject',
+      'SupplierIncomes.barcode',
+      'SupplierIncomes.supplierArticle',
+      'SupplierIncomes.techSize',
+      'SupplierIncomes.warehouseName',
+      'SupplierIncomes.incomeId',
+      'SupplierIncomes.lastChangeDate',
+    ],
+    timeDimensions: [{ dimension: 'SupplierIncomes.date', granularity: 'day' }],
+    order: { 'SupplierIncomes.date': 'asc' },
+    filters: filters as any,
   });
 
-  const columnDefs = [
-    { headerName: 'Склад', field: 'warehouseName', sortable: true },
-    { headerName: 'Поставки', field: 'count', sortable: true },
-    { headerName: 'Товары, шт', field: 'totalQuantity', sortable: true },
-    { headerName: 'Выручка', field: 'totalRevenue', sortable: true },
-    { headerName: 'Средняя цена', field: 'avgPrice', sortable: true },
-  ];
-  console.log('rowData: ', rowData);
-  console.log('columnDefs: ', columnDefs);
+  const rowData = useMemo<SupplierIncomeRow[]>(() => {
+    if (!resultSet) return [];
+    return resultSet.rawData().map(row => ({
+      sid: row['SupplierIncomes.sid'] != null ? Number(row['SupplierIncomes.sid']) : 0,
+      nmid: row['SupplierIncomes.nmid'] != null ? Number(row['SupplierIncomes.nmid']) : 0,
+      subject: row['SupplierIncomes.subject'] != null ? String(row['SupplierIncomes.subject']) : '',
+      barcode: row['SupplierIncomes.barcode'] != null ? String(row['SupplierIncomes.barcode']) : '',
+      supplierArticle: row['SupplierIncomes.supplierArticle'] != null ? String(row['SupplierIncomes.supplierArticle']) : '',
+      techSize: row['SupplierIncomes.techSize'] != null ? String(row['SupplierIncomes.techSize']) : '',
+      warehouseName: row['SupplierIncomes.warehouseName'] != null ? String(row['SupplierIncomes.warehouseName']) : '',
+      incomeId: row['SupplierIncomes.incomeId'] != null ? Number(row['SupplierIncomes.incomeId']) : 0,
+      date: row['SupplierIncomes.date'] != null ? String(row['SupplierIncomes.date']) : '',
+      lastChangeDate: row['SupplierIncomes.lastChangeDate'] != null ? String(row['SupplierIncomes.lastChangeDate']) : '',
+      count: row['SupplierIncomes.count'] != null ? Number(row['SupplierIncomes.count']) : 0,
+      totalQuantity: row['SupplierIncomes.totalQuantity'] != null ? Number(row['SupplierIncomes.totalQuantity']) : 0,
+      totalRevenue: row['SupplierIncomes.totalRevenue'] != null ? Number(row['SupplierIncomes.totalRevenue']) : 0,
+      avgPrice: row['SupplierIncomes.avgPrice'] != null ? Number(row['SupplierIncomes.avgPrice']) : 0,
+    }));
+  }, [resultSet]);
+
+  // Форматтеры
+  const currencyFormatter = (params: any) =>
+    params.value != null
+      ? (params.value as number).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : '';
+  const formatDate = (value: string) => (value ? new Date(value).toLocaleDateString('ru-RU') : '');
+  const formatDateTime = (value: string) => (value ? new Date(value).toLocaleString('ru-RU') : '');
+
+  const allColumns: ColDef<SupplierIncomeRow>[] = useMemo(
+    () => [
+      { field: 'date', headerName: 'Дата', filter: 'agDateColumnFilter', valueFormatter: ({ value }) => formatDate(value) },
+      { field: 'lastChangeDate', headerName: 'Изменено', filter: 'agDateColumnFilter', valueFormatter: ({ value }) => formatDateTime(value) },
+      { field: 'sid', headerName: 'SID' },
+      { field: 'nmid', headerName: 'NMID' },
+      { field: 'subject', headerName: 'Товар' },
+      { field: 'barcode', headerName: 'Штрихкод' },
+      { field: 'supplierArticle', headerName: 'Артикул' },
+      { field: 'techSize', headerName: 'Размер' },
+      { field: 'warehouseName', headerName: 'Склад' },
+      { field: 'incomeId', headerName: 'ID операции' },
+      { field: 'count', headerName: 'Кол-во' },
+      { field: 'totalQuantity', headerName: 'Общее кол-во' },
+      { field: 'totalRevenue', headerName: 'Выручка', valueFormatter: currencyFormatter },
+      { field: 'avgPrice', headerName: 'Средняя цена', valueFormatter: currencyFormatter },
+    ],
+    []
+  );
+
+  const [selectedFields, setSelectedFields] = useState<(keyof SupplierIncomeRow)[]>(
+    allColumns.map(c => c.field as keyof SupplierIncomeRow)
+  );
+  const toggleField = (field: keyof SupplierIncomeRow) =>
+    setSelectedFields(prev =>
+      prev.includes(field) ? prev.filter(f => f !== field) : [...prev, field]
+    );
+  const visibleColumns = useMemo(
+    () => allColumns.filter(c => selectedFields.includes(c.field as keyof SupplierIncomeRow)),
+    [allColumns, selectedFields]
+  );
+
+  const defaultColDef = useMemo<ColDef<SupplierIncomeRow>>(
+    () => ({ flex: 1, minWidth: 100, sortable: true, filter: true }),
+    []
+  );
+
+  if (isLoading) return <Loader size="sm" />;
+  if (error) return <div>Ошибка: {error.message}</div>;
 
   return (
-    <div className="ag-theme-alpine" style={{ height: '500px', width: '100%', margin: '20px 0' }}>
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={{
-          flex: 1,
-          minWidth: 100,
-          resizable: true
-        }}
-        // Tell AG Grid to use legacy CSS-based themes
-        theme="legacy"
-      />
-    </div>
+    <Flex direction="column" gap="sm">
+      {/* Меню колонок */}
+      <Flex justify="flex-end">
+        <Menu withinPortal position="bottom-end">
+          <Menu.Target>
+            <Button leftSection={<IconSettings size={14} />} size="xs">
+              Колонки
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            {allColumns.map(col => (
+              <Menu.Item
+                key={col.field}
+                closeMenuOnClick={false}
+                onClick={() => toggleField(col.field as keyof SupplierIncomeRow)}
+                rightSection={<Checkbox checked={selectedFields.includes(col.field as keyof SupplierIncomeRow)} tabIndex={-1} styles={{ input: { pointerEvents: 'none' } }} />}
+              >
+                {col.headerName}
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
+      </Flex>
+
+      {/* Таблица */}
+      <div className="ag-theme-alpine mantine-ag-grid" style={{ height: '600px' }}>
+        <AgGridReact<SupplierIncomeRow>
+          modules={[AllCommunityModule]}
+          gridOptions={{ theme: 'legacy' }}
+          rowData={rowData}
+          columnDefs={visibleColumns}
+          defaultColDef={defaultColDef}
+          animateRows
+          onCellClicked={params => {
+            if (params.colDef.field === 'warehouseName' && params.value) {
+              const value = params.value ? String(params.value) : '';
+              const existing = filters.find(f => f.dimension === 'SupplierIncomes.warehouseName' && f.values?.[0] === value);
+              console.log(existing);
+              if (existing?.values.length === 1) {
+                console.log('Removing filter');
+                console.log('existing: ', existing);
+                removeFilter('SupplierIncomes.warehouseName');
+              }
+              else {
+                setFilter({ dimension: 'SupplierIncomes.warehouseName', operator: 'equals', values: [String(params.value)] } as any);
+              }
+            }
+          }}
+        />
+      </div>
+    </Flex>
   );
 };
 

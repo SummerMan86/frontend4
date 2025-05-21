@@ -1,35 +1,70 @@
-import { createSystem, defineConfig, defaultConfig } from "@chakra-ui/react";
-import designSystem from "./designSystem";
+/* ============================ ThemeProvider.tsx ============================ */
+import React, { PropsWithChildren } from 'react';
+import {
+  MantineProvider,
+  createTheme,
+  MantineColorsTuple,
+  MantineThemeOverride,
+} from '@mantine/core';
+import designSystem from './designSystem';
+import { components } from './components';
 
-/**
- * В designSystem.ts уже есть объект `chakraTokens`, который
- * содержит все токены в формате Chakra UI v3
- * (каждый primitive обёрнут в `{ value: ... }`, а названия
- * совпадают со стандартными ключами Chakra).
- * Поэтому нам не нужны вспомогательные функции wrap/маппинг —
- * просто передаём эти токены в `defineConfig`.
- */
+// Convert number → pixel string
+const toPx = (v?: number | string) => (typeof v === 'number' ? `${v}px` : v);
+const toPxRecord = <T extends Record<string, any>>(rec?: T): Record<string, any> | undefined => {
+  if (!rec) return undefined;
+  return Object.fromEntries(
+    Object.entries(rec).map(([k, v]) => [k, typeof v === 'number' ? `${v}px` : v]),
+  );
+};
 
-const customConfig = defineConfig({
-  theme: {
-    // 👉 включаем все готовые токены из designSystem
-    ...designSystem.chakraTokens,
+// Palette ↦ Mantine 10‑tuple
+const toMantineColors = (
+  palette: Record<string, any> | undefined | null,
+): Record<string, MantineColorsTuple> => {
+  const res: Record<string, MantineColorsTuple> = {};
+  if (!palette) return res;
+  for (const [name, value] of Object.entries(palette)) {
+    const shades = Array.isArray(value)
+      ? value
+      : typeof value === 'object'
+      ? Object.keys(value)
+          .filter((k) => /^(\d+)$/.test(k))
+          .sort((a, b) => +a - +b)
+          .map((k) => (value as any)[k])
+      : [];
+    if (shades.length === 10) res[name] = shades as unknown as MantineColorsTuple;
+  }
+  return res;
+};
 
-    /**
-     * При желании здесь можно дополнить theme
-     * (например, своими компонентами или глобальными стилями):
-     * components: { ... }, styles: { global: { ... } },
-     * но базовые цвета/шрифты/spacing уже внутри chakraTokens.
-     */
+const mantineColors = toMantineColors((designSystem as any).palette);
+
+const theme: MantineThemeOverride = createTheme({
+  colors: mantineColors,
+  primaryColor: (designSystem as any).primaryColor ?? 'blue',
+
+  fontFamily: (designSystem as any).typography?.fonts?.body,
+  fontFamilyMonospace: (designSystem as any).typography?.fonts?.mono,
+  headings: {
+    fontFamily: (designSystem as any).typography?.fonts?.heading,
+    sizes: {
+      h1: { fontSize: toPx((designSystem as any).typography?.fontSizes?.['4xl']), fontWeight: "700" },
+      h2: { fontSize: toPx((designSystem as any).typography?.fontSizes?.['3xl']), fontWeight: "700" },
+      h3: { fontSize: toPx((designSystem as any).typography?.fontSizes?.['2xl']), fontWeight: "600" },
+      h4: { fontSize: toPx((designSystem as any).typography?.fontSizes?.xl), fontWeight: "600" },
+      h5: { fontSize: toPx((designSystem as any).typography?.fontSizes?.lg), fontWeight: "600" },
+      h6: { fontSize: toPx((designSystem as any).typography?.fontSizes?.md), fontWeight: "600" },
+    },
   },
+
+  spacing: toPxRecord((designSystem as any).spacing?.space) as any,
+  radius: toPxRecord((designSystem as any).borders?.radii) as any,
+  breakpoints: toPxRecord((designSystem as any).breakpoints) as any,
+
+  components,
 });
 
-/**
- * Здесь мы собираем итоговую тему через `createSystem` и экспортируем объект `system`, который затем передаётся в `<ChakraProvider value={system}>`.
- * 
- * Параметр `defaultConfig` содержит базовые (дефолтные) токены и настройки Chakra UI.
- * Если вы хотите использовать **только** свои `chakraTokens` без штатных значений Chakra,
- * замените `defaultConfig` на `defaultBaseConfig` — тогда система создаст тему **только** из ваших токенов,
- * без предварительно определённых Палитр, шрифтов и прочих значений.
- */
-export const system = createSystem(defaultConfig, customConfig);
+export const ThemeProvider = ({ children }: PropsWithChildren) => (
+  <MantineProvider theme={theme}>{children}</MantineProvider>
+);

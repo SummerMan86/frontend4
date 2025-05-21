@@ -1,22 +1,29 @@
 import React from 'react';
-import { MantineProvider } from '@mantine/core';
+import { CubeProvider } from '@cubejs-client/react';
+import cubeApi from './utils/cubeApi';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyAppShell from './components/layout/AppShell';
 import SupplierIncomesPage from './pages/SupplierIncomesPage';
+import TestPage from './pages/TestPage';
+import { ThemeProvider } from './theme';
 
-export default function App() {
+function App() {
   return (
-    <MantineProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<MyAppShell />}>
-            <Route index element={<SupplierIncomesPage />} />
-            <Route path="sales" element={<SupplierIncomesPage />} />
-            {/* остальные страницы */}
-            <Route path="*" element={<SupplierIncomesPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </MantineProvider>
+        <ThemeProvider>
+          <CubeProvider cubeApi={cubeApi}>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<MyAppShell />}>
+                <Route index element={<TestPage />} />
+                <Route path="sales" element={<SupplierIncomesPage />} />
+                {/* остальные страницы */}
+                <Route path="*" element={<TestPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+          </CubeProvider>
+        </ThemeProvider>
   );
 }
+
+export default App;

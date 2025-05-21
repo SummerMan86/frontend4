@@ -13,6 +13,8 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 // You can add your own global CSS here
 import './index.css';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+ModuleRegistry.registerModules([ AllCommunityModule ]);
 
 // Render the application
 ReactDOM.createRoot(document.getElementById('root')!).render(
