@@ -21,7 +21,7 @@ interface SupplierIncomeRow {
   warehouseName: string;
   incomeId: number;
   date: string;
-  lastChangeDate: string;
+  //lastChangeDate: string;
   count: number;
   totalQuantity: number;
   totalRevenue: number;
@@ -30,6 +30,31 @@ interface SupplierIncomeRow {
 
 const SupplierIncomesTableAG: React.FC = () => {
   const { filters, setFilter, removeFilter } = useFiltersStore();
+
+  // Разделяем дату и остальные фильтры
+  const dateFilter = filters.find(f => f.dimension === 'SupplierIncomes.date') as
+    | { values: [string, string] }
+    | undefined;
+  const otherFilters = filters.filter(f => f.dimension !== 'SupplierIncomes.date');
+
+  // Мапим в формат Cube.js
+  const timeDimensions = dateFilter
+    ? [
+        {
+          dimension: 'SupplierIncomes.date',
+          // обязательно ISO-строки
+          dateRange: dateFilter.values.map(v => new Date(v).toISOString()/*.slice(0,10)|*/),
+          granularity: 'day' as const,
+        },
+      ]
+    : [];
+    const filtersForCube = otherFilters.map(f => ({
+      member: f.dimension,          // переименовали
+      operator: f.operator,
+      values: f.values,
+    }));
+
+
 
   const { resultSet, isLoading, error } = useCubeQuery({
     measures: [
@@ -47,11 +72,10 @@ const SupplierIncomesTableAG: React.FC = () => {
       'SupplierIncomes.techSize',
       'SupplierIncomes.warehouseName',
       'SupplierIncomes.incomeId',
-      'SupplierIncomes.lastChangeDate',
     ],
-    timeDimensions: [{ dimension: 'SupplierIncomes.date', granularity: 'day' }],
+    timeDimensions: timeDimensions as any,
     order: { 'SupplierIncomes.date': 'asc' },
-    filters: filters as any,
+    filters: filtersForCube as any,
   });
 
   const rowData = useMemo<SupplierIncomeRow[]>(() => {
@@ -66,7 +90,6 @@ const SupplierIncomesTableAG: React.FC = () => {
       warehouseName: row['SupplierIncomes.warehouseName'] != null ? String(row['SupplierIncomes.warehouseName']) : '',
       incomeId: row['SupplierIncomes.incomeId'] != null ? Number(row['SupplierIncomes.incomeId']) : 0,
       date: row['SupplierIncomes.date'] != null ? String(row['SupplierIncomes.date']) : '',
-      lastChangeDate: row['SupplierIncomes.lastChangeDate'] != null ? String(row['SupplierIncomes.lastChangeDate']) : '',
       count: row['SupplierIncomes.count'] != null ? Number(row['SupplierIncomes.count']) : 0,
       totalQuantity: row['SupplierIncomes.totalQuantity'] != null ? Number(row['SupplierIncomes.totalQuantity']) : 0,
       totalRevenue: row['SupplierIncomes.totalRevenue'] != null ? Number(row['SupplierIncomes.totalRevenue']) : 0,
@@ -85,7 +108,7 @@ const SupplierIncomesTableAG: React.FC = () => {
   const allColumns: ColDef<SupplierIncomeRow>[] = useMemo(
     () => [
       { field: 'date', headerName: 'Дата', filter: 'agDateColumnFilter', valueFormatter: ({ value }) => formatDate(value) },
-      { field: 'lastChangeDate', headerName: 'Изменено', filter: 'agDateColumnFilter', valueFormatter: ({ value }) => formatDateTime(value) },
+      //{ field: 'lastChangeDate', headerName: 'Изменено', filter: 'agDateColumnFilter', valueFormatter: ({ value }) => formatDateTime(value) },
       { field: 'sid', headerName: 'SID' },
       { field: 'nmid', headerName: 'NMID' },
       { field: 'subject', headerName: 'Товар' },

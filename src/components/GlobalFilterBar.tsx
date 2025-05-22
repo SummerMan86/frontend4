@@ -1,6 +1,6 @@
 // src/components/GlobalFilterBar.tsx
 import React, { useMemo } from 'react';
-import { useFiltersStore } from '../stores/useFiltersStore';
+import { useFiltersStore, Filter } from '../stores/useFiltersStore';
 import { MultiSelect, Button, Flex, Box } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
@@ -66,10 +66,9 @@ const GlobalFilterBar: React.FC = () => {
           onChange={(v:any) => {            
             const from = v instanceof Date ? v : (v ? new Date(v) : null);
             console.log('from: ', from);            
-            const fromNormalized = from?.toISOString();//?.slice(0,10);
+            const fromNormalized = from?.toISOString()?.slice(0,10);
             const to = periodTo || today;
-            console.log('to: ', to.toISOString().slice(0,10));
-            if (from) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [fromNormalized, to.toISOString()/*.slice(0,10)*/] } as any);
+            if (from) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [from, to] } as any);
             else removeFilter('SupplierIncomes.date');
           }}
           clearable
@@ -83,7 +82,7 @@ const GlobalFilterBar: React.FC = () => {
           onChange={(v:any) => {
             const to = v as Date;
             const from = periodFrom;
-            if (from && to) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [from.toISOString().slice(0,10), to.toISOString().slice(0,10)] } as any);
+            if (from && to) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [from, to] } as any);
             else if (!from && !to) removeFilter('SupplierIncomes.date');
           }}
           clearable
