@@ -1,32 +1,71 @@
-// src/store/useFiltersStore.ts
 import { create } from 'zustand';
 
-export type Filter =
-  | { dimension: 'SupplierIncomes.date'; operator: 'between'; values: [string, string] }
-  | { dimension: 'SupplierIncomes.warehouseName'; operator: 'equals'; values: string[] }
-  | { dimension: 'SupplierIncomes.subject'; operator: 'equals'; values: string[] };
-// расширяйте по мере надобности
+/* ────────────────────────────────────────────────────────────
+   Dimensions that we support in filters
+   ──────────────────────────────────────────────────────────── */
+export type DimString =
+  | 'SupplierIncomes.warehouseName'
+  | 'SupplierIncomes.subject'
+  | 'SupplierIncomes.supplierArticle';
 
-type FiltersState = {
-  filters: Filter[];
-  setFilter: (filter: Filter) => void;
-  removeFilter: (dimension: Filter['dimension']) => void;
+export type DimDate =
+  | 'SupplierIncomes.date'
+  | 'SupplierIncomes.lastChangeDate';
+
+/* ────────── filter shapes ────────── */
+export interface EqualsFilter {
+  dimension: DimString;
+  operator: 'equals';
+  values: string[];        // multi-select – 1 or more values
+}
+
+type DateRange = [Date, Date] | null;
+
+/* ────────── zustand store ────────── */
+interface FiltersState {
+  /* string filters */
+  equalsFilters: EqualsFilter[];
+
+  /* date ranges keyed by dimension name */
+  dateRanges: Partial<Record<DimDate, DateRange>>;
+
+  /* setters */
+  setEqualsFilter: (dimension: DimString, values: string[]) => void;
+  clearEqualsFilter: (dimension: DimString) => void;
+
+  setDateRange: (dimension: DimDate, range: DateRange) => void;
+  clearDateRange: (dimension: DimDate) => void;
+
   clearAll: () => void;
-};
+}
 
 export const useFiltersStore = create<FiltersState>((set) => ({
-  filters: [],
+  equalsFilters: [],
+  dateRanges: {},
 
-  setFilter: (newFilter) =>
+  setEqualsFilter: (dim, values) =>
     set((state) => {
-      // заменяем фильтр по той же dimension, если он уже был
-      console.log('setFilter', newFilter.values[0] );
-      const others = state.filters.filter((f) => f.dimension !== newFilter.dimension);
-      return { filters: [...others, newFilter] };
+      const others = state.equalsFilters.filter((f) => f.dimension !== dim);
+      return values.length
+        ? { equalsFilters: [...others, { dimension: dim, operator: 'equals', values }] }
+        : { equalsFilters: others };
     }),
 
-  removeFilter: (dimension) =>
-    set((state) => ({ filters: state.filters.filter((f) => f.dimension !== dimension) })),
+  clearEqualsFilter: (dim) =>
+    set((state) => ({
+      equalsFilters: state.equalsFilters.filter((f) => f.dimension !== dim),
+    })),
 
-  clearAll: () => set({ filters: [] }),
+  setDateRange: (dim, range) =>
+    set((state) => ({
+      dateRanges: { ...state.dateRanges, [dim]: range },
+    })),
+
+  clearDateRange: (dim) =>
+    set((state) => {
+      const { [dim]: _, ...rest } = state.dateRanges;
+      return { dateRanges: rest };
+    }),
+
+  clearAll: () => set({ equalsFilters: [], dateRanges: {} }),
 }));

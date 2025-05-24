@@ -7,8 +7,7 @@ import GlobalFilterBar from '../components/GlobalFilterBar';
 const SupplierIncomesPage: React.FC = () => {
   return (
     <div> 
-      <GlobalFilterBar />
-      <SupplierIncomesTableAG /> 
+      <GlobalFilterBar />      
     </div>    
   );
 };

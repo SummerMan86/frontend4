@@ -1,141 +1,167 @@
 // src/components/GlobalFilterBar.tsx
 import React, { useMemo } from 'react';
-import { useFiltersStore, Filter } from '../stores/useFiltersStore';
-import { MultiSelect, Button, Flex, Box } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
+import { Flex, Box, MultiSelect, Button } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
+import { IconX } from '@tabler/icons-react';
 import { useCubeQuery } from '@cubejs-client/react';
+
+import { useFiltersStore, DimDate } from '../stores/useFiltersStore';
+import { buildQuery } from '../utils/buildQuery';
+
 import '@mantine/dates/styles.css';
 
+/* ------------------------------------------------------------------ */
+/*  local aliases – keep literals in one place                        */
+/* ------------------------------------------------------------------ */
+type EqualsDim =
+  | 'SupplierIncomes.warehouseName'
+  | 'SupplierIncomes.subject'
+  | 'SupplierIncomes.supplierArticle';
 
+const WAREHOUSE_DIM: EqualsDim = 'SupplierIncomes.warehouseName';
+const SUBJECT_DIM:   EqualsDim = 'SupplierIncomes.subject';
+const DATE_DIM:      DimDate   = 'SupplierIncomes.date';
 
-/**
- * GlobalFilterBar
- * -------------------------------------------------------------------------
- * Фильтры выровнены по левому краю и растягиваются вправо.
- */
+/* ------------------------------------------------------------------ */
+/*  helper                                                            */
+/* ------------------------------------------------------------------ */
+const toDate = (v: Date | string | null): Date | null =>
+  v instanceof Date ? v : v ? new Date(v) : null;
+
+const extractStrings = (rs: any, field: string): string[] =>
+  rs?.tablePivot()
+      .map((r: any) => r[field] as string | null)
+      .filter(Boolean) as string[] ?? [];
+
+/* ================================================================== */
+/*  Component                                                         */
+/* ================================================================== */
 const GlobalFilterBar: React.FC = () => {
-    const { filters, setFilter, removeFilter, clearAll } = useFiltersStore();
-    const get = (dim: string): any => (filters as any).find((f: any) => f.dimension === dim);
-    const today = useMemo(() => new Date(), []);
-    const periodAny = get('SupplierIncomes.date');
-    const [periodFrom, periodTo] = useMemo<[Date|null, Date|null]>(() => {
-      if (periodAny && periodAny.operator === 'between') {
-        const [from, to] = periodAny.values as [string, string];
-        return [new Date(from), new Date(to)];
-      }
-      return [null, today];
-    }, [periodAny, today]);
-  
-    // distinct warehouses
-    const { resultSet: whRs } = useCubeQuery({
-      dimensions: ['SupplierIncomes.warehouseName'],
-      measures: ['SupplierIncomes.count'],
-      order: { 'SupplierIncomes.warehouseName': 'asc' },
-      filters: (filters as any[]).filter((f) => f.dimension !== 'SupplierIncomes.warehouseName'),
-      limit: 5000,
-    });
-    const warehouses = useMemo(() => whRs?.tablePivot().map((r:any) => r['SupplierIncomes.warehouseName']) ?? [], [whRs]);
-  
-    // distinct articles
-    const { resultSet: artRs } = useCubeQuery({
-      dimensions: ['SupplierIncomes.supplierArticle'],
-      measures: ['SupplierIncomes.count'],
-      order: { 'SupplierIncomes.supplierArticle': 'asc' },
-      filters: (filters as any[]).filter((f) => f.dimension !== 'SupplierIncomes.supplierArticle'),
-      limit: 5000,
-    });
-    const articles = useMemo(() => artRs?.tablePivot().map((r:any) => r['SupplierIncomes.supplierArticle']) ?? [], [artRs]);
-    const whSel = (get('SupplierIncomes.warehouseName')?.values as string[]) ?? [];
-    const artSel = (get('SupplierIncomes.supplierArticle')?.values as string[]) ?? [];
-  
-    return (
-      <Flex
-        align="center"
-        gap="sm"
-        wrap="wrap"
-        py="xs"
-        style={{ width: '100%' }}
-      >
-        {/* Даты */}
+  /* ---------- store ---------- */
+  const {
+    equalsFilters,
+    dateRanges,
+    setEqualsFilter,
+    setDateRange,
+    clearAll,
+  } = useFiltersStore();
+
+  /* ---------- selections ---------- */
+  const whSelected   = equalsFilters.find((f) => f.dimension === WAREHOUSE_DIM)?.values ?? [];
+  const subjSelected = equalsFilters.find((f) => f.dimension === SUBJECT_DIM)?.values ?? [];
+
+  const range       = dateRanges[DATE_DIM] ?? null;   // [Date,Date] | null
+  const from        = range?.[0] ?? null;
+  const to          = range?.[1] ?? null;
+
+  /* ---------- cube helpers ---------- */
+  const { resultSet: whRs } = useCubeQuery({
+    dimensions: [WAREHOUSE_DIM],
+    order:      { [WAREHOUSE_DIM]: 'asc' },
+    ...buildQuery([WAREHOUSE_DIM]),
+  });
+  const warehouses = useMemo(
+    () => extractStrings(whRs, WAREHOUSE_DIM),
+    [whRs],
+  );
+
+  const { resultSet: subjRs } = useCubeQuery({
+    dimensions: [SUBJECT_DIM],
+    order:      { [SUBJECT_DIM]: 'asc' },
+    ...buildQuery([SUBJECT_DIM]),
+  });
+  const subjects = useMemo(
+    () => extractStrings(subjRs, SUBJECT_DIM),
+    [subjRs],
+  );
+
+  /* ---------- render ---------- */
+  return (
+    <Flex align="center" gap="sm" wrap="wrap" py="xs" style={{ width: '100%' }}>
+      {/* date from */}
+      <Box style={{ flex: 1, minWidth: 150 }}>
         <DatePickerInput
           size="sm"
           label="Дата с"
           placeholder="Начало"
-          value={periodFrom}
-          onChange={(v:any) => {            
-            const from = v instanceof Date ? v : (v ? new Date(v) : null);
-            console.log('from: ', from);            
-            const fromNormalized = from?.toISOString()?.slice(0,10);
-            const to = periodTo || today;
-            if (from) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [from, to] } as any);
-            else removeFilter('SupplierIncomes.date');
-          }}
+          value={from}
           clearable
-          style={{ flex: 1, minWidth: 150 }}
+          onChange={(val) => {
+            const d = toDate(val);
+            if (!d) {
+              // clear “from”
+              to ? setDateRange(DATE_DIM, [to, to]) : setDateRange(DATE_DIM, null);
+            } else {
+              setDateRange(DATE_DIM, [d, to ?? d]);
+            }
+          }}
         />
+      </Box>
+
+      {/* date to */}
+      <Box style={{ flex: 1, minWidth: 150 }}>
         <DatePickerInput
           size="sm"
           label="Дата по"
           placeholder="Конец"
-          value={periodTo}
-          onChange={(v:any) => {
-            const to = v as Date;
-            const from = periodFrom;
-            if (from && to) setFilter({ dimension: 'SupplierIncomes.date', operator: 'between', values: [from, to] } as any);
-            else if (!from && !to) removeFilter('SupplierIncomes.date');
-          }}
+          value={to}
           clearable
-          style={{ flex: 1, minWidth: 150 }}
+          onChange={(val) => {
+            const d = toDate(val);
+            if (!d) {
+              // clear “to”
+              from ? setDateRange(DATE_DIM, [from, from]) : setDateRange(DATE_DIM, null);
+            } else {
+              setDateRange(DATE_DIM, [from ?? d, d]);
+            }
+          }}
         />
-  
-        {/* Склад */}
+      </Box>
+
+      {/* warehouse */}
+      <Box style={{ flex: 1, minWidth: 200 }}>
         <MultiSelect
           size="sm"
-          data={warehouses}
           label="Склад"
           placeholder="Все"
+          data={warehouses}
           searchable
           clearable
-          value={whSel}
-          onChange={(v:any) => v.length
-            ? setFilter({ dimension: 'SupplierIncomes.warehouseName', operator: 'equals', values: v } as any)
-            : removeFilter('SupplierIncomes.warehouseName')
-          }
-          style={{ flex: 1, minWidth: 200 }}
+          //noOptionsMessage="Не найдено"
+          value={whSelected}
+          onChange={(vals) => setEqualsFilter(WAREHOUSE_DIM, vals)}
         />
-  
-        {/* Артикул */}
+      </Box>
+
+      {/* subject / article */}
+      <Box style={{ flex: 1, minWidth: 200 }}>
         <MultiSelect
           size="sm"
-          data={articles}
           label="Артикул"
           placeholder="Все"
+          data={subjects}
           searchable
           clearable
-          value={artSel}
-          onChange={(v:any) => v.length
-            ? setFilter({ dimension: 'SupplierIncomes.supplierArticle', operator: 'equals', values: v } as any)
-            : removeFilter('SupplierIncomes.supplierArticle' as any)
-          }
-          style={{ flex: 1, minWidth: 200 }}
+          //noOptionsMessage="Не найдено"
+          value={subjSelected}
+          onChange={(vals) => setEqualsFilter(SUBJECT_DIM, vals)}
         />
-  
-        {/* Сброс */}
-        {filters.length > 0 && (
-          <Button
-            variant="light"
-            size="sm"
-            onClick={clearAll}
-            leftSection={<IconX size={14} />}
-            style={{ flex: 'none' }}
-          >
-            Сбросить
-          </Button>
-        )}
-      </Flex>
-    );
-  };
-  
-  export default GlobalFilterBar;
-  
+      </Box>
+
+      {/* reset */}
+      {(equalsFilters.length || Object.keys(dateRanges).length) && (
+        <Button
+          variant="light"
+          size="sm"
+          onClick={clearAll}
+          leftSection={<IconX size={14} />}
+          style={{ flex: 'none' }}
+        >
+          Сбросить
+        </Button>
+      )}
+    </Flex>
+  );
+};
+
+export default GlobalFilterBar;
