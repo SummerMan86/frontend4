@@ -17,18 +17,14 @@ const GlobalFilterBar: React.FC = () => {
     clearAll,
   } = useFiltersStore();
 
-  // -----------------------------------------------------------------------
-  // Current date range for SupplierIncomes.date
-  // -----------------------------------------------------------------------
+  // Date range state for 'SupplierIncomes.date'
   const periodRange = dateRanges['SupplierIncomes.date'];
   const [periodFrom, periodTo] = (periodRange ?? [null, null]) as [
     Date | null,
     Date | null,
   ];
 
-  // -----------------------------------------------------------------------
-  // Warehouse list (exclude own filter)
-  // -----------------------------------------------------------------------
+  // Warehouse query (excluding its own filter)
   const whQuery = useMemo(
     () => ({
       dimensions: ['SupplierIncomes.warehouseName'] as const,
@@ -36,19 +32,17 @@ const GlobalFilterBar: React.FC = () => {
       order: { 'SupplierIncomes.warehouseName': 'asc' } as const,
       ...buildQuery(['SupplierIncomes.warehouseName']),
     }),
-    [filters, dateRanges]
+    [filters, dateRanges],
   );
   const { resultSet: whRs } = useCubeQuery(whQuery);
   const warehouses = useMemo(
     () => whRs?.tablePivot().map((r: any) => r['SupplierIncomes.warehouseName']) ?? [],
-    [whRs]
+    [whRs],
   );
   const whSel =
     filters.find((f) => f.dimension === 'SupplierIncomes.warehouseName')?.values ?? [];
 
-  // -----------------------------------------------------------------------
-  // Article list (exclude own filter)
-  // -----------------------------------------------------------------------
+  // Article query (excluding its own filter)
   const artQuery = useMemo(
     () => ({
       dimensions: ['SupplierIncomes.supplierArticle'] as const,
@@ -56,30 +50,27 @@ const GlobalFilterBar: React.FC = () => {
       order: { 'SupplierIncomes.supplierArticle': 'asc' } as const,
       ...buildQuery(['SupplierIncomes.supplierArticle']),
     }),
-    [filters, dateRanges]
+    [filters, dateRanges],
   );
   const { resultSet: artRs } = useCubeQuery(artQuery);
   const articles = useMemo(
     () => artRs?.tablePivot().map((r: any) => r['SupplierIncomes.supplierArticle']) ?? [],
-    [artRs]
+    [artRs],
   );
   const artSel =
     filters.find((f) => f.dimension === 'SupplierIncomes.supplierArticle')?.values ?? [];
 
-  // -----------------------------------------------------------------------
-  // Render
-  // -----------------------------------------------------------------------
   return (
     <Flex align="center" gap="sm" wrap="wrap" py="xs" style={{ width: '100%' }}>
       {/* Date range picker */}
-      <DatePickerInput
+      <DatePickerInput<'range'>
         type="range"
         size="sm"
         label="Дата"
         placeholder="Выберите период"
-        value={periodFrom && periodTo ? [periodFrom, periodTo] : undefined}
+        value={periodFrom && periodTo ? ([periodFrom, periodTo] as [Date, Date]) : undefined}
         onChange={(val) => {
-          if (val && val[0] && val[1]) {
+          if (Array.isArray(val) && val[0] && val[1]) {
             setDateRange('SupplierIncomes.date', [new Date(val[0]), new Date(val[1])]);
           } else {
             setDateRange('SupplierIncomes.date', null);
@@ -97,7 +88,6 @@ const GlobalFilterBar: React.FC = () => {
         data={warehouses}
         searchable
         clearable
-        nothingFoundMessage="Нет значений"
         value={whSel}
         onChange={(v) =>
           v.length
@@ -119,7 +109,6 @@ const GlobalFilterBar: React.FC = () => {
         data={articles}
         searchable
         clearable
-        nothingFoundMessage="Нет значений"
         value={artSel}
         onChange={(v) =>
           v.length
