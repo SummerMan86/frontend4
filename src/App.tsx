@@ -4,6 +4,7 @@ import cubeApi from './utils/cubeApi';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyAppShell from './components/layout/AppShell';
 import SupplierIncomesPage from './pages/SupplierIncomesPage';
+import KpiDashboardPage from './pages/KpiDashboardPage';
 import TestPage from './pages/TestPage';
 import { ThemeProvider } from './theme';
 
@@ -15,6 +16,7 @@ function App() {
             <Routes>
               <Route element={<MyAppShell />}>
                 <Route index element={<TestPage />} />
+                <Route path="inventory" element={<KpiDashboardPage />} />
                 <Route path="sales" element={<SupplierIncomesPage />} />
                 {/* остальные страницы */}
                 <Route path="*" element={<TestPage />} />

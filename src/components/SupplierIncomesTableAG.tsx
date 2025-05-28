@@ -4,8 +4,9 @@ import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ColDef } from 'ag-grid-community';
 import { Menu, Button, Checkbox, Flex, Loader } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
-import { useCubeQuery } from '@cubejs-client/react';
 import { useFiltersStore } from '../stores/useFiltersStore';
+import { buildQuery } from '../utils/buildQuery';
+import { useCubeQuery } from '@cubejs-client/react';
 // AG Grid CSS
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -29,34 +30,10 @@ interface SupplierIncomeRow {
 }
 
 const SupplierIncomesTableAG: React.FC = () => {
-  const { filters, setFilter, removeFilter } = useFiltersStore();
+  const { dateRanges, filters, setFilter, removeFilter } = useFiltersStore();
 
-  // Разделяем дату и остальные фильтры
-  const dateFilter = filters.find(f => f.dimension === 'SupplierIncomes.date') as
-    | { values: [string, string] }
-    | undefined;
-  const otherFilters = filters.filter(f => f.dimension !== 'SupplierIncomes.date');
-
-  // Мапим в формат Cube.js
-  const timeDimensions = dateFilter
-    ? [
-        {
-          dimension: 'SupplierIncomes.date',
-          // обязательно ISO-строки
-          dateRange: dateFilter.values.map(v => new Date(v).toISOString()/*.slice(0,10)|*/),
-          granularity: 'day' as const,
-        },
-      ]
-    : [];
-    const filtersForCube = otherFilters.map(f => ({
-      member: f.dimension,          // переименовали
-      operator: f.operator,
-      values: f.values,
-    }));
-
-
-
-  const { resultSet, isLoading, error } = useCubeQuery({
+  // query Cube.js
+  const query = {
     measures: [
       'SupplierIncomes.count',
       'SupplierIncomes.totalQuantity',
@@ -73,10 +50,22 @@ const SupplierIncomesTableAG: React.FC = () => {
       'SupplierIncomes.warehouseName',
       'SupplierIncomes.incomeId',
     ],
-    timeDimensions: timeDimensions as any,
-    order: { 'SupplierIncomes.date': 'asc' },
-    filters: filtersForCube as any,
-  });
+    order: { 'SupplierIncomes.date': 'asc' } as const,
+    ...buildQuery(),
+    timeDimensions: [
+      {
+        dimension: 'SupplierIncomes.date',
+        granularity: 'day',
+        dateRange: dateRanges['SupplierIncomes.date']
+          ? (dateRanges['SupplierIncomes.date'].map((d) =>
+              d.toISOString().slice(0, 10)
+            ) as [string, string])
+          : undefined,
+      },
+    ],
+  };
+
+  const { resultSet, isLoading, error } = useCubeQuery(query);
 
   const rowData = useMemo<SupplierIncomeRow[]>(() => {
     if (!resultSet) return [];
@@ -171,7 +160,7 @@ const SupplierIncomesTableAG: React.FC = () => {
       </Flex>
 
       {/* Таблица */}
-      <div className="ag-theme-alpine mantine-ag-grid" style={{ height: '600px' }}>
+      <div className="ag-theme-alpine mantine-ag-grid" style={{ height: '300px' }}>
         <AgGridReact<SupplierIncomeRow>
           modules={[AllCommunityModule]}
           gridOptions={{ theme: 'legacy' }}

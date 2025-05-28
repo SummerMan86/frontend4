@@ -11,6 +11,8 @@ import App from './App';
 // Import global styles (if you have any)
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import { MantineProvider } from '@mantine/core';
+import { MantineEmotionProvider } from '@mantine/emotion';
 // You can add your own global CSS here
 import './index.css';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -19,7 +21,11 @@ ModuleRegistry.registerModules([ AllCommunityModule ]);
 // Render the application
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+  <MantineEmotionProvider>
+    <MantineProvider>
+      <App />
+    </MantineProvider>
+  </MantineEmotionProvider>
   </React.StrictMode>
 );
 /*import React from 'react';

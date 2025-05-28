@@ -20,11 +20,11 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 /* Маршруты → подписи */
 const PATH_LABELS = {
   '/': 'Дашборд',
-  '/sales': 'Продажи',
+  '/sales': 'Поставки',
   '/inventory': 'Запасы',
-  '/marketplace': 'Маркетплейс',
+  '/marketplace': 'Продажи',
   '/supplier-incomes': 'Доходы поставщика',
-  '/reports': 'Отчёты',
+  '/reports': 'Доходы',
   '/settings': 'Настройки',
 } as const;
 type PathKey = keyof typeof PATH_LABELS;
