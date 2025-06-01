@@ -1,104 +1,186 @@
-// KPI Dashboard – Mantine 8 + React + echarts-for-react
-// ------------------------------------------------------
-// • Помещён в один файл для наглядности (KpiDashboardPage.tsx)
-// • Используются только публичные библиотеки: @mantine/* и echarts-for-react
-// • Данные моковые, хранятся внутри компонента, легко заменить API‑данными
-// ------------------------------------------------------
-
 import React from 'react';
 import {
   Card,
   Group,
   Text,
-  Stack,
   SimpleGrid,
   Table,
-  Progress,
   Badge,
   ThemeIcon,
-  Divider,
   Container,
-  MantineProvider,
+  Title,
+  Stack,
+  useMantineTheme,
 } from '@mantine/core';
 import { IconArrowUpRight, IconArrowDownRight } from '@tabler/icons-react';
 import ReactECharts from 'echarts-for-react';
+import { ThemeProvider } from '../theme';
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Вспомогательный компонент KPI‑карточки (в духе StatsCard)
-// ──────────────────────────────────────────────────────────────────────────────
 interface StatsCardProps {
   title: string;
   value: string | number;
-  diff?: number; // динамика в %
+  change?: number;
+  icon?: React.ReactNode;
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, diff }) => {
-  const positive = diff !== undefined && diff > 0;
-  const negative = diff !== undefined && diff < 0;
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => {
+  const theme = useMantineTheme();
+  const isPositive = change !== undefined && change > 0;
+  const isNegative = change !== undefined && change < 0;
 
   return (
-    <Card radius="md" withBorder padding="md">
-      <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-        {title}
-      </Text>
-
-      <Group align="flex-end" mt={4} gap={4}>
-        <Text fz="xl" fw={700}>
-          {value}
-        </Text>
-        {diff !== undefined && (
-          <Group gap={2} align="center" c={positive ? 'teal.6' : negative ? 'red.6' : 'gray.6'}>
-            <ThemeIcon variant="light" size="sm" color={positive ? 'teal' : negative ? 'red' : 'gray'}>
-              {positive ? <IconArrowUpRight size={14} /> : <IconArrowDownRight size={14} />}
+    <Card>
+      <Stack gap="sm">
+        {/* Заголовок - используем токены темы */}
+        <Group justify="space-between">
+          <Text 
+            size={theme.other.dashboardFontTiny}
+            fw={theme.other.dashboardFontWeightMedium}
+            c={theme.other.dashboardTextMuted}
+            tt="uppercase"
+            style={{ letterSpacing: theme.other.dashboardLetterSpacingWider }}
+          >
+            {title}
+          </Text>
+          {icon && (
+            <ThemeIcon variant="light" size="sm" color="neutral">
+              {icon}
             </ThemeIcon>
-            <Text size="xs" fw={700}>
-              {diff}%
-            </Text>
-          </Group>
-        )}
-      </Group>
+          )}
+        </Group>
 
-      
+        {/* Значение и изменение */}
+        <Group align="flex-end" gap="xs">
+          <Text 
+            size={theme.other.dashboardFontLarge}
+            fw={theme.other.dashboardFontWeightBold}
+            c={theme.other.dashboardTextPrimary}
+            style={{ 
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: theme.other.dashboardLetterSpacingTight,
+              lineHeight: theme.other.dashboardLineHeightTight,
+            }}
+          >
+            {value}
+          </Text>
+          
+          {change !== undefined && (
+            <Stack gap={2} align="flex-end">
+              {/* Стрелка и процент */}
+              <Group gap={4} align="center">
+                <ThemeIcon 
+                  variant="light" 
+                  size={20} 
+                  color={isPositive ? 'success' : isNegative ? 'error' : 'neutral'}
+                >
+                  {isPositive ? (
+                    <IconArrowUpRight size={12} />
+                  ) : (
+                    <IconArrowDownRight size={12} />
+                  )}
+                </ThemeIcon>
+                <Text 
+                  size="sm"
+                  fw={theme.other.dashboardFontWeightSemibold}
+                  c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'neutral.6'}
+                  style={{ 
+                    fontVariantNumeric: 'tabular-nums',
+                    lineHeight: theme.other.dashboardLineHeightTight,
+                  }}
+                >
+                  {Math.abs(change)}%
+                </Text>
+              </Group>
+              
+              {/* Подпись "vs среднее" */}
+              <Text 
+                size="9px"
+                c={theme.other.dashboardTextMuted}
+                style={{ lineHeight: theme.other.dashboardLineHeightTight }}
+              >
+                vs среднее
+              </Text>
+            </Stack>
+          )}
+        </Group>
+      </Stack>
     </Card>
   );
 };
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Основной компонент страницы
-// ──────────────────────────────────────────────────────────────────────────────
-export default function KpiDashboardPage2() {
-  // Мок‑данные для примера
+function KpiDashboard() {
+  const theme = useMantineTheme();
+  
   const kpiData = [
-    { title: 'Продажи за день', value: '1 045 000 ₽', diff: 8 },
-    { title: 'Заказы за день', value: 547, diff: 12 },
-    { title: 'Прибыль за день', value: '210 400 ₽', diff: 5 },
-    { title: 'Возвраты', value: '42 шт.', diff: -3 },
+    { title: 'Продажи за день', value: '1 045 000 ₽', change: 8 },
+    { title: 'Заказы за день', value: 547, change: 12 },
+    { title: 'Прибыль за день', value: '210 400 ₽', change: 5 },
+    { title: 'Возвраты', value: '42 шт.', change: -3 },
   ];
 
-  // Данные для графика (sales & profit)
+  // График с токенами темы
   const chartOption: echarts.EChartsOption = {
-    tooltip: { trigger: 'axis' },
-    grid: { left: 40, right: 20, top: 30, bottom: 30 },
+    tooltip: { 
+      trigger: 'axis',
+      backgroundColor: theme.colors.neutral[0],
+      borderColor: theme.other.dashboardCardBorder,
+      borderWidth: 1,
+      textStyle: {
+        fontFamily: theme.fontFamily,
+        fontSize: 13,
+        color: theme.other.dashboardTextPrimary,
+      },
+    },
+    
+    grid: { left: 60, right: 40, top: 50, bottom: 50 },
+    
     xAxis: {
       type: 'category',
       data: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
       axisLine: { show: false },
       axisTick: { show: false },
+      axisLabel: {
+        fontFamily: theme.fontFamily,
+        fontSize: 12,
+        color: theme.other.dashboardTextSecondary,
+        fontWeight: 500,
+      }
     },
+    
     yAxis: {
       type: 'value',
       axisLine: { show: false },
-      splitLine: { lineStyle: { color: '#efefef' } },
+      axisTick: { show: false },
+      splitLine: { 
+        lineStyle: { 
+          color: theme.colors.neutral[1],
+          width: 1,
+        } 
+      },
+      axisLabel: {
+        fontFamily: theme.fontFamily,
+        fontSize: 11,
+        color: theme.other.dashboardTextSecondary,
+      }
     },
-    color: ['#1c7ed6', '#0ca678'],
+    
+    // Используем цвета из токенов
+    color: [
+      theme.colors.brand[6],    // Основной синий
+      theme.colors.success[5]   // Зеленый успеха
+    ],
+    
     series: [
       {
         name: 'Продажи, ₽',
         type: 'bar',
         data: [120, 200, 150, 80, 70, 110, 130],
-        barWidth: 14,
+        barWidth: 20,
         itemStyle: {
-          borderRadius: [4, 4, 0, 0],
+          borderRadius: [6, 6, 0, 0],
+          shadowColor: `${theme.colors.brand[6]}40`,
+          shadowBlur: 10,
+          shadowOffsetY: 4,
         },
       },
       {
@@ -106,81 +188,116 @@ export default function KpiDashboardPage2() {
         type: 'line',
         smooth: true,
         data: [30, 65, 50, 30, 28, 45, 60],
+        lineStyle: {
+          width: 3,
+          shadowColor: `${theme.colors.success[5]}40`,
+          shadowBlur: 10,
+          shadowOffsetY: 4,
+        },
+        symbol: 'circle',
+        symbolSize: 6,
       },
     ],
   };
 
-  // Таблица проблемных SKU (мок)
   const problemRows = [
     {
       sku: 'SKU‑001',
       stock: 12,
       daysLeft: 3,
-      lastRating: 3,
-      ratingAvg: 3.8,
+      rating: 3,
+      avgRating: 3.8,
       returns: '8% (5 шт.)',
     },
     {
       sku: 'SKU‑007',
       stock: 5,
       daysLeft: 2,
-      lastRating: 5,
-      ratingAvg: 4.9,
+      rating: 5,
+      avgRating: 4.9,
       returns: '1% (1 шт.)',
     },
   ];
 
   return (
-      <Container size="lg" py="lg">
-        {/* KPI grid */}
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="lg">
-          {kpiData.map((k) => (
-            <StatsCard key={k.title} {...k} />
-          ))}
-        </SimpleGrid>
+    <Container>
+      {/* Заголовок - автоматически использует токены из темы */}
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>KPI Dashboard</Title>
+        <Text size="lg" c="dimmed">
+          Мониторинг ключевых показателей эффективности
+        </Text>
+      </Stack>
 
-        <Divider my="lg" />
+      {/* KPI карточки */}
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl" mb="xl">
+        {kpiData.map((item) => (
+          <StatsCard key={item.title} {...item} />
+        ))}
+      </SimpleGrid>
 
-        {/* График продаж/прибыли */}
-        <Card withBorder radius="md" p="md" mb="lg">
-          <Text size="sm" c="dimmed" fw={600} mb="xs">
-            Динамика продаж и прибыли (₽)
+      {/* График */}
+      <Card mb="xl">
+        <Stack gap="lg">
+          <Text size="lg" fw={600} c={theme.other.dashboardTextSecondary}>
+            Динамика продаж и прибыли
           </Text>
-          <ReactECharts option={chartOption} style={{ height: 300 }} />
-        </Card>
+          <ReactECharts option={chartOption} style={{ height: 360 }} />
+        </Stack>
+      </Card>
 
-        {/* Таблица проблемных SKU */}
-        <Card withBorder radius="md" p="md">
-          <Text size="sm" c="dimmed" fw={600} mb="xs">
-            Проблемные SKU (остаток, рейтинг, возвраты)
+      {/* Таблица - автоматически использует стили из components.ts */}
+      <Card>
+        <Stack gap="lg">
+          <Text size="lg" fw={600} c={theme.other.dashboardTextSecondary}>
+            Проблемные SKU
           </Text>
-          <Table striped highlightOnHover withColumnBorders={false}>
+          
+          <Table>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>SKU</Table.Th>
                 <Table.Th>Остаток</Table.Th>
                 <Table.Th>Хватит на</Table.Th>
-                <Table.Th>Последняя оценка</Table.Th>
-                <Table.Th>Средний рейтинг</Table.Th>
+                <Table.Th>Оценка</Table.Th>
+                <Table.Th>Рейтинг</Table.Th>
                 <Table.Th>Возвраты</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {problemRows.map((row) => (
                 <Table.Tr key={row.sku}>
-                  <Table.Td>{row.sku}</Table.Td>
-                  <Table.Td>{row.stock}</Table.Td>
-                  <Table.Td>{row.daysLeft} дн.</Table.Td>
-                  <Table.Td>
-                    <Badge color={row.lastRating < 4 ? 'red' : 'green'}>{row.lastRating}</Badge>
+                  <Table.Td 
+                    style={{ 
+                      fontFamily: theme.fontFamilyMonospace,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {row.sku}
                   </Table.Td>
-                  <Table.Td>{row.ratingAvg}</Table.Td>
+                  <Table.Td>{row.stock}</Table.Td>
+                  <Table.Td>{row.daysLeft} дн.</Table.Td>
+                  <Table.Td>
+                    <Badge color={row.rating < 4 ? 'error' : 'success'}>
+                      {row.rating}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>{row.avgRating}</Table.Td>
                   <Table.Td>{row.returns}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
           </Table>
-        </Card>
-      </Container>
+        </Stack>
+      </Card>
+    </Container>
+  );
+}
+
+export default function KpiDashboardPage2() {
+  return (
+    <ThemeProvider>
+      <KpiDashboard />
+    </ThemeProvider>
   );
 }

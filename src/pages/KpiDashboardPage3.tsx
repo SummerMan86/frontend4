@@ -85,7 +85,7 @@ const KpiDashboardPage3: React.FC = () => {
       {
         name: 'Продажи, ₽',
         type: 'bar',
-        data: ['120', '200', '150', '80', '70', '110', '130'], // строки
+        data: ['120', '200', '150', '80', '70', '110', '130'],
         barWidth: 14,
         itemStyle: { borderRadius: [4, 4, 0, 0] },
       },
@@ -98,7 +98,7 @@ const KpiDashboardPage3: React.FC = () => {
     ],
   };
 
-  // Только строки!
+  // Все значения — строки!
   const problems = [
     { sku: 'SKU-001', stock: '12', daysLeft: '3', lastRating: '3', ratingAvg: '3.8', returns: '8% (5 шт.)' },
     { sku: 'SKU-007', stock: '5', daysLeft: '2', lastRating: '5', ratingAvg: '4.9', returns: '1% (1 шт.)' },
@@ -110,12 +110,12 @@ const KpiDashboardPage3: React.FC = () => {
         fontFamily: 'SBSans Text, Inter, sans-serif',
         headings: { fontFamily: 'SBSans Text, sans-serif' },
         colors: {},
-        radius: { xs: 2, sm: 4, md: 6, lg: 8 },
-        spacing: { xs: 4, sm: 8, md: 16, lg: 24 },
+        radius: { xs: '2px', sm: '4px', md: '6px', lg: '8px' },
+        spacing: { xs: '4px', sm: '8px', md: '16px', lg: '24px' },
       }}
     >
       <Container size="lg" py="md">
-        {/* Фильтры сверху */}
+        {/* Фильтры сверху (по необходимости добавь сюда компоненты фильтра) */}
         <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="lg">
           {kpis.map((k) => (
             <StatsCard key={k.title} {...k} />
@@ -164,6 +164,6 @@ const KpiDashboardPage3: React.FC = () => {
       </Container>
     </MantineProvider>
   );
-};
+}
 
 export default KpiDashboardPage3;
