@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyAppShell from './components/layout/AppShell';
 import SupplierIncomesPage from './pages/SupplierIncomesPage';
 import KpiDashboardPage from './pages/KpiDashboardPage';
+import KpiDashboardPage2 from './pages/KpiDashboardPage2';
 import TestPage from './pages/TestPage';
 import { ThemeProvider } from './theme';
 
@@ -15,7 +16,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<MyAppShell />}>
-                <Route index element={<TestPage />} />
+                <Route index element={<KpiDashboardPage2 />} />
                 <Route path="inventory" element={<KpiDashboardPage />} />
                 <Route path="sales" element={<SupplierIncomesPage />} />
                 {/* остальные страницы */}

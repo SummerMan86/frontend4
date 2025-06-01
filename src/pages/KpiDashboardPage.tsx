@@ -1,165 +1,225 @@
-// src/pages/KpiDashboardPage.tsx
 import React from 'react';
 import {
   Card,
-  Grid,
   Stack,
-  Text,
-  ThemeIcon,
   Group,
-  DefaultMantineColor,
+  Text,
+  Title,
+  Progress,
+  ThemeIcon,
+  Divider,
+  rem, Tooltip, Badge, Button
 } from '@mantine/core';
-import { createStyles } from '@mantine/styles';
-import type { MantineTheme } from '@mantine/styles';
-import {
-  IconTrendingUp,
-  IconCurrencyRubel,
-  IconPackage,
-} from '@tabler/icons-react';
+import { IconArrowUpRight, IconArrowDownRight, IconCircleFilled } from '@tabler/icons-react';
 
-const useStyles = createStyles((theme: MantineTheme) => ({
-  rootCard: {
-    borderRadius: theme.radius.lg,
-    overflow: 'hidden',
-    backgroundColor: theme.colors.gray[0],
-    boxShadow: theme.shadows.sm,
-  },
 
-  header: {
-    background: theme.colors.violet[6],
-    color: theme.white,
-    padding: '6px 10px',
-    fontWeight: 600,
-    fontSize: theme.fontSizes.sm,
-  },
 
-  inner: {
-    border: `1px solid ${theme.colors.gray[3]}`,
-    borderRadius: theme.radius.sm,
-    background: theme.white,
-  },
+type RowKpi = {
+    label: string;
+    value: string | number;
+    diff: number;
+    positive: boolean;
+    unit?: string;
+    progress?: number;
+    subLabel?: string; // ← новое поле для подписи
+  };
+  
+  type MultiKpiCardProps = {
+    title: string;
+    rows: RowKpi[];
+  };
+  
+  function MultiKpiCard({ title, rows }: MultiKpiCardProps) {
+    return (
+      <Card shadow="xs" radius="md" p="md" style={{ minWidth: 300, background: "#fff" }}>
+        <Text size="xs" c="dimmed" fw={600} tt="uppercase" mb={8}>
+          {title}
+        </Text>
+        <Stack gap={10}>
+          {rows.map((row, idx) => (
+            <Group key={idx} justify="space-between" align="flex-start">
+              <Text size="sm" c="dimmed">{row.label}</Text>
+              <Stack gap={0} align="end">
+                <Group gap={6} align="center">
+                  <Text size="sm" fw={700}>
+                    {row.value}
+                    {row.unit && <Text component="span" size="xs" c="dimmed">{row.unit}</Text>}
+                  </Text>
+                  <Group gap={2}>
+                    <Text size="xs" fw={600} c={row.positive ? 'green' : 'red'}>
+                      {row.positive ? '+' : ''}
+                      {row.diff}%
+                    </Text>
+                    <ThemeIcon color={row.positive ? 'green' : 'red'} variant="light" size="xs">
+                      {row.positive ? <IconArrowUpRight size={14} /> : <IconArrowDownRight size={14} />}
+                    </ThemeIcon>
+                  </Group>
+                </Group>
+                {row.subLabel && (
+                  <Text size="xs" c="dimmed" lh={1} mt={2}>
+                    {row.subLabel}
+                  </Text>
+                )}
+                {row.progress !== undefined && (
+                  <Progress value={row.progress} size="xs" w={48} radius="xl" color={row.positive ? 'green' : 'red'} />
+                )}
+              </Stack>
+            </Group>
+          ))}
+        </Stack>
+      </Card>
+    );
+  }
+  
 
-  kpiValue: {
-    fontSize: 28,
-    fontWeight: 700,
-    lineHeight: 1,
-  },
 
-  kpiUnit: {
-    marginLeft: 4,
-    fontSize: theme.fontSizes.md,
-    fontWeight: 500,
-  },
 
-  footRow: {
-    borderTop: `1px solid ${theme.colors.gray[3]}`,
-    padding: '4px 8px',
-    fontSize: theme.fontSizes.xs,
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-}));
 
-type KpiFootnote = { label: string; value: string };
-type KpiCardData = {
-  title: string;
-  value: string;
-  unit?: string;
-  color: DefaultMantineColor;
-  icon: React.ReactNode;
-  subtitle?: string;
-  footnotes?: KpiFootnote[];
-};
-
-const kpiData: KpiCardData[] = [
-  {
-    title: 'Заказы за период',
-    value: '540 254',
-    unit: '₽',
-    color: 'violet',
-    icon: <IconPackage size={24} />,
-    subtitle: '274 ед.',
-    footnotes: [
-      { label: 'Органика', value: '455 403 ₽' },
-      { label: 'Заказы из АРК', value: '121 551 ₽' },
-      { label: 'Упущенная выручка', value: '40 019 ₽' },
-    ],
-  },
-  {
-    title: 'Продажи до СПП',
-    value: '55 799',
-    unit: '₽',
-    color: 'blue',
-    icon: <IconTrendingUp size={24} />,
-    subtitle: '21 ед.',
-    footnotes: [
-      { label: 'Продажи после СПП', value: '42 270 ₽' },
-      { label: 'Упущенная выручка', value: '4 467 ₽' },
-    ],
-  },
-  {
-    title: 'Расходы',
-    value: '17 601',
-    unit: '₽',
-    color: 'red',
-    icon: <IconCurrencyRubel size={24} />,
-    subtitle: '32 %',
-    footnotes: [
-      { label: 'Платная комиссия', value: '11 573 ₽' },
-      { label: 'Логистика WB', value: '5 948 ₽' },
-      { label: 'Штрафы', value: '80 ₽' },
-    ],
-  },
-  // и т. д.
-];
-
-const KPICard: React.FC<KpiCardData> = ({
-  title,
-  value,
-  unit,
-  color,
-  icon,
-  subtitle,
-  footnotes,
-}) => {
-  const { classes } = useStyles();
-  return (
-    <Card withBorder p={0} className={classes.rootCard}>
-      <div className={classes.header}>{title}</div>
-      <Stack p="sm" gap={4}>
-        <Group align="center" gap={4}>
-          <ThemeIcon color={color} radius="md" variant="filled" size={32}>
-            {icon}
-          </ThemeIcon>
-          <Text className={classes.kpiValue} c={`${color}.9`}>
-            {value}
-            {unit && <span className={classes.kpiUnit}>{unit}</span>}
+  type KpiCardProps = {
+    label: string;
+    value: string | number;
+    diff: number;
+    unit?: string;
+    period?: string;
+    btnLabel?: string;
+    positive?: boolean;
+  };
+  
+  export function KpiCard({
+    label,
+    value,
+    diff,
+    unit,
+    period = 'Compared to previous month',
+    btnLabel = 'TODAY',
+    positive = true,
+  }: KpiCardProps) {
+    return (
+      <Card
+        shadow="xs"
+        radius="md"
+        p="md"
+        withBorder={false}
+        style={{
+          background: '#fff',
+          minWidth: rem(280),
+          minHeight: rem(120),
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Group justify="space-between" align="flex-start" mb={8}>
+          <Text size="xs" c="dimmed" fw={600} tt="uppercase" lh={1}>
+            {label}
           </Text>
+          <Button variant="light" color="blue" size="xs" radius="sm" fw={700}>
+            {btnLabel}
+          </Button>
         </Group>
-        {subtitle && (
-          <Text size="xs" c="dimmed" ml={40}>
-            {subtitle}
+        <Group align="flex-end" gap={8} mb={2}>
+          <Text size="2xl" fw={700} lh={1}>
+            {value}
           </Text>
-        )}
-      </Stack>
-      {footnotes?.map((fn, idx) => (
-        <div key={idx} className={classes.footRow}>
-          <span>{fn.label}</span>
-          <span>{fn.value}</span>
-        </div>
-      ))}
-    </Card>
-  );
-};
+          <Group gap={2}>
+            <Text
+              size="sm"
+              c={positive ? 'green' : 'red'}
+              fw={600}
+              lh={1}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              {diff}%
+              <IconArrowUpRight
+                size={16}
+                style={{
+                  marginLeft: 2,
+                  color: positive ? 'green' : 'red',
+                  transform: positive ? 'none' : 'rotate(180deg)',
+                }}
+              />
+            </Text>
+          </Group>
+        </Group>
+        <Text size="xs" c="dimmed" mt={2}>
+          {period}
+        </Text>
+      </Card>
+    );
+  }
+  
 
-const KpiDashboardPage: React.FC = () => (
-  <Grid gutter="md">
-    {kpiData.map((card, idx) => (
-      <Grid.Col key={idx} span={{ base: 12, sm: 6, lg: 3 }}>
-        <KPICard {...card} />
-      </Grid.Col>
-    ))}
-  </Grid>
+
+
+const Trend = ({ value }: { value: number }) => (
+  <Group gap={2} align="center">
+    <ThemeIcon
+      color={value > 0 ? 'teal' : 'red'}
+      size="sm"
+      radius="xl"
+      variant="light"
+    >
+      {value > 0 ? <IconArrowUpRight size={14} /> : <IconArrowDownRight size={14} />}
+    </ThemeIcon>
+    <Text c={value > 0 ? 'teal' : 'red'} size="xs" fw={700}>
+      {value > 0 ? `+${value}%` : `${value}%`}
+    </Text>
+  </Group>
 );
 
-export default KpiDashboardPage;
+export default function KpiDashboardPage() {
+    const data = {
+      total: 540254,
+      totalTrend: 12,
+      organic: { sum: 455403, percent: 84 },
+      fromAd: { sum: 121551, percent: 22 },
+      fromAuction: { sum: 15600, percent: 3 },
+      lost: 40019,
+      lostTrend: -7,
+      potential: 580273,
+      zeroSku: 7,
+    };
+  
+    return (
+      <Group align="flex-start" gap="lg">
+        {/* Левая основная карточка */}
+        <Card
+          withBorder
+          radius="md"
+          p="md"
+          style={{ borderColor: '#e6e6f2', background: '#fff', width: 340 }}
+          shadow="sm"
+        >
+          <Title
+            order={5}
+            mb="xs"
+            style={{
+              color: '#5f3dc4',
+              display: 'flex',
+              alignItems: 'center',
+              gap: rem(6),
+              fontWeight: 700,
+            }}
+          >
+            <IconCircleFilled size={16} /> ЗАКАЗЫ
+          </Title>
+          <KpiCard label="Orders" value="54,000" diff={12} unit="₽" />
+          <Stack gap={6}>
+            {/* Multi KPI style: Заказы за период */}
+            {/* ...оставьте остальной ваш код... */}
+          </Stack>
+        </Card>
+  
+        {/* Правая новая карточка с KPI построчно */}
+        <MultiKpiCard
+          title="Выполнение KPI"
+          rows={[
+            { label: "Заказов сегоднял", value: 13456, diff: 34, positive: true, unit: "₽", progress: 76, subLabel: "vs в среднем за день"},
+            { label: "Органика", value: "8,500", diff: 22, positive: true, unit: "₽", progress: 60, subLabel: "vs в среднем за день" },
+            { label: "Реклама", value: "4,000", diff: -4, positive: false, unit: "₽", progress: 45, subLabel: "vs в среднем за день" },
+            { label: "SKU с нулем", value: 7, diff: 0, positive: false, unit: "шт.", subLabel: "vs в среднем за день" }
+          ]}
+        />
+      </Group>
+    );
+  }
