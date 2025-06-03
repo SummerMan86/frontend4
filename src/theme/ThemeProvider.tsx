@@ -106,33 +106,31 @@ const theme: MantineThemeOverride = createTheme({
         fontSize: toPx(designSystem.typography.fontSizes['4xl']), 
         fontWeight: '700', // Исправлено: строка вместо числа
         lineHeight: String(designSystem.typography.lineHeights.shorter),
-        letterSpacing: designSystem.typography.letterSpacings.tight,
       },
       h2: { 
         fontSize: toPx(designSystem.typography.fontSizes['3xl']), 
         fontWeight: '700', // Исправлено: строка вместо числа
-        lineHeight: designSystem.typography.lineHeights.short,
-        letterSpacing: designSystem.typography.letterSpacings.tight,
+        lineHeight: String(designSystem.typography.lineHeights.short),
       },
       h3: { 
         fontSize: toPx(designSystem.typography.fontSizes['2xl']), 
         fontWeight: '600', // Исправлено: строка вместо числа
-        lineHeight: designSystem.typography.lineHeights.short,
+        lineHeight: String(designSystem.typography.lineHeights.short),
       },
       h4: { 
         fontSize: toPx(designSystem.typography.fontSizes.xl), 
         fontWeight: '600', // Исправлено: строка вместо числа
-        lineHeight: designSystem.typography.lineHeights.short,
+        lineHeight: String(designSystem.typography.lineHeights.short),
       },
       h5: { 
         fontSize: toPx(designSystem.typography.fontSizes.lg), 
         fontWeight: '600', // Исправлено: строка вместо числа
-        lineHeight: designSystem.typography.lineHeights.normal,
+        lineHeight: String(designSystem.typography.lineHeights.normal),
       },
       h6: { 
         fontSize: toPx(designSystem.typography.fontSizes.md), 
         fontWeight: '600', // Исправлено: строка вместо числа
-        lineHeight: designSystem.typography.lineHeights.normal,
+        lineHeight: String(designSystem.typography.lineHeights.normal),
       },
     },
   },
