@@ -419,7 +419,8 @@ export const componentOverrides: MantineThemeComponents = {
         padding: `${spacing.sm} ${spacing.md}`,
         transition: transition(['color', 'border-color']),
         
-        '&[data-active]': {
+        // FIXED: Use CSS-in-JS object format instead of CSS string
+        '&[data-active="true"]': {
           color: getColor('primary', 600),
           borderColor: getColor('primary', 500),
         },
@@ -444,7 +445,8 @@ export const componentOverrides: MantineThemeComponents = {
         fontWeight: fontWeights.medium,
         transition: transition(['background-color', 'color']),
         
-        '&[data-active]': {
+        // FIXED: Use CSS-in-JS object format instead of CSS string
+        '&[data-active="true"]': {
           backgroundColor: getColor('primary', 100),
           color: getColor('primary', 700),
         },

@@ -3,6 +3,7 @@ import React, { createContext, useContext } from 'react';
 import { MantineProvider, MantineThemeOverride } from '@mantine/core';
 import { theme as baseTheme } from './theme.tokens';
 import componentOverrides from './theme.components';
+import themeTokens from './theme.tokens'; // Add this import
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
@@ -37,8 +38,8 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // Import tokens and utils
-  const { tokens, utils } = require('./theme.tokens').default;
+  // Import tokens and utils - FIXED: Replace require() with destructured import
+  const { tokens, utils } = themeTokens;
 
   const contextValue: ThemeContextType = {
     theme,

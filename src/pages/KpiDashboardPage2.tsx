@@ -35,14 +35,14 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
       <Text
         size="xs"
         fw={500}
-        c="neutral.6"
+        c="gray.6"
         tt="uppercase"
         style={{ letterSpacing: '0.05em' }}
       >
         {title}
       </Text>
       {icon && (
-        <ThemeIcon variant="light" size="sm" color="neutral">
+        <ThemeIcon variant="light" size="sm" color="gray">
           {icon}
         </ThemeIcon>
       )}
@@ -52,7 +52,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
       <Text
         size="xl"
         fw={700}
-        c="neutral.9"
+        c="gray.9"
         style={{
           fontVariantNumeric: 'tabular-nums',
           letterSpacing: '-0.015em',
@@ -76,7 +76,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
             <ThemeIcon
               variant="light"
               size={16}
-              color={isPositive ? 'success' : isNegative ? 'error' : 'neutral'}
+              color={isPositive ? 'success' : isNegative ? 'error' : 'gray'}
               style={{ verticalAlign: 'middle', padding: 0 }}
             >
               {isPositive ? <IconArrowUpRight size={10} /> : <IconArrowDownRight size={10} />}
@@ -84,7 +84,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
             <Text
               size="xs"
               fw={600}
-              c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'neutral.6'}
+              c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'gray.6'}
               style={{
                 fontVariantNumeric: 'tabular-nums',
                 lineHeight: 1,
@@ -96,7 +96,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
           </Group>
           <Text
             size="xs"
-            c="neutral.5"
+            c="gray.5"
             style={{
               lineHeight: 1,
               marginTop: 0,
@@ -130,10 +130,10 @@ function KpiDashboard() {
     xAxis: {
       type: 'category',
       data: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-      axisLabel: { color: theme.colors.neutral[6] },
+      axisLabel: { color: theme.colors.gray[6] }, // FIXED: Changed from neutral to gray
     },
-    yAxis: { type: 'value', axisLabel: { color: theme.colors.neutral[6] } },
-    color: [theme.colors.brand[5], theme.colors.success[5]],
+    yAxis: { type: 'value', axisLabel: { color: theme.colors.gray[6] } }, // FIXED: Changed from neutral to gray
+    color: [theme.colors.primary[5], theme.colors.success[5]], // FIXED: Changed from brand to primary
     series: [
       { name: 'Продажи, ₽', type: 'bar', data: [120, 200, 150, 80, 70, 110, 130] },
       { name: 'Прибыль, ₽', type: 'line', smooth: true, data: [30, 65, 50, 30, 28, 45, 60] },
@@ -149,7 +149,7 @@ function KpiDashboard() {
     <Container size="xl" py="xl">
       <Stack gap="xs" mb="xl">
         <Title order={1}>KPI Dashboard</Title>
-        <Text size="lg" c="neutral.6">
+        <Text size="lg" c="gray.6">
           Мониторинг ключевых показателей эффективности
         </Text>
       </Stack>
@@ -161,14 +161,14 @@ function KpiDashboard() {
       </SimpleGrid>
 
       <Card mb="xl">
-        <Text size="lg" fw={600} mb="lg" c="neutral.7">
+        <Text size="lg" fw={600} mb="lg" c="gray.7">
           Динамика продаж и прибыли
         </Text>
         <ReactECharts option={chartOption} style={{ height: 360 }} />
       </Card>
 
       <Card>
-        <Text size="lg" fw={600} mb="lg" c="neutral.7">
+        <Text size="lg" fw={600} mb="lg" c="gray.7">
           Проблемные SKU
         </Text>
         <Table>
