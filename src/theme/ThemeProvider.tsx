@@ -2,7 +2,7 @@
 import React, { createContext, useContext } from 'react';
 import { MantineProvider, MantineThemeOverride } from '@mantine/core';
 import { theme as baseTheme } from './theme.tokens';
-import { componentOverrides } from './theme.components';
+import componentOverrides from './theme.components';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';

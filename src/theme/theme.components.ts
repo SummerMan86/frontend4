@@ -658,3 +658,4 @@ export const componentOverrides: MantineThemeComponents = {
     },
   },
 };
+export default componentOverrides;
