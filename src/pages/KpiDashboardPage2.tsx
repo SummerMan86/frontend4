@@ -29,16 +29,15 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
   const isNegative = change !== undefined && change < 0;
 
   return (
-    <Card>
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Stack gap="sm">
-        {/* Заголовок - используем токены темы */}
         <Group justify="space-between">
-          <Text 
-            size={theme.other.dashboardFontTiny}
-            fw={theme.other.dashboardFontWeightMedium}
-            c={theme.other.dashboardTextMuted}
+          <Text
+            size="xs"
+            fw={500}
+            c="neutral.6"
             tt="uppercase"
-            style={{ letterSpacing: theme.other.dashboardLetterSpacingWider }}
+            style={{ letterSpacing: '0.05em' }}
           >
             {title}
           </Text>
@@ -49,55 +48,41 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
           )}
         </Group>
 
-        {/* Значение и изменение */}
         <Group align="flex-end" gap="xs">
-          <Text 
-            size={theme.other.dashboardFontLarge}
-            fw={theme.other.dashboardFontWeightBold}
-            c={theme.other.dashboardTextPrimary}
-            style={{ 
+          <Text
+            size="xl"
+            fw={700}
+            c="neutral.9"
+            style={{
               fontVariantNumeric: 'tabular-nums',
-              letterSpacing: theme.other.dashboardLetterSpacingTight,
-              lineHeight: theme.other.dashboardLineHeightTight,
+              letterSpacing: '-0.015em',
+              lineHeight: 1.2,
             }}
           >
             {value}
           </Text>
-          
+
           {change !== undefined && (
             <Stack gap={2} align="flex-end">
-              {/* Стрелка и процент */}
               <Group gap={4} align="center">
-                <ThemeIcon 
-                  variant="light" 
-                  size={20} 
+                <ThemeIcon
+                  variant="light"
+                  size={20}
                   color={isPositive ? 'success' : isNegative ? 'error' : 'neutral'}
                 >
-                  {isPositive ? (
-                    <IconArrowUpRight size={12} />
-                  ) : (
-                    <IconArrowDownRight size={12} />
-                  )}
+                  {isPositive ? <IconArrowUpRight size={12} /> : <IconArrowDownRight size={12} />}
                 </ThemeIcon>
-                <Text 
+                <Text
                   size="sm"
-                  fw={theme.other.dashboardFontWeightSemibold}
+                  fw={600}
                   c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'neutral.6'}
-                  style={{ 
-                    fontVariantNumeric: 'tabular-nums',
-                    lineHeight: theme.other.dashboardLineHeightTight,
-                  }}
+                  style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}
                 >
                   {Math.abs(change)}%
                 </Text>
               </Group>
-              
-              {/* Подпись "vs среднее" */}
-              <Text 
-                size="9px"
-                c={theme.other.dashboardTextMuted}
-                style={{ lineHeight: theme.other.dashboardLineHeightTight }}
-              >
+
+              <Text size="xs" c="neutral.5" style={{ lineHeight: 1 }}>
                 vs среднее
               </Text>
             </Stack>
@@ -110,7 +95,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
 
 function KpiDashboard() {
   const theme = useMantineTheme();
-  
+
   const kpiData = [
     { title: 'Продажи за день', value: '1 045 000 ₽', change: 8 },
     { title: 'Заказы за день', value: 547, change: 12 },
@@ -118,177 +103,77 @@ function KpiDashboard() {
     { title: 'Возвраты', value: '42 шт.', change: -3 },
   ];
 
-  // График с токенами темы
   const chartOption: echarts.EChartsOption = {
-    tooltip: { 
-      trigger: 'axis',
-      backgroundColor: theme.colors.neutral[0],
-      borderColor: theme.other.dashboardCardBorder,
-      borderWidth: 1,
-      textStyle: {
-        fontFamily: theme.fontFamily,
-        fontSize: 13,
-        color: theme.other.dashboardTextPrimary,
-      },
-    },
-    
-    grid: { left: 60, right: 40, top: 50, bottom: 50 },
-    
+    tooltip: { trigger: 'axis' },
+    grid: { left: 50, right: 40, top: 50, bottom: 40 },
     xAxis: {
       type: 'category',
       data: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        fontFamily: theme.fontFamily,
-        fontSize: 12,
-        color: theme.other.dashboardTextSecondary,
-        fontWeight: 500,
-      }
+      axisLabel: { color: theme.colors.neutral[6] },
     },
-    
-    yAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { 
-        lineStyle: { 
-          color: theme.colors.neutral[1],
-          width: 1,
-        } 
-      },
-      axisLabel: {
-        fontFamily: theme.fontFamily,
-        fontSize: 11,
-        color: theme.other.dashboardTextSecondary,
-      }
-    },
-    
-    // Используем цвета из токенов
-    color: [
-      theme.colors.brand[6],    // Основной синий
-      theme.colors.success[5]   // Зеленый успеха
-    ],
-    
+    yAxis: { type: 'value', axisLabel: { color: theme.colors.neutral[6] } },
+    color: [theme.colors.brand[5], theme.colors.success[5]],
     series: [
-      {
-        name: 'Продажи, ₽',
-        type: 'bar',
-        data: [120, 200, 150, 80, 70, 110, 130],
-        barWidth: 20,
-        itemStyle: {
-          borderRadius: [6, 6, 0, 0],
-          shadowColor: `${theme.colors.brand[6]}40`,
-          shadowBlur: 10,
-          shadowOffsetY: 4,
-        },
-      },
-      {
-        name: 'Прибыль, ₽',
-        type: 'line',
-        smooth: true,
-        data: [30, 65, 50, 30, 28, 45, 60],
-        lineStyle: {
-          width: 3,
-          shadowColor: `${theme.colors.success[5]}40`,
-          shadowBlur: 10,
-          shadowOffsetY: 4,
-        },
-        symbol: 'circle',
-        symbolSize: 6,
-      },
+      { name: 'Продажи, ₽', type: 'bar', data: [120, 200, 150, 80, 70, 110, 130] },
+      { name: 'Прибыль, ₽', type: 'line', smooth: true, data: [30, 65, 50, 30, 28, 45, 60] },
     ],
   };
 
   const problemRows = [
-    {
-      sku: 'SKU‑001',
-      stock: 12,
-      daysLeft: 3,
-      rating: 3,
-      avgRating: 3.8,
-      returns: '8% (5 шт.)',
-    },
-    {
-      sku: 'SKU‑007',
-      stock: 5,
-      daysLeft: 2,
-      rating: 5,
-      avgRating: 4.9,
-      returns: '1% (1 шт.)',
-    },
+    { sku: 'SKU‑001', stock: 12, daysLeft: 3, rating: 3, avgRating: 3.8, returns: '8% (5 шт.)' },
+    { sku: 'SKU‑007', stock: 5, daysLeft: 2, rating: 5, avgRating: 4.9, returns: '1% (1 шт.)' },
   ];
 
   return (
-    <Container>
-      {/* Заголовок - автоматически использует токены из темы */}
+    <Container size="xl" py="xl">
       <Stack gap="xs" mb="xl">
         <Title order={1}>KPI Dashboard</Title>
-        <Text size="lg" c="dimmed">
+        <Text size="lg" c="neutral.6">
           Мониторинг ключевых показателей эффективности
         </Text>
       </Stack>
 
-      {/* KPI карточки */}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl" mb="xl">
         {kpiData.map((item) => (
           <StatsCard key={item.title} {...item} />
         ))}
       </SimpleGrid>
 
-      {/* График */}
       <Card mb="xl">
-        <Stack gap="lg">
-          <Text size="lg" fw={600} c={theme.other.dashboardTextSecondary}>
-            Динамика продаж и прибыли
-          </Text>
-          <ReactECharts option={chartOption} style={{ height: 360 }} />
-        </Stack>
+        <Text size="lg" fw={600} mb="lg" c="neutral.7">
+          Динамика продаж и прибыли
+        </Text>
+        <ReactECharts option={chartOption} style={{ height: 360 }} />
       </Card>
 
-      {/* Таблица - автоматически использует стили из components.ts */}
       <Card>
-        <Stack gap="lg">
-          <Text size="lg" fw={600} c={theme.other.dashboardTextSecondary}>
-            Проблемные SKU
-          </Text>
-          
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>SKU</Table.Th>
-                <Table.Th>Остаток</Table.Th>
-                <Table.Th>Хватит на</Table.Th>
-                <Table.Th>Оценка</Table.Th>
-                <Table.Th>Рейтинг</Table.Th>
-                <Table.Th>Возвраты</Table.Th>
+        <Text size="lg" fw={600} mb="lg" c="neutral.7">
+          Проблемные SKU
+        </Text>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>SKU</Table.Th>
+              <Table.Th>Остаток</Table.Th>
+              <Table.Th>Хватит на</Table.Th>
+              <Table.Th>Оценка</Table.Th>
+              <Table.Th>Рейтинг</Table.Th>
+              <Table.Th>Возвраты</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {problemRows.map((row) => (
+              <Table.Tr key={row.sku}>
+                <Table.Td>{row.sku}</Table.Td>
+                <Table.Td>{row.stock}</Table.Td>
+                <Table.Td>{row.daysLeft} дн.</Table.Td>
+                <Table.Td><Badge color={row.rating < 4 ? 'error' : 'success'}>{row.rating}</Badge></Table.Td>
+                <Table.Td>{row.avgRating}</Table.Td>
+                <Table.Td>{row.returns}</Table.Td>
               </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {problemRows.map((row) => (
-                <Table.Tr key={row.sku}>
-                  <Table.Td 
-                    style={{ 
-                      fontFamily: theme.fontFamilyMonospace,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {row.sku}
-                  </Table.Td>
-                  <Table.Td>{row.stock}</Table.Td>
-                  <Table.Td>{row.daysLeft} дн.</Table.Td>
-                  <Table.Td>
-                    <Badge color={row.rating < 4 ? 'error' : 'success'}>
-                      {row.rating}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>{row.avgRating}</Table.Td>
-                  <Table.Td>{row.returns}</Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </Stack>
+            ))}
+          </Table.Tbody>
+        </Table>
       </Card>
     </Container>
   );

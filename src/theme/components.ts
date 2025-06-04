@@ -1,105 +1,125 @@
-/* ============================ components.ts ============================ */
+// components.ts – MantineTheme.components overrides
 import type { MantineThemeComponents, MantineTheme } from '@mantine/core';
 
 export const components: MantineThemeComponents = {
-  Button: {
-    defaultProps: { 
-      radius: 'md', 
-      variant: 'filled',
+  /* BUTTON */
+  Button:{
+    defaultProps:{ radius:'md', size:'sm', variant:'filled' },
+    styles:(theme: MantineTheme, params: any)=>{
+      const a = theme.other.animation;
+      const base = { fontWeight:600, transition:`all ${a.BASE} ${a.EASE}` };
+
+      switch (params.variant){
+        case 'outline':
+          return { root:{
+            ...base,
+            borderColor:theme.colors.neutral[3],
+            color:theme.colors.neutral[9],
+            '&:hover':{
+              backgroundColor:theme.colors.neutral[0],
+              borderColor:theme.colors.brand[5],
+              color:theme.colors.brand[7],
+            },
+          }};
+        case 'light':
+          return { root:{
+            ...base,
+            backgroundColor:theme.colors.brand[0],
+            color:theme.colors.brand[7],
+            '&:hover':{ backgroundColor:theme.colors.brand[1] },
+          }};
+        default: // filled
+          return { root:{
+            ...base,
+            backgroundColor:theme.colors.brand[5],
+            color:'#FFF',
+            '&:hover':{ backgroundColor:theme.colors.brand[6] },
+          }};
+      }
     },
-    styles: (theme: MantineTheme) => ({ 
-      root: { 
-        fontWeight: 600,
-        transition: 'all 200ms ease',
-      } 
-    }),
   },
-  
-  Card: {
-    defaultProps: {
-      shadow: 'sm',
-      withBorder: true,
-      radius: 'lg',
-      padding: 'lg',
-    },
-    styles: (theme: MantineTheme) => ({
-      root: {
-        background: theme.other.dashboardCardBackground,
-        border: `1px solid ${theme.other.dashboardCardBorder}`,
-        transition: 'all 200ms ease',
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: theme.shadows.md,
+
+  /* CARD */
+  Card:{
+    defaultProps:{ shadow:'sm', withBorder:true, radius:'lg', padding:'lg' },
+    styles:(theme: MantineTheme)=>({
+      root:{
+        background:'#FFF',
+        border:`1px solid ${theme.colors.neutral[2]}`,
+        transition:`all ${theme.other.animation.BASE} ${theme.other.animation.EASE}`,
+        '&:hover':{
+          transform:'translateY(-2px)',
+          boxShadow:theme.shadows.md,
         },
       },
     }),
   },
-  
-  Text: {
-    styles: (theme: MantineTheme) => ({
-      root: {
-        fontVariantNumeric: 'tabular-nums',
-        fontFeatureSettings: '"tnum" 1, "kern" 1',
+
+  /* TEXTINPUT / SELECT */
+  TextInput:{
+    defaultProps:{ radius:'md', size:'sm' },
+    styles:(theme: MantineTheme)=>({
+      input:{
+        borderColor:theme.colors.neutral[3],
+        '&:focus':{
+          borderColor:theme.colors.brand[5],
+          boxShadow:theme.other.focusRing,
+        },
       },
+      label:{ fontWeight:600, color:theme.colors.neutral[8] },
     }),
   },
-  
-  Title: {
-    styles: (theme: MantineTheme) => ({
-      root: {
-        color: theme.other.dashboardTextPrimary,
-        letterSpacing: theme.other.dashboardLetterSpacingTight,
+  Select:{
+    defaultProps:{ radius:'md', size:'sm' },
+    styles:(theme: MantineTheme)=>({
+      input:{
+        borderColor:theme.colors.neutral[3],
+        '&:focus':{
+          borderColor:theme.colors.brand[5],
+          boxShadow:theme.other.focusRing,
+        },
       },
+      label:{ fontWeight:600, color:theme.colors.neutral[8] },
     }),
   },
-  
-  Table: {
-    defaultProps: {
-      striped: true,
-      highlightOnHover: true,
-      withColumnBorders: false,
-    },
-    styles: (theme: MantineTheme) => ({
-      table: {
-        fontVariantNumeric: 'tabular-nums',
-        '--table-border-color': theme.other.dashboardCardBorder,
+
+  /* TABLE */
+  Table:{
+    defaultProps:{ striped:true, highlightOnHover:true, withColumnBorders:false },
+    styles:(theme: MantineTheme)=>({
+      table:{ fontVariantNumeric:'tabular-nums' },
+      th:{
+        fontWeight:600,
+        color:theme.colors.neutral[7],
+        backgroundColor:theme.colors.neutral[0],
+        fontSize:theme.fontSizes.xs,
       },
-      th: {
-        fontWeight: 600,
-        color: theme.other.dashboardTextSecondary,
-        backgroundColor: theme.colors.neutral[0],
-        fontSize: theme.other.dashboardFontSmall,
-      },
-      td: {
-        fontWeight: 500,
-        color: theme.other.dashboardTextPrimary,
-      },
+      td:{ fontWeight:500, color:theme.colors.neutral[9] },
     }),
   },
-  
-  Badge: {
-    defaultProps: {
-      variant: 'light',
-    },
-    styles: (theme: MantineTheme) => ({
-      root: {
-        fontWeight: theme.other.dashboardFontWeightSemibold,
-      },
-    }),
-  },
-  
-  Container: {
-    defaultProps: {
-      size: 'xl',
-      py: 'xl',
+
+  /* BADGE */
+  Badge:{
+    defaultProps:{ radius:'sm', variant:'light' },
+    styles:(theme: MantineTheme, params: any)=>{
+      const map = theme.other.status as Record<string,{
+        bg:string; border:string; text:string;
+      }>;
+      const token = map[params.color ?? ''];
+      return token ? {
+        root:{
+          backgroundColor:token.bg,
+          border:`1px solid ${token.border}`,
+          color:token.text,
+          fontWeight:600,
+        },
+      } : { root:{ fontWeight:600 } };
     },
   },
 
-  ThemeIcon: {
-    styles: (theme: MantineTheme) => ({
-      root: {
-        borderRadius: '50%',
-      },
-    }),
-  },
+  /* TYPOGRAPHY & MISC */
+  Text:{ styles:()=>({ root:{ fontVariantNumeric:'tabular-nums', fontFeatureSettings:'\"tnum\" 1, \"kern\" 1' } }) },
+  Title:{ styles:(t: MantineTheme)=>({ root:{ color:t.colors.neutral[9], letterSpacing:'-0.015em' } }) },
+  Container:{ defaultProps:{ size:'xl', py:'xl' } },
+  ThemeIcon:{ styles:()=>({ root:{ borderRadius:'50%' } }) },
 };
