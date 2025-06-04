@@ -29,67 +29,88 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
   const isNegative = change !== undefined && change < 0;
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Stack gap="sm">
-        <Group justify="space-between">
+<Card shadow="sm" padding="lg" radius="md" withBorder>
+  <Stack gap="sm">
+    <Group justify="space-between">
+      <Text
+        size="xs"
+        fw={500}
+        c="neutral.6"
+        tt="uppercase"
+        style={{ letterSpacing: '0.05em' }}
+      >
+        {title}
+      </Text>
+      {icon && (
+        <ThemeIcon variant="light" size="sm" color="neutral">
+          {icon}
+        </ThemeIcon>
+      )}
+    </Group>
+
+    <Group align="center" gap="xs" wrap="nowrap" style={{ alignItems: 'flex-start' }}>
+      <Text
+        size="xl"
+        fw={700}
+        c="neutral.9"
+        style={{
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.015em',
+          lineHeight: 1.2,
+        }}
+      >
+        {value}
+      </Text>
+
+      {change !== undefined && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            minWidth: 38,
+            lineHeight: 1,
+          }}
+        >
+          <Group gap={3} align="center" style={{ minHeight: 18 }}>
+            <ThemeIcon
+              variant="light"
+              size={16}
+              color={isPositive ? 'success' : isNegative ? 'error' : 'neutral'}
+              style={{ verticalAlign: 'middle', padding: 0 }}
+            >
+              {isPositive ? <IconArrowUpRight size={10} /> : <IconArrowDownRight size={10} />}
+            </ThemeIcon>
+            <Text
+              size="xs"
+              fw={600}
+              c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'neutral.6'}
+              style={{
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: 1,
+                verticalAlign: 'middle',
+              }}
+            >
+              {Math.abs(change)}%
+            </Text>
+          </Group>
           <Text
             size="xs"
-            fw={500}
-            c="neutral.6"
-            tt="uppercase"
-            style={{ letterSpacing: '0.05em' }}
-          >
-            {title}
-          </Text>
-          {icon && (
-            <ThemeIcon variant="light" size="sm" color="neutral">
-              {icon}
-            </ThemeIcon>
-          )}
-        </Group>
-
-        <Group align="flex-end" gap="xs">
-          <Text
-            size="xl"
-            fw={700}
-            c="neutral.9"
+            c="neutral.5"
             style={{
-              fontVariantNumeric: 'tabular-nums',
-              letterSpacing: '-0.015em',
-              lineHeight: 1.2,
+              lineHeight: 1,
+              marginTop: 0,
+              transform: 'translateY(-2px)', // поднимаем текст ближе к процентам
+              fontSize: '10px', // еще компактнее
             }}
           >
-            {value}
+            vs среднее
           </Text>
-
-          {change !== undefined && (
-            <Stack gap={2} align="flex-end">
-              <Group gap={4} align="center">
-                <ThemeIcon
-                  variant="light"
-                  size={20}
-                  color={isPositive ? 'success' : isNegative ? 'error' : 'neutral'}
-                >
-                  {isPositive ? <IconArrowUpRight size={12} /> : <IconArrowDownRight size={12} />}
-                </ThemeIcon>
-                <Text
-                  size="sm"
-                  fw={600}
-                  c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'neutral.6'}
-                  style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}
-                >
-                  {Math.abs(change)}%
-                </Text>
-              </Group>
-
-              <Text size="xs" c="neutral.5" style={{ lineHeight: 1 }}>
-                vs среднее
-              </Text>
-            </Stack>
-          )}
-        </Group>
-      </Stack>
-    </Card>
+        </div>
+      )}
+    </Group>
+  </Stack>
+</Card>  
   );
 };
 
