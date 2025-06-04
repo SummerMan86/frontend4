@@ -507,17 +507,154 @@ export const componentOverrides: MantineThemeComponents = {
         color: semantic.colors.text.secondary,
       },
     },
-  }
+  },
 
   // ============================================
   // MISC
   // ============================================
-  /*ActionIcon: {
+  ActionIcon: {
     defaultProps: {
       variant: 'subtle',
       radius: 'md',
     },
     styles: {
       root: {
-        transition: transition(['background-color', 'transform'*/
-}
+        transition: transition(['background-color', 'transform']),
+        
+        ...hoverStyles({
+          transform: 'scale(1.05)',
+        }),
+        
+        '&:active': {
+          transform: 'scale(0.95)',
+        },
+        
+        ...focusStyles(),
+      },
+    },
+  },
+
+  ThemeIcon: {
+    defaultProps: {
+      radius: 'md',
+      variant: 'light',
+    },
+    styles: {
+      root: {
+        transition: transition('all', 'fast'),
+      },
+    },
+  },
+
+  Skeleton: {
+    defaultProps: {
+      radius: 'md',
+    },
+    styles: {
+      root: {
+        '&::after': {
+          background: `linear-gradient(90deg, transparent, ${getColor('gray', 200)}, transparent)`,
+        },
+      },
+    },
+  },
+
+  Divider: {
+    styles: {
+      root: {
+        borderColor: semantic.colors.border.default,
+      },
+    },
+  },
+
+  // ============================================
+  // TYPOGRAPHY
+  // ============================================
+  Text: {
+    styles: {
+      root: {
+        color: semantic.colors.text.primary,
+      },
+    },
+  },
+
+  Title: {
+    styles: {
+      root: {
+        color: semantic.colors.text.primary,
+        fontWeight: fontWeights.semibold,
+      },
+    },
+  },
+
+  Anchor: {
+    defaultProps: {
+      underline: 'hover',
+    },
+    styles: {
+      root: {
+        color: getColor('primary', 600),
+        transition: transition('color', 'fast'),
+        
+        ...hoverStyles({
+          color: getColor('primary', 700),
+        }),
+      },
+    },
+  },
+
+  // ============================================
+  // LAYOUT
+  // ============================================
+  Container: {
+    defaultProps: {
+      size: 'xl',
+    },
+    styles: {
+      root: {
+        paddingLeft: spacing.md,
+        paddingRight: spacing.md,
+        
+        '@media (min-width: 768px)': {
+          paddingLeft: spacing.xl,
+          paddingRight: spacing.xl,
+        },
+      },
+    },
+  },
+
+  Grid: {
+    styles: {
+      root: {
+        margin: `-${spacing.md}`,
+      },
+      col: {
+        padding: spacing.md,
+      },
+    },
+  },
+
+  SimpleGrid: {
+    styles: {
+      root: {
+        gap: spacing.md,
+        
+        '@media (min-width: 768px)': {
+          gap: spacing.lg,
+        },
+      },
+    },
+  },
+
+  Stack: {
+    defaultProps: {
+      gap: 'md',
+    },
+  },
+
+  Group: {
+    defaultProps: {
+      gap: 'md',
+    },
+  },
+};
