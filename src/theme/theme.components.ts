@@ -162,7 +162,7 @@ export const componentOverrides: MantineThemeComponents = {
         fontSize: fontSizes.sm,
         transition: transition(['border-color', 'box-shadow']),
         
-        '&[data-hovered]': {
+        '&[dataHovered]': {
           borderColor: semantic.colors.border.hover,
         },
         
@@ -216,7 +216,7 @@ export const componentOverrides: MantineThemeComponents = {
         fontSize: fontSizes.sm,
         transition: transition('all', 'fast'),
         
-        '&[data-selected]': {
+        '&[dataSelected]': {
           backgroundColor: getColor('primary', 500),
           color: semantic.colors.text.inverse,
         },
@@ -299,7 +299,7 @@ export const componentOverrides: MantineThemeComponents = {
       tr: {
         transition: transition('background-color', 'fast'),
         
-        '&[data-hover]:hover': {
+        '&[dataHover]:hover': {
           backgroundColor: semantic.colors.background.hover,
         },
       },
@@ -419,8 +419,8 @@ export const componentOverrides: MantineThemeComponents = {
         padding: `${spacing.sm} ${spacing.md}`,
         transition: transition(['color', 'border-color']),
         
-        // FIXED: Use CSS-in-JS object format instead of CSS string
-        '&[data-active="true"]': {
+        // FIXED: Use camelCase for data attributes in CSS-in-JS
+        '&[dataActive="true"]': {
           color: getColor('primary', 600),
           borderColor: getColor('primary', 500),
         },
@@ -445,8 +445,8 @@ export const componentOverrides: MantineThemeComponents = {
         fontWeight: fontWeights.medium,
         transition: transition(['background-color', 'color']),
         
-        // FIXED: Use CSS-in-JS object format instead of CSS string
-        '&[data-active="true"]': {
+        // FIXED: Use camelCase for data attributes in CSS-in-JS
+        '&[dataActive="true"]': {
           backgroundColor: getColor('primary', 100),
           color: getColor('primary', 700),
         },
@@ -617,7 +617,8 @@ export const componentOverrides: MantineThemeComponents = {
         paddingLeft: spacing.md,
         paddingRight: spacing.md,
         
-        '@media (min-width: 768px)': {
+        // FIXED: Use camelCase for media queries in CSS-in-JS
+        '@media (minWidth: 768px)': {
           paddingLeft: spacing.xl,
           paddingRight: spacing.xl,
         },
@@ -641,7 +642,8 @@ export const componentOverrides: MantineThemeComponents = {
       root: {
         gap: spacing.md,
         
-        '@media (min-width: 768px)': {
+        // FIXED: Use camelCase for media queries in CSS-in-JS
+        '@media (minWidth: 768px)': {
           gap: spacing.lg,
         },
       },
