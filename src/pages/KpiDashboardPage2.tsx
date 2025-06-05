@@ -31,27 +31,20 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
   return (
 <Card shadow="sm" padding="lg" radius="md" withBorder  className = "hover-lift">
   <Stack gap="sm">
-    <Group justify="space-between">
-      <Text
-        size="xs"
-        fw={500}
-        c="gray.6"
-        tt="uppercase"
-        style={{ letterSpacing: '0.05em' }}
-      >
-        {title}
-      </Text>
-      {icon && (
-        <ThemeIcon variant="light" size="sm" color="gray">
-          {icon}
-        </ThemeIcon>
-      )}
-    </Group>
+        <Text
+          size="xs"
+          fw={400}
+          c="gray.6"
+          tt="uppercase"
+          style={{ letterSpacing: '0.05em' }}
+        >
+          {title}
+        </Text>
 
     <Group align="center" gap="xs" wrap="nowrap" style={{ alignItems: 'flex-start' }}>
       <Text
-        size="xl"
-        fw={700}
+        size="2xl"
+        fw={600}
         c="gray.9"
         style={{
           fontVariantNumeric: 'tabular-nums',
@@ -82,8 +75,8 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
               {isPositive ? <IconArrowUpRight size={10} /> : <IconArrowDownRight size={10} />}
             </ThemeIcon>
             <Text
-              size="xs"
-              fw={600}
+              size="sm"
+              fw={500}
               c={isPositive ? 'success.5' : isNegative ? 'error.5' : 'gray.6'}
               style={{
                 fontVariantNumeric: 'tabular-nums',
@@ -95,13 +88,13 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
             </Text>
           </Group>
           <Text
-            size="xs"
+            size="md"
             c="gray.5"
             style={{
               lineHeight: 1,
               marginTop: 0,
               transform: 'translateY(-2px)', // поднимаем текст ближе к процентам
-              fontSize: '10px', // еще компактнее
+              fontSize: '11px', // еще компактнее
             }}
           >
             vs среднее
