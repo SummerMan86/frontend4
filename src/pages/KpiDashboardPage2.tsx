@@ -15,7 +15,7 @@ import {
 import { IconArrowUpRight, IconArrowDownRight } from '@tabler/icons-react';
 import ReactECharts from 'echarts-for-react';
 import { ThemeProvider } from '../theme';
-
+import '../theme/styles.css';
 interface StatsCardProps {
   title: string;
   value: string | number;
@@ -29,7 +29,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => 
   const isNegative = change !== undefined && change < 0;
 
   return (
-<Card shadow="sm" padding="lg" radius="md" withBorder>
+<Card shadow="sm" padding="lg" radius="md" withBorder  className = "hover-lift">
   <Stack gap="sm">
     <Group justify="space-between">
       <Text
@@ -160,14 +160,14 @@ function KpiDashboard() {
         ))}
       </SimpleGrid>
 
-      <Card mb="xl">
+      <Card mb="xl" className = "hover-lift">
         <Text size="lg" fw={600} mb="lg" c="gray.7">
           Динамика продаж и прибыли
         </Text>
         <ReactECharts option={chartOption} style={{ height: 360 }} />
       </Card>
 
-      <Card>
+      <Card className = "hover-lift">
         <Text size="lg" fw={600} mb="lg" c="gray.7">
           Проблемные SKU
         </Text>

@@ -443,12 +443,13 @@ export const focusStyles = () => ({
   },
 });
 
-// Create hover styles
+// Create hover styles - FIXED for Mantine 8
 export const hoverStyles = (styles: Record<string, any>) => ({
-  '@media (hover: hover)': {
+  [`@media (hover: hover)`]: {
     '&:hover': styles,
   },
 });
+
 
 // Responsive value helper
 export const responsive = <T,>(values: {
@@ -459,6 +460,8 @@ export const responsive = <T,>(values: {
   lg?: T;
   xl?: T;
 }) => values;
+
+
 
 // Export everything as default
 export default {

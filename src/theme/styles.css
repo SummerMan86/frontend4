@@ -1,0 +1,32 @@
+/* Эффект поднятия с тенью при наведении */
+.hover-lift {
+    
+    transition: all 200ms ease;
+    cursor: pointer;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Дополнительные hover эффекты для других случаев */
+  .hover-scale {
+    transition: all 200ms ease !important;
+    cursor: pointer;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+  
+  .hover-glow {
+    transition: all 200ms ease !important;
+    cursor: pointer;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+    border-color: rgba(74, 144, 226, 0.5);
+  }
