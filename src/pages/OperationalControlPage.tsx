@@ -61,6 +61,7 @@ import {
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { useDisclosure, useHover } from '@mantine/hooks';
+import { SalesAndProfitChart } from '../components/SalesAndProfitChart';
 
 // Импортируем токены темы
 import { operationalTokens, operationalUtils, animations } from '../theme/theme.tokens.extended';
@@ -375,7 +376,14 @@ const HealthScorePanel = ({ score = 78 }) => {
   ];
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <Paper 
+      p="md" 
+      radius="md" 
+      withBorder
+      style={{ 
+        borderColor: 'var(--mantine-color-green-2)'
+      }}
+    >
       <Group justify="space-between" mb="md">
         <Text fw={600} size="lg">Здоровье бизнеса</Text>
         <Badge size="xl" variant="filled" color={getScoreColor(score)}>
@@ -1112,6 +1120,9 @@ const OperationalControlPage = () => {
             <AIInsightsPanel insights={aiInsights} />
           </Grid.Col>
         </Grid>
+
+        {/* Динамика продаж и прибыли */}
+        <SalesAndProfitChart />
       </Stack>
     </Container>
   );
