@@ -502,6 +502,7 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [muted, setMuted] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const alertCounts = alerts.reduce((acc, alert) => {
     if (!muted.has(alert.id)) {
@@ -524,9 +525,14 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
     });
   };
 
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(prev => prev === category ? null : category);
+  };
+
   const filteredAlerts = alerts
     .filter(alert => !muted.has(alert.id))
     .filter(alert => filter === 'all' || !alert.isRead)
+    .filter(alert => !selectedCategory || alert.category === selectedCategory)
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
   // Alert Summary Card Component
@@ -537,7 +543,8 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
     count, 
     subtitle, 
     onClick, 
-    pulse = false 
+    pulse = false,
+    category
   }: {
     icon: React.ComponentType<any>;
     color: string;
@@ -546,8 +553,10 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
     subtitle: string;
     onClick: () => void;
     pulse?: boolean;
+    category: string;
   }) => {
     const { hovered, ref } = useHover();
+    const isSelected = selectedCategory === category;
     
     return (
       <UnstyledButton
@@ -560,12 +569,16 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
           radius="md"
           withBorder
           style={{
-            borderColor: hovered 
+            borderColor: isSelected 
               ? `var(--mantine-color-${color}-5)` 
-              : 'var(--mantine-color-gray-3)',
-            backgroundColor: hovered 
+              : hovered 
+                ? `var(--mantine-color-${color}-5)` 
+                : 'var(--mantine-color-gray-3)',
+            backgroundColor: isSelected 
               ? `var(--mantine-color-${color}-0)` 
-              : undefined,
+              : hovered 
+                ? `var(--mantine-color-${color}-0)` 
+                : undefined,
             position: 'relative',
             overflow: 'hidden',
             transition: 'all 0.2s ease',
@@ -707,8 +720,9 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
             title="Низкий рейтинг"
             count={alertCounts.rating}
             subtitle="товара < 4.0"
-            onClick={() => console.log('Filter by rating')}
+            onClick={() => handleCategoryClick('rating')}
             pulse
+            category="rating"
           />
         </Grid.Col>
         <Grid.Col span={{ base: 6, sm: 3 }}>
@@ -718,8 +732,9 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
             title="Заканчивается"
             count={alertCounts.stock}
             subtitle="SKU < 3 дней"
-            onClick={() => console.log('Filter by stock')}
+            onClick={() => handleCategoryClick('stock')}
             pulse
+            category="stock"
           />
         </Grid.Col>
         <Grid.Col span={{ base: 6, sm: 3 }}>
@@ -729,7 +744,8 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
             title="Превышение"
             count={alertCounts.budget}
             subtitle="лимитов"
-            onClick={() => console.log('Filter by budget')}
+            onClick={() => handleCategoryClick('budget')}
+            category="budget"
           />
         </Grid.Col>
         <Grid.Col span={{ base: 6, sm: 3 }}>
@@ -739,32 +755,35 @@ const AlertPanel = ({ alerts }: { alerts: Alert[] }) => {
             title="Падение"
             count={alertCounts.position}
             subtitle="позиций"
-            onClick={() => console.log('Filter by position')}
+            onClick={() => handleCategoryClick('position')}
+            category="position"
           />
         </Grid.Col>
       </Grid>
 
       {/* Детальный список алертов */}
-      <ScrollArea h={300} offsetScrollbars>
-        <Stack gap="xs">
-          {filteredAlerts.length === 0 ? (
-            <Text ta="center" c="dimmed" py="xl">
-              {filter === 'unread' 
-                ? 'Нет непрочитанных предупреждений' 
-                : 'Нет активных предупреждений'}
-            </Text>
-          ) : (
-            filteredAlerts.map(alert => (
-              <AlertItem 
-                key={alert.id}
-                alert={alert}
-                expanded={expanded.has(alert.id)}
-                onToggle={() => toggleExpanded(alert.id)}
-              />
-            ))
-          )}
-        </Stack>
-      </ScrollArea>
+      {selectedCategory && (
+        <ScrollArea h={300} offsetScrollbars>
+          <Stack gap="xs">
+            {filteredAlerts.length === 0 ? (
+              <Text ta="center" c="dimmed" py="xl">
+                {filter === 'unread' 
+                  ? 'Нет непрочитанных предупреждений' 
+                  : 'Нет активных предупреждений'}
+              </Text>
+            ) : (
+              filteredAlerts.map(alert => (
+                <AlertItem 
+                  key={alert.id}
+                  alert={alert}
+                  expanded={expanded.has(alert.id)}
+                  onToggle={() => toggleExpanded(alert.id)}
+                />
+              ))
+            )}
+          </Stack>
+        </ScrollArea>
+      )}
     </Paper>
   );
 };
@@ -1069,19 +1088,6 @@ const OperationalControlPage = () => {
           </Group>
         </Paper>
 
-        {/* Здоровье бизнеса */}
-        <HealthScorePanel />
-
-        {/* Критические алерты и AI инсайты */}
-        <Grid>
-          <Grid.Col span={{ base: 12, lg: 8 }}>
-            <AlertPanel alerts={alerts} />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, lg: 4 }}>
-            <AIInsightsPanel insights={aiInsights} />
-          </Grid.Col>
-        </Grid>
-
         {/* KPI метрики */}
         <div>
           <Text fw={600} mb="md">Ключевые показатели</Text>
@@ -1093,6 +1099,19 @@ const OperationalControlPage = () => {
             ))}
           </Grid>
         </div>
+
+        {/* Основные блоки */}
+        <Grid>
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Stack gap="md">
+              <AlertPanel alerts={alerts} />
+              <HealthScorePanel />
+            </Stack>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <AIInsightsPanel insights={aiInsights} />
+          </Grid.Col>
+        </Grid>
       </Stack>
     </Container>
   );

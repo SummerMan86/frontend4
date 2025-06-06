@@ -19,6 +19,7 @@ function App() {
                 <Route index element={<KpiDashboardPage2 />} />
                 <Route path="inventory" element={<OperationalControlPage />} />
                 <Route path="sales" element={<SupplierIncomesPage />} />
+                <Route path="operational-control" element={<OperationalControlPage />} />
                 {/* остальные страницы */}
                 <Route path="*" element={<TestPage />} />
               </Route>
