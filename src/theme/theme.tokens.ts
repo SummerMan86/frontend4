@@ -434,13 +434,10 @@ export const transition = (
 
 // Create focus styles
 export const focusStyles = () => ({
-  '&:focus': {
-    outline: 'none',
-    boxShadow: semantic.focus.ring,
-  },
-  '&:focus:not(:focus-visible)': {
-    boxShadow: 'none',
-  },
+  '&:focusVisible': {
+    outline: `2px solid ${getColor('primary', 500)}`,
+    outlineOffset: '2px',
+  }
 });
 
 // Create hover styles - FIXED for Mantine 8

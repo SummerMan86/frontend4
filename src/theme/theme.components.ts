@@ -42,7 +42,7 @@ export const componentOverrides: MantineThemeComponents = {
         },
       };
     },
-    styles: (theme: MantineTheme, params: any, { variant }: any) => ({
+    styles: (theme: MantineTheme, params: any) => ({
       root: {
         height: 'var(--button-height)',
         paddingLeft: 'var(--button-padding-x)',
@@ -60,6 +60,11 @@ export const componentOverrides: MantineThemeComponents = {
         },
         
         ...focusStyles(),
+
+        '&.disabled': {
+          opacity: 0.5,
+          pointerEvents: 'none',
+        },
       },
     }),
   },
@@ -262,6 +267,11 @@ export const componentOverrides: MantineThemeComponents = {
         backgroundColor: semantic.colors.background.paper,
         boxShadow: params.shadow ? shadows[params.shadow as keyof typeof shadows] : 'none',
         borderColor: params.withBorder ? semantic.colors.border.default : 'transparent',
+        '&.disabled': {
+          opacity: 0.5,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        },
       },
     }),
   },
