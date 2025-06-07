@@ -1,5 +1,5 @@
 // components/OperationalControl/Charts.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Paper, Text, Group, SegmentedControl, Loader, Center } from '@mantine/core';
 import { formatters } from '../../utils/operationalUtils';
@@ -19,6 +19,19 @@ const BaseChart: React.FC<BaseChartProps> = ({
   height = 300,
   options 
 }) => {
+  const chartRef = useRef<any>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (chartRef.current) {
+        chartRef.current.getEchartsInstance().resize();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <Paper p="md" radius="md" withBorder>
       {title && (
@@ -31,9 +44,12 @@ const BaseChart: React.FC<BaseChartProps> = ({
         </Center>
       ) : (
         <ReactECharts
+          ref={chartRef}
           option={options}
-          style={{ height, width: '100%' }}
+          style={{ height, width: '100%', minWidth: '300px' }}
           opts={{ renderer: 'svg' }}
+          notMerge={true}
+          lazyUpdate={true}
         />
       )}
     </Paper>
@@ -91,7 +107,9 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data, period = 'hour' })
       type: 'category',
       data: data.map(d => d.time),
       axisLabel: {
-        rotate: period === 'hour' ? 45 : 0
+        rotate: period === 'hour' ? 45 : 0,
+        interval: 'auto',
+        hideOverlap: true
       }
     },
     yAxis: [
@@ -101,12 +119,16 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data, period = 'hour' })
         position: 'left',
         axisLabel: {
           formatter: (value: number) => formatters.compactNumber(value)
-        }
+        },
+        splitNumber: 5,
+        minInterval: 1
       },
       {
         type: 'value',
         name: 'Количество',
-        position: 'right'
+        position: 'right',
+        splitNumber: 5,
+        minInterval: 1
       }
     ],
     series: [
@@ -284,7 +306,12 @@ export const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ data
       orient: 'vertical',
       right: 10,
       top: 20,
-      bottom: 20
+      bottom: 20,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: {
+        fontSize: 12
+      }
     },
     series: [
       {
@@ -377,14 +404,17 @@ export const PlanVsActualChart: React.FC<PlanVsActualChartProps> = ({ data }) =>
       data: data.map(d => d.metric),
       axisLabel: {
         rotate: 45,
-        interval: 0
+        interval: 'auto',
+        hideOverlap: true
       }
     },
     yAxis: {
       type: 'value',
       axisLabel: {
         formatter: (value: number) => formatters.compactNumber(value)
-      }
+      },
+      splitNumber: 5,
+      minInterval: 1
     },
     series: [
       {
