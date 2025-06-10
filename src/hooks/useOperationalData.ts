@@ -129,7 +129,7 @@ export const useOperationalData = (dateRange?: [Date, Date]) => {
     timeDimensions: [
       {
         dimension: 'Orders.createdAt',
-        dateRange: dateRange?.map(d => d?.toISOString().split('T')[0]) || ['2025-01-01', '2025-01-31'],
+        dateRange: dateRange ? [dateRange[0].toISOString().split('T')[0], dateRange[1].toISOString().split('T')[0]] as [string, string] : ['2025-01-01', '2025-01-31'],
         granularity: 'hour'
       }
     ],

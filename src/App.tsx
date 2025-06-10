@@ -8,6 +8,7 @@ import OperationalControlPage from './pages/OperationalControlPage';
 import KpiDashboardPage2 from './pages/KpiDashboardPage2';
 import TestPage from './pages/TestPage';
 import MainPage from './pages/MainPage';
+import ProductAnalysisPage from './pages/ProductAnalysisPage';
 import { ThemeProvider } from './theme';
 
 // Create router with future flags
@@ -30,6 +31,7 @@ function App() {
               <Route path="inventory" element={<OperationalControlPage />} />
               <Route path="sales" element={<SupplierIncomesPage />} />
               <Route path="operational-control" element={<OperationalControlPage />} />
+              <Route path="product-analysis" element={<ProductAnalysisPage />} />
               {/* остальные страницы */}
               <Route path="*" element={<TestPage />} />
             </Route>

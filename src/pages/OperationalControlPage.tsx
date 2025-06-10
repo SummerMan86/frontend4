@@ -86,7 +86,8 @@ import {
   IconAdjustments,
   IconListDetails,
   IconChartBar,
-  IconCoins
+  IconCoins,
+  IconHeartbeat
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
@@ -1247,41 +1248,51 @@ const HealthScorePanel = ({ score, kpis }: { score: number; kpis: EnhancedKPIMet
   };
 
   return (
-    <Paper p="md" radius="md" withBorder>
-      <Group justify="space-between" mb="md">
-        <Text fw={600}>Здоровье бизнеса</Text>
-        <RingProgress
-          size={80}
-          thickness={8}
-          sections={[{ value: score, color: getScoreColor(score) }]}
-          label={
-            <Center>
-              <Text size="lg" fw={700}>{score}</Text>
-            </Center>
-          }
-        />
-      </Group>
-      
-      <Stack gap="xs">
-        {Object.entries(categoryScores).map(([key, data]) => (
-          <Group key={key} justify="space-between">
-            <Group gap="xs">
-              <ThemeIcon size="sm" variant="light" color={getScoreColor(data.score)}>
-                <data.icon size={14} />
-              </ThemeIcon>
-              <Text size="sm">{data.name}</Text>
-            </Group>
-            <Group gap="xs">
-              <Progress 
-                value={data.score} 
-                color={getScoreColor(data.score)} 
-                style={{ width: 60 }} 
-                size="sm"
-              />
-              <Text size="xs" fw={500}>{data.score}</Text>
-            </Group>
+    <Paper p="md" radius="md" withBorder style={{ height: '100%' }}>
+      <Stack gap="md" style={{ height: '100%' }}>
+        <Group justify="space-between" align="flex-start">
+          <Group>
+            <ThemeIcon size="lg" variant="light" color="blue">
+              <IconHeartbeat size={20} />
+            </ThemeIcon>
+            <div>
+              <Text fw={600} size="md" mt={-2}>Здоровье бизнеса</Text>
+              <Text size="xs" c="dimmed">Общий показатель эффективности</Text>
+            </div>
           </Group>
-        ))}
+          <RingProgress
+            size={100}
+            thickness={10}
+            sections={[{ value: score, color: getScoreColor(score) }]}
+            label={
+              <Center>
+                <Text size="xl" fw={700}>{score}</Text>
+              </Center>
+            }
+          />
+        </Group>
+        
+        <Stack gap="md" style={{ flex: 1 }}>
+          {Object.entries(categoryScores).map(([key, data]) => (
+            <Group key={key} justify="space-between">
+              <Group gap="xs">
+                <ThemeIcon size="md" variant="light" color={getScoreColor(data.score)}>
+                  <data.icon size={16} />
+                </ThemeIcon>
+                <Text size="sm" fw={500}>{data.name}</Text>
+              </Group>
+              <Group gap="xs">
+                <Progress 
+                  value={data.score} 
+                  color={getScoreColor(data.score)} 
+                  style={{ width: 100 }} 
+                  size="md"
+                />
+                <Text size="sm" fw={600}>{data.score}</Text>
+              </Group>
+            </Group>
+          ))}
+        </Stack>
       </Stack>
     </Paper>
   );
@@ -1309,56 +1320,58 @@ const AIInsightsPanel = ({ insights }: { insights: AIInsight[] }) => {
   };
 
   return (
-    <Paper p="md" radius="md" withBorder>
-      <Group justify="space-between" mb="md">
-        <Group>
-          <ThemeIcon size="lg" variant="light" color="violet">
-            <IconChartLine size={20} />
-          </ThemeIcon>
-          <div>
-            <Text fw={600}>AI Инсайты</Text>
-            <Text size="xs" c="dimmed">Прогнозы и аномалии</Text>
-          </div>
+    <Paper p="md" radius="md" withBorder style={{ height: '100%' }}>
+      <Stack gap="md" style={{ height: '100%' }}>
+        <Group justify="space-between">
+          <Group>
+            <ThemeIcon size="lg" variant="light" color="violet">
+              <IconChartLine size={20} />
+            </ThemeIcon>
+            <div>
+              <Text fw={600} size="md" mt={-2}>AI Инсайты</Text>
+              <Text size="xs" c="dimmed">Прогнозы и аномалии</Text>
+            </div>
+          </Group>
         </Group>
-      </Group>
 
-      <Stack gap="sm">
-        {insights.map((insight) => {
-          const Icon = getTypeIcon(insight.type);
-          return (
-            <Paper
-              key={insight.id}
-              p="sm"
-              radius="md"
-              withBorder
-              style={{ borderStyle: 'dashed' }}
-            >
-              <Group justify="space-between" wrap="nowrap">
-                <Group wrap="nowrap" gap="xs">
-                  <ThemeIcon
-                    size="sm"
-                    variant="light"
-                    color={getImpactColor(insight.impact)}
-                  >
-                    <Icon size={14} />
-                  </ThemeIcon>
-                  <div>
-                    <Text size="sm" fw={500}>{insight.title}</Text>
-                    <Text size="xs" c="dimmed">{insight.description}</Text>
-                    {insight.suggestedAction && (
-                      <Text size="xs" c="blue" mt={4}>
-                        💡 {insight.suggestedAction}
-                      </Text>
-                    )}
-                  </div>
+        <Stack gap="md" style={{ flex: 1 }}>
+          {insights.map((insight) => {
+            const Icon = getTypeIcon(insight.type);
+            return (
+              <Paper
+                key={insight.id}
+                p="md"
+                radius="md"
+                withBorder
+                style={{ borderStyle: 'dashed' }}
+              >
+                <Group justify="space-between" wrap="nowrap">
+                  <Group wrap="nowrap" gap="xs">
+                    <ThemeIcon
+                      size="md"
+                      variant="light"
+                      color={getImpactColor(insight.impact)}
+                    >
+                      <Icon size={16} />
+                    </ThemeIcon>
+                    <div>
+                      <Text size="sm" fw={500}>{insight.title}</Text>
+                      <Text size="xs" c="dimmed" mt={4}>{insight.description}</Text>
+                      {insight.suggestedAction && (
+                        <Text size="xs" c="blue" mt={8}>
+                          💡 {insight.suggestedAction}
+                        </Text>
+                      )}
+                    </div>
+                  </Group>
+                  <Text size="sm" fw={600} c="dimmed">
+                    {Math.round(insight.confidence * 100)}%
+                  </Text>
                 </Group>
-                <Text size="xs" c="dimmed">
-                  {Math.round(insight.confidence * 100)}%
-                </Text>
-              </Group>
-            </Paper>
-          );
-        })}
+              </Paper>
+            );
+          })}
+        </Stack>
       </Stack>
     </Paper>
   );
@@ -2768,17 +2781,21 @@ const OperationalControlPage = () => {
 
                 <FinancialPanel />
 
-                {/* Health Score Panel */}
-                <HealthScorePanel score={calculateHealthScore(kpis)} kpis={kpis} />
+                {/* Health Score and AI Insights in a Grid */}
+                <Grid>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <HealthScorePanel score={calculateHealthScore(kpis)} kpis={kpis} />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <AIInsightsPanel insights={generateAIInsights()} />
+                  </Grid.Col>
+                </Grid>
 
                 {/* Performance Overview */}
                 <PerformanceOverview kpis={kpis} />
 
                 {/* Top Competitors */}
                 <TopCompetitorsPanel competitors={competitors} />
-
-                {/* AI Insights */}
-                <AIInsightsPanel insights={generateAIInsights()} />
 
                 {/* Problem Items */}
                 <ProblemItemsPanel problems={generateProblems()} />

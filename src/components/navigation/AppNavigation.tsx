@@ -136,6 +136,12 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
       icon: <IconDashboard size="1.2rem" stroke={1.5} />
     },
     {
+      id: 'product-analysis',
+      label: 'Анализ товаров',
+      path: '/product-analysis',
+      icon: <IconShoppingCart size="1.2rem" stroke={1.5} />
+    },
+    {
       id: 'sales',
       label: 'Sales Analysis',
       path: '/sales',

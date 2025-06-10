@@ -24,6 +24,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 const PATH_LABELS = {
   '/': 'Главное',
   '/dashboard': 'Дашборд',
+  '/product-analysis': 'Анализ товаров',
   '/sales': 'Поставки',
   '/inventory': 'Запасы',
   '/marketplace': 'Продажи',
@@ -38,6 +39,7 @@ type PathKey = keyof typeof PATH_LABELS;
 const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }[] = [
   { path: '/', icon: IconHome },
   { path: '/dashboard', icon: IconChartBar },
+  { path: '/product-analysis', icon: IconShoppingCart },
   { path: '/sales', icon: IconShoppingCart },
   { path: '/inventory', icon: IconDatabase },
   { path: '/marketplace', icon: IconTruck },
