@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Paper } from '@mantine/core';
+import { operationalTokens } from '../../theme/theme.tokens.extended';
 
 // Types for alerts
 interface AlertAction {
@@ -251,12 +253,13 @@ const AlertItem = ({
   };
   
   const getColor = () => {
-    const colors = {
-      critical: { bg: '#fee2e2', border: '#fca5a5', text: '#dc2626' },
-      warning: { bg: '#fef3c7', border: '#fcd34d', text: '#d97706' },
-      info: { bg: '#dbeafe', border: '#93c5fd', text: '#2563eb' }
+    const alertType = alert.type;
+    const colorScheme = operationalTokens.alerts[alertType];
+    return {
+      bg: colorScheme.background,
+      border: colorScheme.border,
+      text: colorScheme.text
     };
-    return colors[alert.type];
   };
   
   const icon = getIcon();
@@ -268,7 +271,7 @@ const AlertItem = ({
       style={{
         padding: '12px',
         borderRadius: '8px',
-        border: `1px solid ${!alert.isRead ? colorScheme.border : '#e5e7eb'}`,
+        border: `2px solid ${!alert.isRead ? colorScheme.border : '#e5e7eb'}`,
         backgroundColor: !alert.isRead ? colorScheme.bg : '#ffffff',
         marginBottom: '8px'
       }}
@@ -316,7 +319,7 @@ const AlertItem = ({
             <p style={{
               margin: 0,
               fontSize: '12px',
-              color: '#6b7280',
+              color: !alert.isRead ? colorScheme.text : '#6b7280',
               lineHeight: '1.5',
               overflow: expanded ? 'visible' : 'hidden',
               textOverflow: 'ellipsis',
@@ -468,9 +471,9 @@ const AlertItem = ({
 
 // Main AlertPanel Component
 const AlertPanel = () => {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [alerts, setAlerts] = useState<Alert[]>(generateTestAlerts());
+  const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<'all' | 'critical' | 'warning' | 'unread'>('all');
   const [muted, setMuted] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -494,7 +497,7 @@ const AlertPanel = () => {
   }, { rating: 0, stock: 0, budget: 0, position: 0, critical: 0 });
 
   const toggleExpanded = (id: string) => {
-    setExpanded(prev => {
+    setExpandedAlerts(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -533,13 +536,18 @@ const AlertPanel = () => {
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
   return (
-    <div style={{
-      padding: '16px',
-      borderRadius: '8px',
-      border: `1px solid ${alertCounts.critical > 0 ? '#fca5a5' : '#e5e7eb'}`,
-      backgroundColor: '#ffffff',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-    }}>
+    <Paper
+      p="md"
+      radius="md"
+      style={{
+        border: alerts.some(alert => alert.type === 'critical' && !alert.isRead)
+          ? `2px solid ${operationalTokens.alerts.critical.border} !important`
+          : `2px solid ${operationalTokens.alerts.warning.border} !important`,
+        boxShadow: alerts.some(alert => alert.type === 'critical' && !alert.isRead)
+          ? `0 0 0 1px ${operationalTokens.alerts.critical.border}`
+          : '0 1px 3px rgba(0,0,0,0.1)'
+      }}
+    >
       <style>
         {`
           @keyframes pulse {
@@ -753,7 +761,7 @@ const AlertPanel = () => {
             <AlertItem
               key={alert.id}
               alert={alert}
-              expanded={expanded.has(alert.id)}
+              expanded={expandedAlerts.has(alert.id)}
               onToggle={() => toggleExpanded(alert.id)}
               onMute={() => muteAlert(alert.id)}
               onAction={(action) => handleAlertAction(alert, action)}
@@ -770,7 +778,7 @@ const AlertPanel = () => {
         marginTop: '16px'
       }}>
         <button
-          onClick={() => setExpanded(new Set())}
+          onClick={() => setExpandedAlerts(new Set())}
           style={{
             padding: '6px 12px',
             fontSize: '12px',
@@ -799,7 +807,7 @@ const AlertPanel = () => {
           Прочитать все
         </button>
       </div>
-    </div>
+    </Paper>
   );
 };
 

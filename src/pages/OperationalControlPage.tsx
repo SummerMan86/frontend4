@@ -85,7 +85,8 @@ import {
   IconStarHalf,
   IconAdjustments,
   IconListDetails,
-  IconChartBar
+  IconChartBar,
+  IconCoins
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
@@ -1153,11 +1154,16 @@ const EnhancedAlertPanel = ({ alerts }: { alerts: Alert[] }) => {
                 radius="md"
                 withBorder
                 style={{
+                  borderWidth: '2px',
                   borderColor: !alert.isRead 
-                    ? `var(--mantine-color-${getStatusColor(alert.type)}-3)` 
+                    ? alert.type === 'critical' 
+                      ? 'var(--mantine-color-red-6)'
+                      : `var(--mantine-color-${getStatusColor(alert.type)}-6)`
                     : undefined,
                   backgroundColor: !alert.isRead 
-                    ? `var(--mantine-color-${getStatusColor(alert.type)}-0)` 
+                    ? alert.type === 'critical'
+                      ? 'var(--mantine-color-red-0)'
+                      : `var(--mantine-color-${getStatusColor(alert.type)}-0)`
                     : undefined
                 }}
               >
@@ -1177,7 +1183,7 @@ const EnhancedAlertPanel = ({ alerts }: { alerts: Alert[] }) => {
                         <Text size="xs" c="dimmed">{getTimeAgo(alert.timestamp)}</Text>
                       </Group>
                       
-                      <Text size="xs" c="dimmed" lineClamp={expanded.has(alert.id) ? undefined : 1}>
+                      <Text size="xs" c={!alert.isRead ? getStatusColor(alert.type) : 'dimmed'} lineClamp={expanded.has(alert.id) ? undefined : 1}>
                         {alert.description}
                       </Text>
 
@@ -2456,6 +2462,100 @@ const CompetitorsDetailPanel = ({ competitors }: { competitors: CompetitorInfo[]
   );
 };
 
+// Новый компонент финансовых показателей
+const financialMetrics: EnhancedKPIMetric[] = [
+  {
+    id: 'revenue',
+    category: 'finance',
+    label: 'Выручка',
+    value: 1340000,
+    previousValue: 1500000,
+    target: 1500000,
+    format: 'currency',
+    trend: 'down',
+    status: 'warning',
+    icon: IconChartBar,
+    subMetrics: [
+      { label: 'План', value: 1500000, format: 'currency' },
+      { label: 'Факт', value: 1340000, format: 'currency' }
+    ]
+  },
+  {
+    id: 'payment',
+    category: 'finance',
+    label: 'К перечислению',
+    value: 609772,
+    previousValue: 1200000,
+    target: 1300000,
+    format: 'currency',
+    trend: 'up',
+    status: 'good',
+    icon: IconCash,
+    subMetrics: [
+      { label: 'В пути', value: 1200000, format: 'currency' },
+      { label: 'Через', value: 14, format: 'number' }
+    ]
+  },
+  {
+    id: 'margin',
+    category: 'finance',
+    label: 'Маржа',
+    value: 35,
+    previousValue: 40,
+    target: 40,
+    format: 'percent',
+    trend: 'down',
+    status: 'warning',
+    icon: IconPercentage,
+    subMetrics: [
+      { label: 'Цель', value: 40, format: 'percent' },
+      { label: 'Отклонение', value: -5, format: 'percent', status: 'warning' }
+    ]
+  },
+  {
+    id: 'profit',
+    category: 'finance',
+    label: 'Прибыль',
+    value: 189000,
+    previousValue: 215000,
+    target: 215000,
+    format: 'currency',
+    trend: 'down',
+    status: 'warning',
+    icon: IconCoins,
+    subMetrics: [
+      { label: 'План', value: 215000, format: 'currency' }
+    ]
+  }
+];
+
+const FinancialPanel = () => {
+  const today = new Date();
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+
+  return (
+    <Paper p="md" radius="md" withBorder mt="md">
+      <Group justify="space-between" mb="xs">
+        <Text fw={700} size="lg" span>
+          <span role="img" aria-label="money">💰</span> ФИНАНСОВЫЕ ПОКАЗАТЕЛИ
+        </Text>
+        <Group gap="xs">
+          <IconCalendar size={16} />
+          <Text size="sm" c="dimmed">Сегодня, {formatDate(today)}</Text>
+        </Group>
+      </Group>
+      <Grid gutter="xs">
+        {financialMetrics.map((metric) => (
+          <Grid.Col key={metric.id} span={{ base: 12, md: 3 }}>
+            <DetailedCompactCard metric={metric} onClick={() => {}} />
+          </Grid.Col>
+        ))}
+      </Grid>
+    </Paper>
+  );
+};
+
 // Main Page Component
 const OperationalControlPage = () => {
   const [view, setView] = useState<'summary' | 'detailed' | 'analytics'>('summary');
@@ -2665,6 +2765,8 @@ const OperationalControlPage = () => {
                     <EnhancedAlertPanel alerts={generateAlerts()} />
                   </Grid.Col>
                 </Grid>
+
+                <FinancialPanel />
 
                 {/* Health Score Panel */}
                 <HealthScorePanel score={calculateHealthScore(kpis)} kpis={kpis} />

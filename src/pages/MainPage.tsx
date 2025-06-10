@@ -12,7 +12,7 @@ import {
   Paper,
   RingProgress,
   Container,
-  Tabs,
+  Tabs,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
   ActionIcon,
   Menu,
   Avatar,
@@ -120,6 +120,8 @@ interface MetricCard {
   status?: 'success' | 'warning' | 'danger';
   subtitle?: string;
   action?: string;
+  chartData?: number[];
+  unit?: string;
 }
 
 interface Product {
@@ -253,11 +255,11 @@ const AlertsPanel: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
               radius="md" 
               style={{ 
                 backgroundColor: alert.type === 'critical' ? theme.colors.red[0] : theme.colors.yellow[0],
-                borderLeft: `4px solid ${alert.type === 'critical' ? theme.colors.red[6] : theme.colors.yellow[6]}`
+                borderLeft: `4px solid ${alert.type === 'critical' ? theme.colors.red[5] : theme.colors.yellow[6]}`
               }}
             >
               <Group justify="space-between">
-                <Text fw={500} c={alert.type === 'critical' ? 'red' : 'yellow.7'}>
+                <Text fw={500} c={alert.type === 'critical' ? 'red.7' : 'yellow.7'}>
                   {alert.title}
                 </Text>
                 <Text size="xs" c="dimmed">
@@ -287,6 +289,149 @@ const AlertsPanel: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
   );
 };
 
+const MiniChart: React.FC<{ 
+  data: number[]; 
+  color: string;
+  title: string;
+  unit?: string;
+}> = ({ data, color, title, unit }) => {
+  const dates = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    return date;
+  });
+
+  const formatValue = (value: number) => {
+    if (unit === '₽') {
+      return formatCurrency(value).replace('₽', '').trim();
+    } else if (unit === '%') {
+      return value.toFixed(1);
+    } else if (unit === '★') {
+      return value.toFixed(1);
+    } else {
+      return value.toLocaleString('ru-RU', { maximumFractionDigits: 1 });
+    }
+  };
+
+  const option = {
+    grid: {
+      top: 5,
+      right: 5,
+      bottom: 5,
+      left: 5
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'line',
+        lineStyle: {
+          color: 'rgba(0, 0, 0, 0.1)',
+          width: 1,
+          type: 'solid'
+        }
+      },
+      formatter: (params: any) => {
+        const value = params[0].value;
+        const date = dates[params[0].dataIndex];
+        const formattedDate = date.toLocaleDateString('ru-RU', { 
+          day: 'numeric', 
+          month: 'short'
+        });
+        return [
+          `<div style="font-weight: 500; margin-bottom: 4px;">${title}</div>`,
+          `<div style="display: flex; justify-content: space-between; align-items: center;">`,
+          `<span style="color: #666;">${formattedDate}</span>`,
+          `<span style="font-weight: 500; margin-left: 16px;">${formatValue(value)}${unit || ''}</span>`,
+          `</div>`
+        ].join('');
+      },
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: 'rgba(0, 0, 0, 0.1)',
+      textStyle: {
+        color: '#333'
+      },
+      padding: [8, 12],
+      extraCssText: 'box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);'
+    },
+    xAxis: {
+      type: 'category',
+      show: false,
+      boundaryGap: false,
+      data: dates.map(date => date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }))
+    },
+    yAxis: {
+      type: 'value',
+      show: false,
+      min: 'dataMin',
+      max: 'dataMax'
+    },
+    series: [
+      {
+        data: data,
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 4,
+        showSymbol: false,
+        lineStyle: {
+          color: color,
+          width: 2
+        },
+        itemStyle: {
+          color: color,
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        emphasis: {
+          scale: true,
+          focus: 'series',
+          itemStyle: {
+            color: color,
+            borderWidth: 2,
+            borderColor: '#fff'
+          }
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: color
+              },
+              {
+                offset: 1,
+                color: 'rgba(255, 255, 255, 0)'
+              }
+            ]
+          }
+        }
+      }
+    ]
+  };
+
+  return (
+    <Box 
+      onMouseEnter={(e) => {
+        const chart = e.currentTarget.querySelector('div');
+        if (chart) {
+          chart.style.cursor = 'pointer';
+        }
+      }}
+    >
+      <ReactECharts 
+        option={option} 
+        style={{ height: '50px', width: '100%' }} 
+        opts={{ renderer: 'svg' }}
+      />
+    </Box>
+  );
+};
+
 const MetricCardComponent: React.FC<{ metric: MetricCard }> = ({ metric }) => {
   const theme = useMantineTheme();
   
@@ -300,6 +445,19 @@ const MetricCardComponent: React.FC<{ metric: MetricCard }> = ({ metric }) => {
         return theme.colors.red[6];
       default:
         return theme.colors.gray[6];
+    }
+  };
+
+  const getChartColor = (status?: string) => {
+    switch (status) {
+      case 'success':
+        return theme.colors.green[6];
+      case 'warning':
+        return theme.colors.yellow[6];
+      case 'danger':
+        return theme.colors.red[6];
+      default:
+        return theme.colors.blue[6];
     }
   };
   
@@ -364,6 +522,17 @@ const MetricCardComponent: React.FC<{ metric: MetricCard }> = ({ metric }) => {
             {Math.abs(metric.trend)}%
           </Text>
         </Group>
+      )}
+
+      {metric.chartData && (
+        <Box mt="xs">
+          <MiniChart 
+            data={metric.chartData} 
+            color={getChartColor(metric.status)} 
+            title={metric.title}
+            unit={metric.unit}
+          />
+        </Box>
       )}
     </Card>
   );
@@ -464,7 +633,6 @@ const RevenueChart: React.FC = () => {
 
 // Главный компонент дашборда
 export default function MainPage() {
-  const [activeTab, setActiveTab] = useState('home');
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const theme = useMantineTheme();
@@ -477,14 +645,10 @@ export default function MainPage() {
     }, 1000);
   }, []);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-  
   const financialMetrics: MetricCard[] = [
     {
       id: 'revenue',
-      title: 'ВЫРУЧКА',
+      title: 'Выручка',
       icon: <IconChartBar size={20} />,
       value: '1.34M₽',
       target: '1.5M₽',
@@ -492,19 +656,23 @@ export default function MainPage() {
       trend: 12,
       status: 'warning',
       subtitle: 'Отставание от плана на 11%',
-      action: 'Детали'
+      action: 'Детали',
+      chartData: Array.from({ length: 30 }, () => 1000000 + Math.random() * 500000),
+      unit: '₽'
     },
     {
       id: 'payment',
-      title: 'К ПЕРЕЧИСЛЕНИЮ',
+      title: 'К перечислению',
       icon: <IconCash size={20} />,
       value: '609,772₽',
       subtitle: 'Через 14 дней, в пути: 1.2M₽',
-      action: 'График CF'
+      action: 'График CF',
+      chartData: Array.from({ length: 30 }, () => 500000 + Math.random() * 300000),
+      unit: '₽'
     },
     {
       id: 'margin',
-      title: 'МАРЖА',
+      title: 'Маржа',
       icon: <IconPercentage size={20} />,
       value: '35%',
       target: '40%',
@@ -512,137 +680,131 @@ export default function MainPage() {
       status: 'danger',
       subtitle: '-5pp от цели',
       trend: -5,
-      action: 'По SKU'
+      action: 'По SKU',
+      chartData: Array.from({ length: 30 }, () => 30 + Math.random() * 10),
+      unit: '%'
     },
     {
       id: 'profit',
-      title: 'ПРИБЫЛЬ',
+      title: 'Прибыль',
       icon: <IconCoins size={20} />,
       value: '189k₽',
       target: '215k₽',
       progress: 88,
       status: 'warning',
-      action: 'P&L анализ'
+      action: 'P&L анализ',
+      chartData: Array.from({ length: 30 }, () => 150000 + Math.random() * 100000),
+      unit: '₽'
     }
   ];
   
   const operationalMetrics: MetricCard[] = [
     {
       id: 'sales',
-      title: 'ПРОДАЖИ',
+      title: 'Продажи',
       icon: <IconShoppingCart size={20} />,
       value: '342 шт',
       target: '385 шт',
       progress: 89,
       status: 'warning',
-      action: 'Анализ'
+      action: 'Анализ',
+      chartData: Array.from({ length: 30 }, () => 300 + Math.random() * 100),
+      unit: ' шт'
     },
     {
       id: 'logistics',
-      title: 'ЛОГИСТИКА',
+      title: 'Логистика',
       icon: <IconTruck size={20} />,
       value: '15.2%',
       target: '13%',
       status: 'danger',
       subtitle: '+234k₽ перерасход',
       trend: 2.2,
-      action: 'Оптимизация'
+      action: 'Оптимизация',
+      chartData: Array.from({ length: 30 }, () => 12 + Math.random() * 5),
+      unit: '%'
     },
     {
       id: 'warehouse',
-      title: 'СКЛАД',
+      title: 'Склад',
       icon: <IconPackage size={20} />,
       value: '3 SKU',
       subtitle: 'Критично: 3, Внимание: 8',
-      action: 'Детали'
+      action: 'Детали',
+      chartData: Array.from({ length: 30 }, () => 2 + Math.random() * 5),
+      unit: ' SKU'
     },
     {
       id: 'returns',
-      title: 'ВОЗВРАТЫ',
+      title: 'Возвраты',
       icon: <IconRotate size={20} />,
       value: '12%',
       target: '< 10%',
       status: 'warning',
       subtitle: 'Причины: размер 45%',
       trend: 2,
-      action: 'Аналитика'
+      action: 'Аналитика',
+      chartData: Array.from({ length: 30 }, () => 8 + Math.random() * 6),
+      unit: '%'
     }
   ];
   
   const marketingMetrics: MetricCard[] = [
     {
       id: 'ads',
-      title: 'РЕКЛАМА',
+      title: 'Реклама',
       icon: <IconAd size={20} />,
       value: '145k₽',
       target: '120k₽',
       status: 'danger',
       subtitle: 'ДРР: 15.2%',
       trend: 20,
-      action: 'По ключам'
+      action: 'По ключам',
+      chartData: Array.from({ length: 30 }, () => 100000 + Math.random() * 50000),
+      unit: '₽'
     },
     {
       id: 'conversion',
-      title: 'КОНВЕРСИЯ',
+      title: 'Конверсия',
       icon: <IconTargetArrow size={20} />,
       value: '2.4%',
       target: '3.0%',
       progress: 80,
       status: 'warning',
       subtitle: 'CTR: 1.8%',
-      action: 'Воронка'
+      action: 'Воронка',
+      chartData: Array.from({ length: 30 }, () => 2 + Math.random() * 1),
+      unit: '%'
     },
     {
       id: 'rating',
-      title: 'РЕЙТИНГ',
+      title: 'Рейтинг',
       icon: <IconStar size={20} />,
       value: '4.3',
       subtitle: 'Нужно 5★: 45 для 4.8',
-      action: 'Отзывы'
+      action: 'Отзывы',
+      chartData: Array.from({ length: 30 }, () => 4 + Math.random() * 0.5),
+      unit: '★'
     },
     {
       id: 'marketShare',
-      title: 'ДОЛЯ РЫНКА',
+      title: 'Доля рынка',
       icon: <IconChartDots size={20} />,
       value: '4.2%',
       subtitle: 'В нише, у ТОП-10: 2.6%',
       target: '5%',
       progress: 84,
-      action: 'Конкуренты'
+      action: 'Конкуренты',
+      chartData: Array.from({ length: 30 }, () => 3.5 + Math.random() * 1),
+      unit: '%'
     }
-  ];
-  
-  const navItems = [
-    { value: 'home', label: 'Главная', icon: <IconHome size={16} /> },
-    { value: 'analysis', label: 'Анализ товара', icon: <IconSearch size={16} /> },
-    { value: 'competitors', label: 'Конкуренты', icon: <IconChartBar size={16} /> },
-    { value: 'planning', label: 'Планирование', icon: <IconCalendar size={16} /> },
-    { value: 'warehouse', label: 'Склад', icon: <IconPackage size={16} /> },
-    { value: 'marketing', label: 'Маркетинг', icon: <IconAd size={16} /> },
-    { value: 'reputation', label: 'Репутация', icon: <IconStar size={16} /> },
-    { value: 'ai', label: 'AI-инсайты', icon: <IconBrain size={16} /> }
   ];
   
   return (
     <Container size="xl" py="md">
       <Stack gap="md">
-        {/* Заголовок и навигация */}
-        <Group justify="space-between" mb="md">
-          <Title order={2}>Главная</Title>
-          <SegmentedControl
-            value={activeTab}
-            onChange={handleTabChange}
-            data={navItems.map(item => ({
-              value: item.value,
-              label: (
-                <Group gap={8}>
-                  {item.icon}
-                  <Text size="sm">{item.label}</Text>
-                </Group>
-              )
-            }))}
-          />
-        </Group>
+        {/* Заголовок */}
+        <Title order={2}>Главная</Title>
 
         {/* Основной контент */}
         <Grid>
