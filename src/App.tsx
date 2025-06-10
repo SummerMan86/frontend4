@@ -7,6 +7,7 @@ import SupplierIncomesPage from './pages/SupplierIncomesPage';
 import OperationalControlPage from './pages/OperationalControlPage';
 import KpiDashboardPage2 from './pages/KpiDashboardPage2';
 import TestPage from './pages/TestPage';
+import MainPage from './pages/MainPage';
 import { ThemeProvider } from './theme';
 
 // Create router with future flags
@@ -24,7 +25,8 @@ function App() {
         <BrowserRouter future={router.future}>
           <Routes>
             <Route element={<MyAppShell />}>
-              <Route index element={<KpiDashboardPage2 />} />
+              <Route index element={<MainPage />} />
+              <Route path="dashboard" element={<KpiDashboardPage2 />} />
               <Route path="inventory" element={<OperationalControlPage />} />
               <Route path="sales" element={<SupplierIncomesPage />} />
               <Route path="operational-control" element={<OperationalControlPage />} />

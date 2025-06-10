@@ -82,7 +82,10 @@ import {
   IconCheck,
   IconX,
   IconStarFilled,
-  IconStarHalf
+  IconStarHalf,
+  IconAdjustments,
+  IconListDetails,
+  IconChartBar
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
@@ -2541,17 +2544,11 @@ const OperationalControlPage = () => {
             <Tabs.Tab value="summary" leftSection={<IconChartLine size={16} />}>
               Обзор
             </Tabs.Tab>
-            <Tabs.Tab value="pricing" leftSection={<IconCurrencyRubel size={16} />}>
-              Ценообразование
+            <Tabs.Tab value="detailed" leftSection={<IconListDetails size={16} />}>
+              Детально
             </Tabs.Tab>
-            <Tabs.Tab value="advertising" leftSection={<IconAd size={16} />}>
-              Реклама
-            </Tabs.Tab>
-            <Tabs.Tab value="reviews" leftSection={<IconStarFilled size={16} />}>
-              Отзывы
-            </Tabs.Tab>
-            <Tabs.Tab value="competitors" leftSection={<IconUsersGroup size={16} />}>
-              Конкуренты
+            <Tabs.Tab value="analytics" leftSection={<IconChartBar size={16} />}>
+              Аналитика
             </Tabs.Tab>
           </Tabs.List>
 
@@ -2559,16 +2556,6 @@ const OperationalControlPage = () => {
             <Stack gap="md">
               {/* View Mode Controls */}
               <Group justify="space-between">
-                <SegmentedControl
-                  size="xs"
-                  value={view}
-                  onChange={(value: string) => setView(value as 'summary' | 'detailed' | 'analytics')}
-                  data={[
-                    { label: 'Сводка', value: 'summary' },
-                    { label: 'Детально', value: 'detailed' },
-                    { label: 'Аналитика', value: 'analytics' }
-                  ]}
-                />
                 <Group>
                   <DatePickerInput
                     type="range"
@@ -2594,125 +2581,242 @@ const OperationalControlPage = () => {
                 </Group>
               </Group>
 
-              {/* View Mode Content */}
-              {view === 'summary' && (
-                <>
-                  {/* Enhanced Summary Dashboard with Groups */}
-                  <Stack gap="md">
-                    <Group justify="space-between">
-                      <Title order={3}>Ключевые показатели</Title>
-                    </Group>
-                    <Grid>
-                      {getTopKPIs(kpis).map((metric: EnhancedKPIMetric) => (
-                        <Grid.Col key={metric.id} span={{ base: 6, sm: 4, md: 2 }}>
-                          <CompactKPICard 
-                            metric={metric} 
-                            onClick={() => handleMetricClick(metric.category)}
-                          />
-                        </Grid.Col>
-                      ))}
-                    </Grid>
+              {/* Summary View Content */}
+              <Stack gap="md">
+                <Group justify="space-between">
+                  <Title order={3}>Ключевые показатели</Title>
+                </Group>
+                <Grid>
+                  {getTopKPIs(kpis).map((metric: EnhancedKPIMetric) => (
+                    <Grid.Col key={metric.id} span={{ base: 6, sm: 4, md: 2 }}>
+                      <CompactKPICard 
+                        metric={metric} 
+                        onClick={() => handleMetricClick(metric.category)}
+                      />
+                    </Grid.Col>
+                  ))}
+                </Grid>
 
-                    {/* Alerts Panel */}
-                    <EnhancedAlertPanel alerts={generateAlerts()} />
-
-                    {/* Health Score Panel */}
-                    <HealthScorePanel score={calculateHealthScore(kpis)} kpis={kpis} />
-
-                    {/* Performance Overview */}
-                    <PerformanceOverview kpis={kpis} />
-
-                    {/* Top Competitors */}
-                    <TopCompetitorsPanel competitors={competitors} />
-
-                    {/* AI Insights */}
-                    <AIInsightsPanel insights={generateAIInsights()} />
-
-                    {/* Problem Items */}
-                    <ProblemItemsPanel problems={generateProblems()} />
-
-                    {/* Quick Actions */}
-                    <QuickActionsPanel />
-                  </Stack>
-                </>
-              )}
-
-              {view === 'detailed' && (
-                <>
-                  {/* Detailed Metrics by Category */}
-                  <Stack gap="md">
-                    {Object.entries(metricsByCategory).map(([category, metrics]) => (
-                      <Paper key={category} p="md" withBorder>
-                        <Group justify="space-between" mb="md">
-                          <Group>
-                            {React.createElement(getCategoryIcon(category), { size: 20 })}
-                            <div>
-                              <Text fw={500}>{getCategoryTitle(category)}</Text>
-                              <Text size="xs" color="dimmed">{getCategorySummary(metrics)}</Text>
-                            </div>
-                          </Group>
-                          <Button
-                            variant="subtle"
-                            size="xs"
-                            onClick={() => toggleCategoryExpanded(category)}
-                          >
-                            {expandedCategories.has(category) ? 'Свернуть' : 'Развернуть'}
-                          </Button>
+                {/* Two Column Layout for Alerts and Pricing */}
+                <Grid>
+                  {/* Pricing Overview Panel */}
+                  <Grid.Col span={{ base: 12, md: 4 }}>
+                    <Paper p="md" radius="md" withBorder>
+                      <Group justify="space-between" mb="md">
+                        <Group>
+                          <ThemeIcon size="lg" variant="light" color="blue">
+                            <IconCurrencyRubel size={20} />
+                          </ThemeIcon>
+                          <div>
+                            <Text fw={600}>Ценообразование</Text>
+                            <Text size="xs" c="dimmed">Анализ цен и маржинальности</Text>
+                          </div>
                         </Group>
-                        {expandedCategories.has(category) && (
-                          <Grid>
-                            {metrics.map((metric: EnhancedKPIMetric) => (
-                              <Grid.Col key={metric.id} span={{ base: 12, sm: 6, md: 4 }}>
-                                <DetailedCompactCard 
-                                  metric={metric} 
-                                  onClick={() => handleMetricClick(category)}
-                                />
-                              </Grid.Col>
-                            ))}
-                          </Grid>
-                        )}
-                      </Paper>
-                    ))}
-                  </Stack>
-                </>
-              )}
+                      </Group>
 
-              {view === 'analytics' && (
-                <Stack gap="md">
-                  <Grid>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <ConversionFunnelChart />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <CategoryDistributionChart />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <CompetitorComparisonChart competitors={competitors} />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <TrendAnalysisChart />
-                    </Grid.Col>
-                  </Grid>
-                </Stack>
-              )}
+                      <Stack gap="md">
+                        {/* Average Price */}
+                        <div>
+                          <Text size="sm" c="dimmed">Средняя цена</Text>
+                          <Group align="flex-end" gap="xs">
+                            <Text size="xl" fw={700}>2 450 ₽</Text>
+                            <Text size="sm" c="green" fw={500}>+5.2%</Text>
+                          </Group>
+                        </div>
+
+                        {/* Margin */}
+                        <div>
+                          <Text size="sm" c="dimmed">Маржинальность</Text>
+                          <Group align="flex-end" gap="xs">
+                            <Text size="xl" fw={700}>32.5%</Text>
+                            <Text size="sm" c="red" fw={500}>-1.8%</Text>
+                          </Group>
+                        </div>
+
+                        {/* Price Competitiveness */}
+                        <div>
+                          <Text size="sm" c="dimmed">Конкурентоспособность цен</Text>
+                          <Progress 
+                            value={78} 
+                            color="green" 
+                            size="sm" 
+                            mt={4}
+                          />
+                          <Group justify="space-between" mt={4}>
+                            <Text size="xs" c="dimmed">78% товаров</Text>
+                            <Text size="xs" c="dimmed">ниже рынка</Text>
+                          </Group>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <Button 
+                          variant="light" 
+                          leftSection={<IconAdjustments size={16} />}
+                          fullWidth
+                        >
+                          Настроить цены
+                        </Button>
+                      </Stack>
+                    </Paper>
+                  </Grid.Col>
+
+                  {/* Alerts Panel */}
+                  <Grid.Col span={{ base: 12, md: 8 }}>
+                    <EnhancedAlertPanel alerts={generateAlerts()} />
+                  </Grid.Col>
+                </Grid>
+
+                {/* Health Score Panel */}
+                <HealthScorePanel score={calculateHealthScore(kpis)} kpis={kpis} />
+
+                {/* Performance Overview */}
+                <PerformanceOverview kpis={kpis} />
+
+                {/* Top Competitors */}
+                <TopCompetitorsPanel competitors={competitors} />
+
+                {/* AI Insights */}
+                <AIInsightsPanel insights={generateAIInsights()} />
+
+                {/* Problem Items */}
+                <ProblemItemsPanel problems={generateProblems()} />
+
+                {/* Quick Actions */}
+                <QuickActionsPanel />
+              </Stack>
             </Stack>
           </Tabs.Panel>
 
-          {/* Other tab panels */}
-          <Tabs.Panel value="pricing" pt="md">
-            <PricingDetailPanel metrics={kpis.filter(m => m.category === 'pricing')} />
+          <Tabs.Panel value="detailed" pt="md">
+            <Stack gap="md">
+              <Group justify="space-between">
+                <Title order={3}>Детальный анализ</Title>
+                <Group>
+                  <DatePickerInput
+                    type="range"
+                    placeholder="Выберите период"
+                    value={dateRange}
+                    onChange={(value) => {
+                      if (Array.isArray(value) && value.length === 2) {
+                        setDateRange([
+                          typeof value[0] === 'string' ? (value[0] ? new Date(value[0]) : null) : value[0],
+                          typeof value[1] === 'string' ? (value[1] ? new Date(value[1]) : null) : value[1],
+                        ]);
+                      }
+                    }}
+                    clearable
+                  />
+                  <Button
+                    variant="light"
+                    leftSection={<IconRefresh size={16} />}
+                    onClick={handleRefresh}
+                  >
+                    Обновить
+                  </Button>
+                </Group>
+              </Group>
+
+              {/* Detailed View Content */}
+              <Stack gap="md">
+                {Object.entries(metricsByCategory).map(([category, metrics]) => (
+                  <Paper key={category} p="md" radius="md" withBorder>
+                    <Group justify="space-between" mb="md">
+                      <Group>
+                        <ThemeIcon size="lg" variant="light" color="blue">
+                          {React.createElement(getCategoryIcon(category), { size: 20 })}
+                        </ThemeIcon>
+                        <div>
+                          <Text fw={600}>{getCategoryTitle(category)}</Text>
+                          <Text size="xs" c="dimmed">{getCategorySummary(metrics)}</Text>
+                        </div>
+                      </Group>
+                      <ActionIcon
+                        variant="subtle"
+                        onClick={() => toggleCategoryExpanded(category)}
+                      >
+                        {expandedCategories.has(category) ? (
+                          <IconChevronUp size={16} />
+                        ) : (
+                          <IconChevronDown size={16} />
+                        )}
+                      </ActionIcon>
+                    </Group>
+
+                    <Collapse in={expandedCategories.has(category)}>
+                      <Grid>
+                        {metrics.map((metric) => (
+                          <Grid.Col key={metric.id} span={{ base: 12, sm: 6, md: 4 }}>
+                            <DetailedCompactCard
+                              metric={metric}
+                              onClick={() => handleMetricClick(category)}
+                            />
+                          </Grid.Col>
+                        ))}
+                      </Grid>
+                    </Collapse>
+                  </Paper>
+                ))}
+              </Stack>
+            </Stack>
           </Tabs.Panel>
 
-          <Tabs.Panel value="advertising" pt="md">
-            <AdvertisingDetailPanel keywords={adKeywords} />
-          </Tabs.Panel>
+          <Tabs.Panel value="analytics" pt="md">
+            <Stack gap="md">
+              <Group justify="space-between">
+                <Title order={3}>Аналитика</Title>
+                <Group>
+                  <DatePickerInput
+                    type="range"
+                    placeholder="Выберите период"
+                    value={dateRange}
+                    onChange={(value) => {
+                      if (Array.isArray(value) && value.length === 2) {
+                        setDateRange([
+                          typeof value[0] === 'string' ? (value[0] ? new Date(value[0]) : null) : value[0],
+                          typeof value[1] === 'string' ? (value[1] ? new Date(value[1]) : null) : value[1],
+                        ]);
+                      }
+                    }}
+                    clearable
+                  />
+                  <Button
+                    variant="light"
+                    leftSection={<IconRefresh size={16} />}
+                    onClick={handleRefresh}
+                  >
+                    Обновить
+                  </Button>
+                </Group>
+              </Group>
 
-          <Tabs.Panel value="reviews" pt="md">
-            <ReviewsDetailPanel distribution={reviewDistribution} />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="competitors" pt="md">
-            <CompetitorsDetailPanel competitors={competitors} />
+              {/* Analytics View Content */}
+              <Grid>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Paper p="md" radius="md" withBorder>
+                    <Text fw={600} mb="md">Воронка конверсии</Text>
+                    <ConversionFunnelChart />
+                  </Paper>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Paper p="md" radius="md" withBorder>
+                    <Text fw={600} mb="md">Распределение по категориям</Text>
+                    <CategoryDistributionChart />
+                  </Paper>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Paper p="md" radius="md" withBorder>
+                    <Text fw={600} mb="md">Сравнение с конкурентами</Text>
+                    <CompetitorComparisonChart competitors={competitors} />
+                  </Paper>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Paper p="md" radius="md" withBorder>
+                    <Text fw={600} mb="md">Анализ трендов</Text>
+                    <TrendAnalysisChart />
+                  </Paper>
+                </Grid.Col>
+              </Grid>
+            </Stack>
           </Tabs.Panel>
         </Tabs>
       )}
@@ -2720,7 +2824,10 @@ const OperationalControlPage = () => {
       {/* Loading state */}
       {loading && (
         <Center h={400}>
-          <Loader size="xl" />
+          <Stack align="center" gap="md">
+            <Loader size="lg" />
+            <Text>Загрузка данных...</Text>
+          </Stack>
         </Center>
       )}
 
@@ -2730,6 +2837,31 @@ const OperationalControlPage = () => {
           {error.message}
         </Alert>
       )}
+
+      {/* Metric Details Modal */}
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={selectedCategory ? getCategoryTitle(selectedCategory) : ''}
+        size="xl"
+      >
+        {selectedCategory && (
+          <Stack gap="md">
+            {selectedCategory === 'pricing' && (
+              <PricingDetailPanel metrics={metricsByCategory[selectedCategory] || []} />
+            )}
+            {selectedCategory === 'advertising' && (
+              <AdvertisingDetailPanel keywords={adKeywords} />
+            )}
+            {selectedCategory === 'reviews' && (
+              <ReviewsDetailPanel distribution={reviewDistribution} />
+            )}
+            {selectedCategory === 'competitors' && (
+              <CompetitorsDetailPanel competitors={competitors} />
+            )}
+          </Stack>
+        )}
+      </Modal>
     </Container>
   );
 };
