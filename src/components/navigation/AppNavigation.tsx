@@ -38,7 +38,8 @@ import {
   IconBell,
   IconMessage,
   IconChevronRight,
-  IconAlertCircle
+  IconAlertCircle,
+  IconTruck
 } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import { useUiStore } from '../../stores/uiStore';
@@ -163,6 +164,18 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
       ],
     },
     {
+      id: 'warehouse-logistics',
+      label: 'Склад и логистика',
+      path: '/warehouse-logistics',
+      icon: <IconTruck size="1.2rem" stroke={1.5} />,
+      children: [
+        { id: 'warehouse-management', label: 'Управление складом', path: '/warehouse-logistics/management' },
+        { id: 'shipping', label: 'Отгрузки', path: '/warehouse-logistics/shipping' },
+        { id: 'delivery-tracking', label: 'Отслеживание доставки', path: '/warehouse-logistics/tracking' },
+        { id: 'suppliers', label: 'Поставщики', path: '/warehouse-logistics/suppliers' },
+      ],
+    },
+    {
       id: 'marketplace',
       label: 'Marketplace',
       path: '/marketplace',
@@ -201,7 +214,7 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
   // Check if a path is valid for navigation
   function isValidPath(path: string): boolean {
     const validRootPaths = ['/', '/sales', '/inventory', '/marketplace', 
-                          '/supplier-incomes', '/reports', '/settings'];
+                          '/supplier-incomes', '/reports', '/settings', '/warehouse-logistics'];
     
     return validRootPaths.some(validPath => 
       path === validPath || path.startsWith(`${validPath}/`)

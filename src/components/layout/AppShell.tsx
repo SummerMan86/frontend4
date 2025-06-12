@@ -17,6 +17,7 @@ import {
   IconSettings,
   IconActivity,
   IconHome,
+  IconBuildingWarehouse,
 } from '@tabler/icons-react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
@@ -27,6 +28,7 @@ const PATH_LABELS = {
   '/product-analysis': 'Анализ товаров',
   '/sales': 'Поставки',
   '/inventory': 'Запасы',
+  '/warehouse-logistics': 'Склад и логистика',
   '/marketplace': 'Продажи',
   '/supplier-incomes': 'Доходы поставщика',
   '/reports': 'Доходы',
@@ -42,6 +44,7 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/product-analysis', icon: IconShoppingCart },
   { path: '/sales', icon: IconShoppingCart },
   { path: '/inventory', icon: IconDatabase },
+  { path: '/warehouse-logistics', icon: IconBuildingWarehouse },
   { path: '/marketplace', icon: IconTruck },
   { path: '/supplier-incomes', icon: IconTruck },
   { path: '/reports', icon: IconReportAnalytics },
