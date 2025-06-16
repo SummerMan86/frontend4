@@ -23,12 +23,13 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 
 /* Маршруты → подписи */
 const PATH_LABELS = {
-  '/': 'Главное',
+  '/': 'Главная',
   '/dashboard': 'Дашборд',
   '/product-analysis': 'Анализ товаров',
-  '/sales': 'Поставки',
-  '/inventory': 'Запасы',
+  '/sales': 'Продажи',
+  '/inventory': 'Инвентарь',
   '/warehouse-logistics': 'Склад и логистика',
+  '/warehouse-logistics-ext': 'Управление складом и логистикой',
   '/marketplace': 'Продажи',
   '/supplier-incomes': 'Доходы поставщика',
   '/reports': 'Доходы',
@@ -45,6 +46,7 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/sales', icon: IconShoppingCart },
   { path: '/inventory', icon: IconDatabase },
   { path: '/warehouse-logistics', icon: IconBuildingWarehouse },
+  { path: '/warehouse-logistics-ext', icon: IconBuildingWarehouse },
   { path: '/marketplace', icon: IconTruck },
   { path: '/supplier-incomes', icon: IconTruck },
   { path: '/reports', icon: IconReportAnalytics },

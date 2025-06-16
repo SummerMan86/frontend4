@@ -10,6 +10,7 @@ import TestPage from './pages/TestPage';
 import MainPage from './pages/MainPage';
 import ProductAnalysisPage from './pages/ProductAnalysisPage';
 import WarehouseAndLogisticsPage from './pages/WarehouseAndLogisticsPage';
+import WarehouseAndLogisticsPageExt from './pages/WarehouseAndLogisticsPageExt';
 import { ThemeProvider } from './theme';
 
 // Create router with future flags
@@ -32,6 +33,7 @@ function App() {
               <Route path="inventory" element={<OperationalControlPage />} />
               <Route path="sales" element={<SupplierIncomesPage />} />
               <Route path="warehouse-logistics" element={<WarehouseAndLogisticsPage />} />
+              <Route path="warehouse-logistics-ext" element={<WarehouseAndLogisticsPageExt />} />
               <Route path="operational-control" element={<OperationalControlPage />} />
               <Route path="product-analysis" element={<ProductAnalysisPage />} />
               {/* остальные страницы */}
