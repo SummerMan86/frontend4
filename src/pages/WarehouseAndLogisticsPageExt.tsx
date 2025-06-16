@@ -44,6 +44,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import YandexWarehouseMap from '../components/YandexWarehouseMap';
 import {
     IconDashboard,
     IconPackage,
@@ -727,262 +728,7 @@ const ProfessionalSalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: st
     );
 };
 
-// Компактная профессиональная воронка товародвижения
-const CompactSalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: string) => void }> = ({ 
-    data, 
-    onStageClick 
-}) => {
-    const [hoveredStage, setHoveredStage] = useState<number | null>(null);
-    const maxValue = Math.max(...data.map(d => d.value));
-    
-    return (
-        <Stack gap="md">
-            {/* Компактный заголовок */}
-            <Group justify="space-between" align="center">
-                <div>
-                    <Text size="lg" fw={700} c="dark">🚀 Воронка товародвижения</Text>
-                    <Text size="xs" c="dimmed">Анализ конверсии по этапам</Text>
-                </div>
-                <Badge size="lg" variant="gradient" gradient={{ from: 'green', to: 'teal' }} fw={700}>
-                    {((data[data.length - 1].value / data[0].value) * 100).toFixed(1)}%
-                </Badge>
-            </Group>
 
-            <Grid>
-                {/* Компактная воронка */}
-                <Grid.Col span={{ base: 12, md: 8 }}>
-                    <Paper p="lg" withBorder radius="lg" style={{ 
-                        background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-                        minHeight: '280px',
-                        display: 'flex',
-                        alignItems: 'center'
-                    }}>
-                        <div style={{ width: '100%', height: '220px', position: 'relative' }}>
-                            {data.map((stage, index) => {
-                                const widthPercent = Math.max((stage.value / maxValue) * 100, 30);
-                                const isHovered = hoveredStage === index;
-                                
-                                // Компактные цвета для каждого этапа
-                                const stageColors = [
-                                    { main: '#3b82f6', light: '#dbeafe', bg: '#eff6ff' },
-                                    { main: '#8b5cf6', light: '#e9d5ff', bg: '#f3e8ff' },
-                                    { main: '#06b6d4', light: '#cffafe', bg: '#ecfeff' },
-                                    { main: '#10b981', light: '#d1fae5', bg: '#ecfdf5' }
-                                ];
-                                const colors = stageColors[index] || stageColors[0];
-                                
-                                // Иконки для этапов
-                                const StageIcon = [IconEye, IconPackage, IconTruck, IconCircleCheck][index];
-                                
-                                // Позиционирование этапов воронки
-                                const topPosition = index * 45; // Уменьшаем расстояние между этапами
-                                const leftMargin = index * 40; // Сдвиг для создания формы воронки
-                                
-                                return (
-                                    <div key={stage.stage}>
-                                        {/* Основной блок воронки */}
-                                        <div
-                                            style={{
-                                                position: 'absolute',
-                                                top: `${topPosition}px`,
-                                                left: `${leftMargin}px`,
-                                                width: `${widthPercent - index * 15}%`, // Уменьшаем ширину для формы воронки
-                                                minWidth: '200px',
-                                                zIndex: data.length - index
-                                            }}
-                                            onMouseEnter={() => setHoveredStage(index)}
-                                            onMouseLeave={() => setHoveredStage(null)}
-                                        >
-                                            <Paper
-                                                p="sm"
-                                                radius="lg"
-                                                style={{
-                                                    background: isHovered 
-                                                        ? `linear-gradient(135deg, ${colors.main} 0%, ${colors.main}dd 100%)`
-                                                        : `linear-gradient(135deg, ${colors.bg} 0%, ${colors.light} 100%)`,
-                                                    border: `2px solid ${isHovered ? colors.main : colors.light}`,
-                                                    color: isHovered ? 'white' : colors.main,
-                                                    cursor: onStageClick ? 'pointer' : 'default',
-                                                    transform: isHovered ? 'scale(1.02) translateY(-2px)' : 'scale(1)',
-                                                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                                                    boxShadow: isHovered 
-                                                        ? `0 12px 25px rgba(0,0,0,0.15)` 
-                                                        : '0 4px 15px rgba(0,0,0,0.08)',
-                                                    height: '36px', // Фиксированная компактная высота
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    paddingLeft: '12px',
-                                                    paddingRight: '12px'
-                                                }}
-                                                onClick={() => onStageClick?.(stage.stage)}
-                                            >
-                                                <Group justify="space-between" align="center" style={{ width: '100%' }}>
-                                                    <Group gap="sm" align="center">
-                                                        <ThemeIcon 
-                                                            size={28} 
-                                                            radius="md" 
-                                                            variant={isHovered ? "white" : "light"}
-                                                            color={isHovered ? "white" : colors.main}
-                                                            style={{ 
-                                                                backgroundColor: isHovered ? 'rgba(255,255,255,0.2)' : colors.light,
-                                                                border: isHovered ? '1px solid rgba(255,255,255,0.3)' : `1px solid ${colors.main}30`
-                                                            }}
-                                                        >
-                                                            <StageIcon size={16} style={{ color: isHovered ? 'white' : colors.main }} />
-                                                        </ThemeIcon>
-                                                        <Text size="sm" fw={700}>
-                                                            {stage.stage}
-                                                        </Text>
-                                                    </Group>
-                                                
-                                                    <Group gap="xs" align="center">
-                                                        <Text size="lg" fw={800}>
-                                                            {stage.value > 1000 ? `${(stage.value / 1000).toFixed(1)}k` : stage.value.toLocaleString()}
-                                                        </Text>
-                                                        {index > 0 && (
-                                                            <Badge 
-                                                                size="sm"
-                                                                variant={isHovered ? "white" : "light"}
-                                                                color={isHovered ? "white" : colors.main}
-                                                                style={{ 
-                                                                    backgroundColor: isHovered ? 'rgba(255,255,255,0.25)' : colors.light,
-                                                                    color: isHovered ? 'white' : colors.main,
-                                                                    fontWeight: 700
-                                                                }}
-                                                            >
-                                                                {stage.conversion}%
-                                                            </Badge>
-                                                        )}
-                                                    </Group>
-                                                </Group>
-                                            </Paper>
-                                            
-                                            {/* Компактный коннектор между этапами */}
-                                            {index < data.length - 1 && (
-                                                <div style={{ 
-                                                    position: 'absolute',
-                                                    top: '40px',
-                                                    left: '50%',
-                                                    transform: 'translateX(-50%)',
-                                                    zIndex: -1
-                                                }}>
-                                                    {/* Стрелка */}
-                                                    <div style={{
-                                                        width: 0,
-                                                        height: 0,
-                                                        borderLeft: '6px solid transparent',
-                                                        borderRight: '6px solid transparent',
-                                                        borderTop: `8px solid ${stageColors[index + 1]?.main || colors.main}`,
-                                                        opacity: 0.7
-                                                    }} />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Paper>
-                </Grid.Col>
-                
-                {/* Боковая панель с дополнительной информацией */}
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Stack gap="sm">
-                        {/* Основная статистика */}
-                        <Paper p="md" withBorder radius="lg" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
-                            <Stack gap="md">
-                                <div>
-                                    <Group justify="space-between" align="center">
-                                        <Text size="xs" c="dimmed" fw={600} tt="uppercase">Общая конверсия</Text>
-                                        <ThemeIcon size={32} radius="md" variant="gradient" gradient={{ from: 'green', to: 'teal' }}>
-                                            <IconTarget size={18} />
-                                        </ThemeIcon>
-                                    </Group>
-                                    <Text size="xl" fw={900} c="green">
-                                        {((data[data.length - 1].value / data[0].value) * 100).toFixed(1)}%
-                                    </Text>
-                                    <Text size="xs" c="dimmed">от всех просмотров</Text>
-                                </div>
-                                
-                                <Divider />
-                                
-                                <div>
-                                    <Group justify="space-between" align="center">
-                                        <Text size="xs" c="dimmed" fw={600} tt="uppercase">Общие потери</Text>
-                                        <ThemeIcon size={32} radius="md" variant="gradient" gradient={{ from: 'orange', to: 'red' }}>
-                                            <IconTrendingDown size={18} />
-                                        </ThemeIcon>
-                                    </Group>
-                                    <Text size="xl" fw={900} c="orange">
-                                        {((data[0].value - data[data.length - 1].value) / 1000).toFixed(1)}k
-                                    </Text>
-                                    <Text size="xs" c="dimmed">пользователей потеряно</Text>
-                                </div>
-                            </Stack>
-                        </Paper>
-                        
-                        {/* Детализация по этапам */}
-                        <Paper p="md" withBorder radius="lg">
-                            <Text size="sm" fw={600} mb="sm">Детализация этапов</Text>
-                            <Stack gap="xs">
-                                {data.map((stage, index) => (
-                                    <Group key={stage.stage} justify="space-between" p="xs" style={{ 
-                                        backgroundColor: hoveredStage === index ? 'var(--mantine-color-blue-0)' : 'transparent',
-                                        borderRadius: '6px',
-                                        transition: 'background-color 0.2s ease'
-                                    }}>
-                                        <Group gap="xs">
-                                            <div style={{
-                                                width: 8,
-                                                height: 8,
-                                                borderRadius: '50%',
-                                                backgroundColor: [
-                                                    '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'
-                                                ][index]
-                                            }} />
-                                            <Text size="xs" fw={500}>{stage.stage}</Text>
-                                        </Group>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <Text size="xs" fw={600}>
-                                                {stage.value > 1000 ? `${(stage.value / 1000).toFixed(1)}k` : stage.value.toLocaleString()}
-                                            </Text>
-                                            {index > 0 && (
-                                                <Text size="xs" c="dimmed">
-                                                    {stage.conversion}% конверсия
-                                                </Text>
-                                            )}
-                                        </div>
-                                    </Group>
-                                ))}
-                            </Stack>
-                        </Paper>
-                        
-                        {/* Эффективность */}
-                        <Paper p="md" withBorder radius="lg" style={{ backgroundColor: 'var(--mantine-color-green-0)' }}>
-                            <Group justify="space-between" align="center">
-                                <div>
-                                    <Text size="xs" c="dimmed" fw={600} tt="uppercase">Эффективность</Text>
-                                    <Badge 
-                                        size="lg" 
-                                        color={((data[data.length - 1].value / data[0].value) * 100) > 75 ? 'green' : 'yellow'}
-                                        variant="filled"
-                                        fw={700}
-                                    >
-                                        {((data[data.length - 1].value / data[0].value) * 100) > 75 ? 'Отлично' : 'Хорошо'}
-                                    </Badge>
-                                    <Text size="xs" c="dimmed">уровень воронки</Text>
-                                </div>
-                                <ThemeIcon size={40} radius="md" variant="light" color="green">
-                                    <IconChartBar size={22} />
-                                </ThemeIcon>
-                            </Group>
-                        </Paper>
-                    </Stack>
-                </Grid.Col>
-            </Grid>
-        </Stack>
-    );
-};
 
 const WarehouseAndLogisticsPageExt: React.FC = () => {
     const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
@@ -1240,13 +986,7 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
             { name: 'Красноярск', stock: 3470, capacity: 4500, utilization: 77, critical: 2 }
         ];
 
-        // Данные для воронки товародвижения
-        const salesFunnelData = [
-            { stage: 'Просмотры', value: 50000, conversion: 100 },
-            { stage: 'В корзину', value: 7500, conversion: 15 },
-            { stage: 'Заказы', value: 3750, conversion: 50 },
-            { stage: 'Выкупы', value: 2940, conversion: 78.4 }
-        ];
+
 
         // Топ-10 товаров с риском out-of-stock
         const outOfStockRisk = [
@@ -1387,7 +1127,7 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     
                     <Grid>
                         {/* Карта остатков по складам (тепловая) */}
-                        <Grid.Col span={{ base: 12, md: 6 }}>
+                        <Grid.Col span={{ base: 12, md: 12 }}>
                             <Paper p="md" withBorder>
                                 <Group justify="space-between" mb="md">
                                     <Text fw={600}>Карта остатков по складам</Text>
@@ -1399,60 +1139,11 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                                 </Group>
                                 
                                 {/* Интерактивная карта складов с кружочками */}
-                                <Paper 
-                                    withBorder 
-                                    p="md" 
-                                    style={{ 
-                                        height: 350, 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center',
-                                        background: '#f8f9fa',
-                                        border: '1px dashed #ced4da'
-                                    }}
-                                >
-                                    <Text c="dimmed">Карта складов (в разработке)</Text>
-                                </Paper>
-                                
-                                {/* Легенда цветов карты */}
-                                <Group justify="space-between" mt="sm" p="xs" style={{ backgroundColor: 'var(--mantine-color-gray-0)', borderRadius: '6px' }}>
-                                    <Group gap="xs">
-                                        <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#51cf66' }} />
-                                        <Text size="xs">Норма (&lt;70%)</Text>
-                                    </Group>
-                                    <Group gap="xs">
-                                        <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#fab005' }} />
-                                        <Text size="xs">Заполнен (70-85%)</Text>
-                                    </Group>
-                                    <Group gap="xs">
-                                        <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#fd7e14' }} />
-                                        <Text size="xs">Перегружен (&gt;85%)</Text>
-                                    </Group>
-                                    <Group gap="xs">
-                                        <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#fa5252' }} />
-                                        <Text size="xs">Критично (&gt;3 товаров)</Text>
-                                    </Group>
-                                </Group>
+                                <YandexWarehouseMap />
                             </Paper>
                         </Grid.Col>
 
-                        {/* Воронка товародвижения */}
-                        <Grid.Col span={{ base: 12, md: 6 }}>
-                            <Paper p="md" withBorder>
-                                <CompactSalesFunnel 
-                                    data={salesFunnelData} 
-                                    onStageClick={(stage) => {
-                                        console.log(`Clicked stage: ${stage}`);
-                                        // Здесь можно добавить переход к детальной аналитике этапа
-                                        notifications.show({
-                                            title: `Анализ этапа: ${stage}`,
-                                            message: `Детальная информация по этапу "${stage}" откроется в новом окне`,
-                                            color: 'blue'
-                                        });
-                                    }} 
-                                />
-                            </Paper>
-                        </Grid.Col>
+
 
                         {/* График выкупаемости */}
                         <Grid.Col span={{ base: 12, md: 8 }}>
