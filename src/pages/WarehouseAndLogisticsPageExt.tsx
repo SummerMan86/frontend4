@@ -95,6 +95,28 @@ import {
 } from '@tabler/icons-react';
 
 // Интерфейсы для типизации
+interface KpiDetailData {
+    date: string;
+    value: number;
+    [key: string]: any;
+}
+
+interface KpiDetails {
+    [key: string]: string | number | { [key: string]: number };
+}
+
+interface SelectedKpi {
+    type?: string;
+    title: string;
+    value: string;
+    unit: string;
+    change: number;
+    color: string;
+    icon: any;
+    gradient?: string;
+    details?: KpiDetails;
+}
+
 interface Product {
     id: number;
     sku: string;
@@ -189,6 +211,32 @@ const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
     showLoading = false,
 }) => {
     const chartRef = useRef<ReactECharts>(null);
+    const [isReady, setIsReady] = useState(false);
+
+    // Задержка для правильной инициализации в модальных окнах
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsReady(true);
+            if (chartRef.current) {
+                const chartInstance = chartRef.current.getEchartsInstance();
+                chartInstance.resize();
+            }
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Обновление размеров при изменении опций
+    useEffect(() => {
+        if (isReady && chartRef.current) {
+            const timer = setTimeout(() => {
+                const chartInstance = chartRef.current?.getEchartsInstance();
+                if (chartInstance) {
+                    chartInstance.resize();
+                }
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [option, isReady]);
 
     // Базовая конфигурация с toolbox для экспорта
     const baseOption = useMemo(() => ({
@@ -813,6 +861,75 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
     const [liquidationModalOpened, setLiquidationModalOpened] = useState(false);
     const [funnelModalOpened, setFunnelModalOpened] = useState(false);
     const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
+    const [kpiModalOpened, setKpiModalOpened] = useState(false);
+    const [selectedKpi, setSelectedKpi] = useState<SelectedKpi | null>(null);
+    const [chartKey, setChartKey] = useState(0);
+
+    // Обновление ключа графика при открытии модального окна для принудительного ререндера
+    useEffect(() => {
+        if (kpiModalOpened) {
+            const timer = setTimeout(() => {
+                setChartKey(prev => prev + 1);
+            }, 200);
+            return () => clearTimeout(timer);
+        }
+    }, [kpiModalOpened]);
+
+    // Функция для генерации данных KPI детализации
+    const generateKpiDetailData = (kpiType: string): KpiDetailData[] => {
+        const dates = Array.from({ length: 30 }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - 30 + i);
+            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+        });
+
+        switch(kpiType) {
+            case 'stock':
+                return dates.map(date => ({
+                    date,
+                    value: Math.floor(Math.random() * 5000) + 40000,
+                    target: 45000,
+                    critical: 38000
+                }));
+            case 'transit':
+                return dates.map(date => ({
+                    date,
+                    value: Math.floor(Math.random() * 1000) + 3000,
+                    delivered: Math.floor(Math.random() * 800) + 2000,
+                    delayed: Math.floor(Math.random() * 200) + 100
+                }));
+            case 'buyout':
+                return dates.map(date => ({
+                    date,
+                    value: Math.random() * 10 + 73,
+                    orders: Math.floor(Math.random() * 500) + 1000,
+                    buyouts: Math.floor(Math.random() * 400) + 700
+                }));
+            case 'turnover':
+                return dates.map(date => ({
+                    date,
+                    value: Math.random() * 5 + 22,
+                    sales: Math.floor(Math.random() * 2000) + 3000,
+                    avgStock: Math.floor(Math.random() * 10000) + 20000
+                }));
+            case 'critical':
+                return dates.map(date => ({
+                    date,
+                    value: Math.floor(Math.random() * 10) + 18,
+                    new: Math.floor(Math.random() * 5) + 2,
+                    resolved: Math.floor(Math.random() * 3) + 1
+                }));
+            case 'efficiency':
+                return dates.map(date => ({
+                    date,
+                    value: Math.random() * 5 + 89,
+                    onTime: Math.floor(Math.random() * 50) + 150,
+                    delayed: Math.floor(Math.random() * 10) + 5
+                }));
+            default:
+                return [];
+        }
+    };
 
     // Функции для статусов
     const getGroupStatus = (group: string): string => {
@@ -1146,6 +1263,12 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
             }]
         };
 
+        // Обработчик клика на KPI карточку
+        const handleKpiClick = (kpi: any) => {
+            setSelectedKpi(kpi);
+            setKpiModalOpened(true);
+        };
+
         return (
             <Stack gap="lg">
                 {/* 🚨 Критические предупреждения */}
@@ -1227,8 +1350,11 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                                             cursor: 'pointer'
                                         }}
                                         onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'
-                                        }
+                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                                        onClick={() => handleKpiClick({
+                                            ...kpi,
+                                            type: ['stock', 'transit', 'buyout', 'turnover', 'critical', 'efficiency'][index]
+                                        })}
                                     >
                                         <Group justify="space-between" align="flex-start">
                                             <div>
@@ -2526,6 +2652,355 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     </Alert>
                     <Text>Детальный план ликвидации будет добавлен позже</Text>
                 </Stack>
+            </Modal>
+
+            {/* Модальное окно детализации KPI */}
+            <Modal
+                opened={kpiModalOpened}
+                onClose={() => setKpiModalOpened(false)}
+                size="xl"
+                title={
+                    <Group gap="md">
+                        {selectedKpi && (
+                            <>
+                                <ThemeIcon 
+                                    size={48} 
+                                    radius="xl" 
+                                    variant="gradient"
+                                    gradient={{ from: selectedKpi.color, to: 'violet' }}
+                                >
+                                    <selectedKpi.icon size={24} />
+                                </ThemeIcon>
+                                <div>
+                                    <Text size="xl" fw={700}>{selectedKpi.title}</Text>
+                                    <Group gap="xs">
+                                        <Text size="sm" c="dimmed">Текущее значение:</Text>
+                                        <Badge size="lg" variant="light" color={selectedKpi.color}>
+                                            {selectedKpi.value} {selectedKpi.unit}
+                                        </Badge>
+                                    </Group>
+                                </div>
+                            </>
+                        )}
+                    </Group>
+                }
+                styles={{
+                    header: {
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                        padding: '20px'
+                    },
+                    body: {
+                        padding: 0
+                    }
+                }}
+            >
+                {selectedKpi && (
+                    <Stack gap={0}>
+                        {/* Суммарная статистика */}
+                        <Paper p="xl" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+                            <Grid>
+                                <Grid.Col span={{ base: 12, sm: 3 }}>
+                                    <Paper p="md" radius="lg" withBorder>
+                                        <Group justify="space-between">
+                                            <div>
+                                                <Text size="xs" c="dimmed" fw={500}>За 30 дней</Text>
+                                                <Text size="lg" fw={700}>
+                                                    {selectedKpi.change > 0 ? '+' : ''}{selectedKpi.change}%
+                                                </Text>
+                                            </div>
+                                            <RingProgress
+                                                size={60}
+                                                thickness={6}
+                                                sections={[
+                                                    { 
+                                                        value: Math.abs(selectedKpi.change), 
+                                                        color: selectedKpi.change > 0 ? 'green' : 'red' 
+                                                    }
+                                                ]}
+                                            />
+                                        </Group>
+                                    </Paper>
+                                </Grid.Col>
+                                <Grid.Col span={{ base: 12, sm: 3 }}>
+                                    <Paper p="md" radius="lg" withBorder>
+                                        <Text size="xs" c="dimmed" fw={500}>Среднее значение</Text>
+                                        <Text size="lg" fw={700}>
+                                            {(parseFloat(selectedKpi.value.toString().replace(',', '')) * 0.95).toLocaleString()} {selectedKpi.unit}
+                                        </Text>
+                                        <Progress value={75} size="xs" color={selectedKpi.color} mt="xs" />
+                                    </Paper>
+                                </Grid.Col>
+                                <Grid.Col span={{ base: 12, sm: 3 }}>
+                                    <Paper p="md" radius="lg" withBorder>
+                                        <Text size="xs" c="dimmed" fw={500}>Цель на месяц</Text>
+                                        <Text size="lg" fw={700}>
+                                            {(parseFloat(selectedKpi.value.toString().replace(',', '')) * 1.1).toLocaleString()} {selectedKpi.unit}
+                                        </Text>
+                                        <Badge color="blue" variant="light" size="sm" mt="xs">
+                                            +10% к текущему
+                                        </Badge>
+                                    </Paper>
+                                </Grid.Col>
+                                <Grid.Col span={{ base: 12, sm: 3 }}>
+                                    <Paper p="md" radius="lg" withBorder>
+                                        <Text size="xs" c="dimmed" fw={500}>Прогноз на 7 дней</Text>
+                                        <Text size="lg" fw={700}>
+                                            {(parseFloat(selectedKpi.value.toString().replace(',', '')) * 1.05).toLocaleString()} {selectedKpi.unit}
+                                        </Text>
+                                        <Group gap={4} mt="xs">
+                                            <IconTrendingUp size={16} color="var(--mantine-color-green-6)" />
+                                            <Text size="xs" c="green">+5%</Text>
+                                        </Group>
+                                    </Paper>
+                                </Grid.Col>
+                            </Grid>
+                        </Paper>
+
+                        {/* График динамики */}
+                        <Paper p="xl">
+                            <Text size="lg" fw={600} mb="md">📈 Динамика за последние 30 дней</Text>
+                            <div style={{ height: '350px', width: '100%', minHeight: '350px' }}>
+                                <EChartsWrapper
+                                    key={chartKey}
+                                    option={{
+                                        tooltip: {
+                                            trigger: 'axis',
+                                            axisPointer: {
+                                                type: 'cross',
+                                                animation: true,
+                                                label: {
+                                                    backgroundColor: '#6a7985'
+                                                }
+                                            },
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            borderWidth: 1,
+                                            borderColor: '#ccc',
+                                            padding: 10,
+                                            textStyle: {
+                                                color: '#000'
+                                            }
+                                        },
+                                        grid: {
+                                            left: '3%',
+                                            right: '4%',
+                                            bottom: '3%',
+                                            containLabel: true
+                                        },
+                                        xAxis: {
+                                            type: 'category',
+                                            boundaryGap: false,
+                                            data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.date),
+                                            axisLabel: {
+                                                rotate: 45,
+                                                interval: 4
+                                            }
+                                        },
+                                        yAxis: {
+                                            type: 'value',
+                                            name: selectedKpi.unit,
+                                            axisLabel: {
+                                                formatter: function(value: number) {
+                                                    if (selectedKpi.unit === '%') return `${value}%`;
+                                                    if (selectedKpi.unit === 'дней') return `${value} дн.`;
+                                                    return value.toLocaleString();
+                                                }
+                                            }
+                                        },
+                                        series: [
+                                            {
+                                                name: selectedKpi.title,
+                                                type: 'line',
+                                                smooth: true,
+                                                symbol: 'circle',
+                                                symbolSize: 8,
+                                                sampling: 'lttb',
+                                                itemStyle: {
+                                                    color: selectedKpi.color
+                                                },
+                                                areaStyle: {
+                                                    color: {
+                                                        type: 'linear',
+                                                        x: 0,
+                                                        y: 0,
+                                                        x2: 0,
+                                                        y2: 1,
+                                                        colorStops: [{
+                                                            offset: 0,
+                                                            color: selectedKpi.color + '88' // 50% opacity
+                                                        }, {
+                                                            offset: 1,
+                                                            color: selectedKpi.color + '11' // 10% opacity
+                                                        }]
+                                                    }
+                                                },
+                                                data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.value)
+                                            },
+                                            ...(selectedKpi.type === 'stock' ? [{
+                                                name: 'Целевой уровень',
+                                                type: 'line',
+                                                lineStyle: {
+                                                    type: 'dashed',
+                                                    color: '#91cc75'
+                                                },
+                                                data: generateKpiDetailData(selectedKpi.type).map((d: KpiDetailData) => 45000)
+                                            }] : [])
+                                        ],
+                                        dataZoom: [
+                                            {
+                                                type: 'inside',
+                                                start: 0,
+                                                end: 100
+                                            },
+                                            {
+                                                start: 0,
+                                                end: 100
+                                            }
+                                        ]
+                                    }}
+                                    style={{ height: '100%', width: '100%' }}
+                                />
+                            </div>
+                        </Paper>
+
+                        {/* Детальная информация по типу KPI */}
+                        <Paper p="xl" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+                            <Text size="lg" fw={600} mb="md">📊 Детальная разбивка</Text>
+                            {selectedKpi.details && (
+                                <Grid>
+                                    {Object.entries(selectedKpi.details).map(([key, value]) => (
+                                        <Grid.Col key={key} span={{ base: 12, sm: 6, md: 4 }}>
+                                            <Paper p="md" withBorder radius="lg">
+                                                <Text size="xs" c="dimmed" fw={500} tt="uppercase">
+                                                    {key === 'warehouses' ? 'Складов' :
+                                                     key === 'avgStock' ? 'Средний остаток' :
+                                                     key === 'critical' ? 'Критических' :
+                                                     key === 'deliveries' ? 'Поставок' :
+                                                     key === 'avgTime' ? 'Среднее время' :
+                                                     key === 'delayed' ? 'Задержанных' :
+                                                     key === 'target' ? 'Цель' :
+                                                     key === 'categories' ? 'По категориям' :
+                                                     key === 'slow' ? 'Медленных' :
+                                                     key === 'fast' ? 'Быстрых' :
+                                                     key === 'threshold' ? 'Порог' :
+                                                     key === 'urgent' ? 'Срочных' :
+                                                     key === 'warning' ? 'Предупреждений' :
+                                                     key === 'onTime' ? 'Вовремя' :
+                                                     key === 'cancelled' ? 'Отменено' : key}
+                                                </Text>
+                                                {typeof value === 'object' && value !== null ? (
+                                                    <Stack gap={4} mt="xs">
+                                                        {Object.entries(value as { [key: string]: number }).map(([k, v]) => (
+                                                            <Group key={k} justify="space-between">
+                                                                <Text size="sm">{k}</Text>
+                                                                <Badge color={selectedKpi.color} variant="light">
+                                                                    {v}%
+                                                                </Badge>
+                                                            </Group>
+                                                        ))}
+                                                    </Stack>
+                                                ) : (
+                                                    <Text size="xl" fw={700} mt="xs">
+                                                        {value as React.ReactNode}{key === 'avgTime' ? ' дн.' : 
+                                                               key === 'target' || key.includes('Rate') ? '%' : ''}
+                                                    </Text>
+                                                )}
+                                            </Paper>
+                                        </Grid.Col>
+                                    ))}
+                                </Grid>
+                            )}
+                        </Paper>
+
+                        {/* Рекомендации */}
+                        <Paper p="xl">
+                            <Group gap="md" mb="md">
+                                <ThemeIcon size="lg" radius="xl" variant="light" color="blue">
+                                    <IconInfoCircle size={20} />
+                                </ThemeIcon>
+                                <Text size="lg" fw={600}>💡 Рекомендации</Text>
+                            </Group>
+                            <Stack gap="md">
+                                {selectedKpi.change < 0 ? (
+                                    <Alert 
+                                        icon={<IconAlertTriangle size={16} />} 
+                                        color="orange"
+                                        title="Негативная динамика"
+                                    >
+                                        <Text size="sm">
+                                            Показатель снижается. Рекомендуется провести анализ причин и разработать план улучшений.
+                                        </Text>
+                                    </Alert>
+                                ) : (
+                                    <Alert 
+                                        icon={<IconCircleCheck size={16} />} 
+                                        color="green"
+                                        title="Позитивная динамика"
+                                    >
+                                        <Text size="sm">
+                                            Показатель растет. Продолжайте текущую стратегию и масштабируйте успешные практики.
+                                        </Text>
+                                    </Alert>
+                                )}
+                                <Grid>
+                                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                                        <Paper p="sm" radius="md" withBorder>
+                                            <Group gap="xs" mb="xs">
+                                                <IconTarget size={16} color="var(--mantine-color-blue-6)" />
+                                                <Text size="sm" fw={500}>Краткосрочные действия</Text>
+                                            </Group>
+                                            <Stack gap={4}>
+                                                <Text size="xs">• Оптимизировать текущие процессы</Text>
+                                                <Text size="xs">• Провести аудит проблемных зон</Text>
+                                                <Text size="xs">• Усилить контроль за метрикой</Text>
+                                            </Stack>
+                                        </Paper>
+                                    </Grid.Col>
+                                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                                        <Paper p="sm" radius="md" withBorder>
+                                            <Group gap="xs" mb="xs">
+                                                <IconChartLine size={16} color="var(--mantine-color-violet-6)" />
+                                                <Text size="sm" fw={500}>Долгосрочная стратегия</Text>
+                                            </Group>
+                                            <Stack gap={4}>
+                                                <Text size="xs">• Внедрить автоматизацию процессов</Text>
+                                                <Text size="xs">• Разработать систему прогнозирования</Text>
+                                                <Text size="xs">• Оптимизировать цепочку поставок</Text>
+                                            </Stack>
+                                        </Paper>
+                                    </Grid.Col>
+                                </Grid>
+                            </Stack>
+                        </Paper>
+
+                        {/* Кнопки действий */}
+                        <Paper p="xl" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+                            <Group justify="space-between">
+                                <Group>
+                                    <Button 
+                                        leftSection={<IconDownload size={16} />} 
+                                        variant="light"
+                                        color={selectedKpi.color}
+                                    >
+                                        Скачать отчет
+                                    </Button>
+                                    <Button 
+                                        leftSection={<IconRefresh size={16} />} 
+                                        variant="subtle"
+                                    >
+                                        Обновить данные
+                                    </Button>
+                                </Group>
+                                <Button 
+                                    variant="gradient"
+                                    gradient={{ from: selectedKpi.color, to: 'violet' }}
+                                    leftSection={<IconChartBar size={16} />}
+                                >
+                                    Углубленная аналитика
+                                </Button>
+                            </Group>
+                        </Paper>
+                    </Stack>
+                )}
             </Modal>
         </Container>
     );

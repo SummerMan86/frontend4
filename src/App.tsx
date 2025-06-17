@@ -11,6 +11,7 @@ import MainPage from './pages/MainPage';
 import ProductAnalysisPage from './pages/ProductAnalysisPage';
 import WarehouseAndLogisticsPage from './pages/WarehouseAndLogisticsPage';
 import WarehouseAndLogisticsPageExt from './pages/WarehouseAndLogisticsPageExt';
+import FinancialAnalysisPage from './pages/FinancialAnalysisPage';
 import { ThemeProvider } from './theme';
 
 // Create router with future flags
@@ -36,6 +37,7 @@ function App() {
               <Route path="warehouse-logistics-ext" element={<WarehouseAndLogisticsPageExt />} />
               <Route path="operational-control" element={<OperationalControlPage />} />
               <Route path="product-analysis" element={<ProductAnalysisPage />} />
+              <Route path="financial-analysis" element={<FinancialAnalysisPage />} />
               {/* остальные страницы */}
               <Route path="*" element={<TestPage />} />
             </Route>

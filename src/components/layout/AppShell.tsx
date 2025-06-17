@@ -7,6 +7,9 @@ import {
   Box,
   ScrollArea,
   Indicator,
+  ThemeIcon,
+  UnstyledButton,
+  Stack,
 } from '@mantine/core';
 import {
   IconChartBar,
@@ -18,6 +21,7 @@ import {
   IconActivity,
   IconHome,
   IconBuildingWarehouse,
+  IconBrandWechat,
 } from '@tabler/icons-react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
@@ -29,10 +33,11 @@ const PATH_LABELS = {
   '/sales': 'Продажи',
   '/inventory': 'Инвентарь',
   '/warehouse-logistics': 'Склад и логистика',
-  '/warehouse-logistics-ext': 'Управление складом и логистикой',
+  '/warehouse-logistics-ext': 'Управление поставками',
   '/marketplace': 'Продажи',
   '/supplier-incomes': 'Доходы поставщика',
   '/reports': 'Доходы',
+  '/financial-analysis': 'Финансовый анализ',
   '/operational-control': 'Оперативный контроль',
   '/settings': 'Настройки',
 } as const;
@@ -50,8 +55,9 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/marketplace', icon: IconTruck },
   { path: '/supplier-incomes', icon: IconTruck },
   { path: '/reports', icon: IconReportAnalytics },
+  { path: '/financial-analysis', icon: IconReportAnalytics },
   { path: '/operational-control', icon: IconActivity, showIndicator: true },
-  { path: '/settings', icon: IconSettings },
+
 ];
 
 export default function MyAppShell() {
@@ -60,9 +66,9 @@ export default function MyAppShell() {
 
   return (
     <AppShell
-      header={{ height: 56 }}
+      header={{ height: 70 }}
       navbar={{
-        width: 240,
+        width: 280,
         breakpoint: 'sm',
       }}
       padding="md"
@@ -70,38 +76,77 @@ export default function MyAppShell() {
       {/* HEADER */}
       <AppShell.Header>
         <Group h="100%" px="md">
-          <Text fw={700}>Моя Панель</Text>
+          <Group>
+            <ThemeIcon size="xl" variant="gradient" gradient={{ from: 'violet', to: 'grape' }}>
+              <IconBrandWechat size={28} />
+            </ThemeIcon>
+            <div>
+              <Text size="lg" fw={700}>Sales Dashboard</Text>
+              <Text size="xs" c="dimmed">Панель управления</Text>
+            </div>
+          </Group>
         </Group>
       </AppShell.Header>
 
       {/* SIDEBAR */}
-      <AppShell.Navbar>
-        <AppShell.Section grow component={ScrollArea}>
-          {NAV_ITEMS.map(({ path, icon: Icon, showIndicator }) => (
-            <NavLink
-              key={path}
-              component={Link}
-              to={path}
-              label={PATH_LABELS[path]}
-              leftSection={
-                showIndicator ? (
-                  <Indicator
-                    size={8}
-                    color="red"
-                    processing
-                    position="top-end"
-                    offset={4}
+      <AppShell.Navbar p="md">
+        
+        <AppShell.Section grow mt="xl" component={ScrollArea}>
+          <Stack gap={5}>
+            {NAV_ITEMS.map(({ path, icon: Icon, showIndicator }) => (
+              <UnstyledButton
+                key={path}
+                component={Link}
+                to={path}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  color: '#000',
+                  backgroundColor: active(path) ? '#f3f0ff' : 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (!active(path)) {
+                    e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active(path)) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                <Group>
+                  <ThemeIcon 
+                    variant={active(path) ? 'filled' : 'light'} 
+                    color="violet"
                   >
-                    <Icon size={18} />
-                  </Indicator>
-                ) : (
-                  <Icon size={18} />
-                )
-              }
-              active={active(path)}
-            />
-          ))}
+                    {showIndicator ? (
+                      <Indicator
+                        size={8}
+                        color="red"
+                        processing
+                        position="top-end"
+                        offset={4}
+                      >
+                        <Icon size={20} />
+                      </Indicator>
+                    ) : (
+                      <Icon size={20} />
+                    )}
+                  </ThemeIcon>
+                  <Text size="sm" fw={500}>{PATH_LABELS[path]}</Text>
+                </Group>
+              </UnstyledButton>
+            ))}
+          </Stack>
         </AppShell.Section>
+        
+
       </AppShell.Navbar>
 
       {/* КОНТЕНТ */}
