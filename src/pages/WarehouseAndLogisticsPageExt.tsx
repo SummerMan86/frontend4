@@ -44,6 +44,8 @@ import {
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import ReactECharts from 'echarts-for-react';
+import type { EChartsOption } from 'echarts-for-react';
 import YandexWarehouseMap from '../components/YandexWarehouseMap';
 import {
     IconDashboard,
@@ -91,7 +93,6 @@ import {
     IconBan,
     IconCalculator
 } from '@tabler/icons-react';
-// import WarehouseMap from '../components/WarehouseMap';
 
 // Интерфейсы для типизации
 interface Product {
@@ -165,6 +166,95 @@ interface CZProduct {
     daysSinceLastSale: number;
 }
 
+interface EChartsWrapperProps {
+    option: EChartsOption;
+    style?: React.CSSProperties;
+    onChartReady?: (chartInstance: any) => void;
+    onEvents?: Record<string, Function>;
+    syncGroup?: string;
+    notMerge?: boolean;
+    lazyUpdate?: boolean;
+    showLoading?: boolean;
+}
+
+// Компонент-обертка для ECharts с поддержкой синхронизации и экспорта
+const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
+    option,
+    style = { height: '400px', width: '100%' },
+    onChartReady,
+    onEvents,
+    syncGroup,
+    notMerge = false,
+    lazyUpdate = false,
+    showLoading = false,
+}) => {
+    const chartRef = useRef<ReactECharts>(null);
+
+    // Базовая конфигурация с toolbox для экспорта
+    const baseOption = useMemo(() => ({
+        toolbox: {
+            feature: {
+                saveAsImage: {
+                    show: true,
+                    title: 'Сохранить',
+                    pixelRatio: 2
+                },
+                dataView: {
+                    show: true,
+                    title: 'Данные',
+                    readOnly: false,
+                    lang: ['Данные', 'Закрыть', 'Обновить']
+                },
+                restore: {
+                    show: true,
+                    title: 'Сбросить'
+                },
+                dataZoom: {
+                    show: true,
+                    title: {
+                        zoom: 'Увеличить',
+                        back: 'Назад'
+                    }
+                }
+            },
+            right: 20,
+            top: 5
+        },
+        // Анимации для плавных переходов
+        animation: true,
+        animationThreshold: 2000,
+        animationDuration: 1000,
+        animationEasing: 'cubicOut',
+        animationDelay: 0,
+        animationDurationUpdate: 500,
+        animationEasingUpdate: 'cubicOut',
+        animationDelayUpdate: 0,
+        ...option
+    }), [option]);
+
+    // Синхронизация графиков
+    useEffect(() => {
+        if (syncGroup && chartRef.current) {
+            const chartInstance = chartRef.current.getEchartsInstance();
+            chartInstance.group = syncGroup;
+        }
+    }, [syncGroup]);
+
+    return (
+        <ReactECharts
+            ref={chartRef}
+            option={baseOption}
+            style={style}
+            notMerge={notMerge}
+            lazyUpdate={lazyUpdate}
+            showLoading={showLoading}
+            onChartReady={onChartReady}
+            onEvents={onEvents}
+            opts={{ renderer: 'canvas' }}
+        />
+    );
+};
+
 // Генерация тестовых данных
 const generateTestDataFirst = () => {
     const warehouses = ['Коледино', 'Электросталь', 'Казань', 'Екатеринбург', 'Новосибирск', 'Краснодар',
@@ -237,37 +327,7 @@ const generateTestDataFirst = () => {
     return { products, deliveries, pickupPoints };
 };
 
-// Компонент с графиком ECharts (заглушка для будущего внедрения)
-const EChartsComponent: React.FC<{ option: any; style?: React.CSSProperties }> = ({ 
-    option, 
-    style = { height: '400px', width: '100%' } 
-}) => {
-    const chartRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // Здесь будет инициализация ECharts
-        console.log('ECharts option:', option);
-    }, [option]);
-
-    return (
-        <div 
-            ref={chartRef} 
-            style={{ 
-                ...style, 
-                background: '#f8f9fa', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                border: '1px dashed #ced4da',
-                borderRadius: '8px'
-            }}
-        >
-            <Text c="dimmed">График ECharts (в разработке)</Text>
-        </div>
-    );
-};
-
-// Компонент красивой воронки товародвижения
+// Красивая воронка товародвижения
 const SalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: string) => void }> = ({ 
     data, 
     onStageClick 
@@ -407,6 +467,75 @@ const ProfessionalSalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: st
     const [hoveredStage, setHoveredStage] = useState<number | null>(null);
     const maxValue = Math.max(...data.map(d => d.value));
     
+    // Создаем ECharts версию воронки
+    const funnelChartOption: EChartsOption = {
+        title: {
+            text: 'Воронка товародвижения',
+            subtext: 'Анализ конверсии по этапам',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: function(params: any) {
+                const data = params.data;
+                return `${data.name}<br/>Количество: ${data.value.toLocaleString()}<br/>Конверсия: ${data.conversion || 100}%`;
+            }
+        },
+        legend: {
+            data: data.map(d => d.stage),
+            bottom: 10
+        },
+        series: [
+            {
+                name: 'Воронка',
+                type: 'funnel',
+                left: '10%',
+                top: 80,
+                bottom: 60,
+                width: '80%',
+                min: 0,
+                max: 100,
+                minSize: '0%',
+                maxSize: '100%',
+                sort: 'descending',
+                gap: 2,
+                label: {
+                    show: true,
+                    position: 'inside',
+                    fontSize: 14,
+                    formatter: function(params: any) {
+                        return `${params.name}\n${params.value.toLocaleString()}\n${params.data.conversion || 100}%`;
+                    }
+                },
+                labelLine: {
+                    length: 10,
+                    lineStyle: {
+                        width: 1,
+                        type: 'solid'
+                    }
+                },
+                itemStyle: {
+                    borderColor: '#fff',
+                    borderWidth: 1
+                },
+                emphasis: {
+                    label: {
+                        fontSize: 20
+                    }
+                },
+                data: data.map((item, index) => ({
+                    value: (item.value / data[0].value) * 100,
+                    name: item.stage,
+                    conversion: item.conversion,
+                    originalValue: item.value,
+                    itemStyle: { 
+                        color: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'][index] || '#868e96'
+                    }
+                }))
+            }
+        ]
+    };
+
     return (
         <Stack gap="lg">
             {/* Заголовок с общей конверсией */}
@@ -423,232 +552,18 @@ const ProfessionalSalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: st
                 </div>
             </Group>
 
-            {/* Воронка с правильными пропорциями */}
+            {/* ECharts воронка */}
             <Paper p="xl" withBorder radius="xl" style={{ 
                 background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
                 border: '1px solid #e2e8f0'
             }}>
-                <Stack gap="xl">
-                    {data.map((stage, index) => {
-                        const widthPercent = Math.max((stage.value / maxValue) * 100, 20);
-                        const isHovered = hoveredStage === index;
-                        
-                        // Элегантные цвета для каждого этапа
-                        const stageColors = [
-                            { main: '#3b82f6', light: '#dbeafe', dark: '#1d4ed8', bg: '#eff6ff' },
-                            { main: '#8b5cf6', light: '#e9d5ff', dark: '#7c3aed', bg: '#f3e8ff' },
-                            { main: '#06b6d4', light: '#cffafe', dark: '#0891b2', bg: '#ecfeff' },
-                            { main: '#10b981', light: '#d1fae5', dark: '#059669', bg: '#ecfdf5' }
-                        ];
-                        const colors = stageColors[index] || stageColors[0];
-                        
-                        // Иконки для этапов
-                        const StageIcon = [IconEye, IconPackage, IconTruck, IconCircleCheck][index];
-                        
-                        return (
-                            <div key={stage.stage} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                                {/* Основной блок воронки */}
-                                <div
-                                    style={{
-                                        width: `${widthPercent}%`,
-                                        minWidth: '280px',
-                                        maxWidth: '100%',
-                                        position: 'relative'
-                                    }}
-                                    onMouseEnter={() => setHoveredStage(index)}
-                                    onMouseLeave={() => setHoveredStage(null)}
-                                >
-                                    <Paper
-                                        p="xl"
-                                        radius="xl"
-                                        style={{
-                                            background: isHovered 
-                                                ? `linear-gradient(135deg, ${colors.main} 0%, ${colors.dark} 100%)`
-                                                : `linear-gradient(135deg, ${colors.bg} 0%, ${colors.light} 100%)`,
-                                            border: `2px solid ${isHovered ? colors.main : colors.light}`,
-                                            color: isHovered ? 'white' : colors.dark,
-                                            cursor: onStageClick ? 'pointer' : 'default',
-                                            transform: isHovered ? 'scale(1.03) translateY(-8px)' : 'scale(1)',
-                                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                                            boxShadow: isHovered 
-                                                ? `0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px ${colors.main}40` 
-                                                : '0 8px 30px rgba(0,0,0,0.08)',
-                                            position: 'relative',
-                                            overflow: 'hidden'
-                                        }}
-                                        onClick={() => onStageClick?.(stage.stage)}
-                                    >
-                                        {/* Декоративные элементы */}
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            height: '6px',
-                                            background: `linear-gradient(90deg, ${colors.main}, ${colors.dark}, ${colors.main})`,
-                                            opacity: isHovered ? 1 : 0.7
-                                        }} />
-                                        
-                                        {!isHovered && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '20px',
-                                                right: '20px',
-                                                width: '60px',
-                                                height: '60px',
-                                                borderRadius: '50%',
-                                                background: `${colors.main}10`,
-                                                opacity: 0.5
-                                            }} />
-                                        )}
-                                        
-                                        {/* Содержимое */}
-                                        <Group justify="space-between" align="flex-start" mb="lg">
-                                            <div style={{ flex: 1 }}>
-                                                <Group gap="lg" mb="md">
-                                                    <ThemeIcon 
-                                                        size={52} 
-                                                        radius="xl" 
-                                                        variant={isHovered ? "white" : "light"}
-                                                        color={isHovered ? "white" : colors.main}
-                                                        style={{ 
-                                                            backgroundColor: isHovered ? 'rgba(255,255,255,0.2)' : colors.light,
-                                                            border: isHovered ? '2px solid rgba(255,255,255,0.3)' : `2px solid ${colors.main}30`,
-                                                            boxShadow: isHovered ? '0 8px 25px rgba(0,0,0,0.15)' : `0 4px 15px ${colors.main}20`
-                                                        }}
-                                                    >
-                                                        <StageIcon size={28} style={{ color: isHovered ? 'white' : colors.main }} />
-                                                    </ThemeIcon>
-                                                    <div>
-                                                        <Text size="xl" fw={800} mb={6}>
-                                                            {stage.stage}
-                                                        </Text>
-                                                        <Text size="sm" fw={500} style={{ opacity: isHovered ? 0.9 : 0.7 }}>
-                                                            Этап {index + 1} из {data.length}
-                                                        </Text>
-                                                    </div>
-                                                </Group>
-                                            </div>
-                                            
-                                            {/* Значения */}
-                                            <div style={{ textAlign: 'right' }}>
-                                                <Text size="2xl" fw={900} mb="sm" style={{ fontSize: '2rem' }}>
-                                                    {stage.value > 1000 ? `${(stage.value / 1000).toFixed(1)}k` : stage.value.toLocaleString()}
-                                                </Text>
-                                                {index > 0 && (
-                                                    <Badge 
-                                                        size="xl"
-                                                        variant={isHovered ? "white" : "light"}
-                                                        color={isHovered ? "white" : colors.main}
-                                                        style={{ 
-                                                            backgroundColor: isHovered ? 'rgba(255,255,255,0.25)' : colors.light,
-                                                            color: isHovered ? 'white' : colors.main,
-                                                            fontWeight: 800,
-                                                            fontSize: '0.9rem'
-                                                        }}
-                                                    >
-                                                        {stage.conversion}%
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </Group>
-                                        
-                                        {/* Прогресс-бар */}
-                                        <div style={{ 
-                                            width: '100%', 
-                                            height: '8px', 
-                                            backgroundColor: isHovered ? 'rgba(255,255,255,0.2)' : colors.light,
-                                            borderRadius: '4px',
-                                            overflow: 'hidden',
-                                            marginBottom: '12px'
-                                        }}>
-                                            <div style={{
-                                                width: `${(stage.value / maxValue) * 100}%`,
-                                                height: '100%',
-                                                background: isHovered ? 'white' : `linear-gradient(90deg, ${colors.main}, ${colors.dark})`,
-                                                borderRadius: '4px',
-                                                transition: 'all 0.6s ease',
-                                                boxShadow: isHovered ? '0 2px 8px rgba(255,255,255,0.3)' : `0 2px 8px ${colors.main}30`
-                                            }} />
-                                        </div>
-                                        
-                                        {/* Дополнительная информация */}
-                                        <Group justify="space-between" align="center">
-                                            {index > 0 && (
-                                                <div>
-                                                    <Text size="sm" fw={600} style={{ opacity: isHovered ? 0.9 : 0.8 }}>
-                                                        Потери: {(data[index-1].value - stage.value).toLocaleString()}
-                                                    </Text>
-                                                    <Text size="xs" fw={500} style={{ opacity: isHovered ? 0.8 : 0.6 }}>
-                                                        от предыдущего этапа
-                                                    </Text>
-                                                </div>
-                                            )}
-                                            {index === 0 && (
-                                                <Text size="sm" fw={600} style={{ opacity: isHovered ? 0.9 : 0.8 }}>
-                                                    Начальная точка воронки
-                                                </Text>
-                                            )}
-                                            <div style={{ textAlign: 'right' }}>
-                                                <Text size="xs" fw={500} style={{ opacity: isHovered ? 0.8 : 0.6 }}>
-                                                    Доля от входа
-                                                </Text>
-                                                <Text size="sm" fw={700} style={{ opacity: isHovered ? 0.9 : 0.8 }}>
-                                                    {((stage.value / data[0].value) * 100).toFixed(1)}%
-                                                </Text>
-                                            </div>
-                                        </Group>
-                                    </Paper>
-                                    
-                                    {/* Элегантный коннектор между этапами */}
-                                    {index < data.length - 1 && (
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'center', 
-                                            margin: '20px 0',
-                                            position: 'relative'
-                                        }}>
-                                            {/* Линия соединения */}
-                                            <div style={{
-                                                width: '3px',
-                                                height: '30px',
-                                                background: `linear-gradient(180deg, ${colors.main}, ${stageColors[index + 1]?.main || colors.main})`,
-                                                borderRadius: '1.5px',
-                                                opacity: 0.7
-                                            }} />
-                                            {/* Стрелка */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '22px',
-                                                width: 0,
-                                                height: 0,
-                                                borderLeft: '8px solid transparent',
-                                                borderRight: '8px solid transparent',
-                                                borderTop: `12px solid ${stageColors[index + 1]?.main || colors.main}`,
-                                                filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))'
-                                            }} />
-                                            {/* Потери */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '8px',
-                                                left: '20px',
-                                                padding: '4px 8px',
-                                                background: 'rgba(239, 68, 68, 0.1)',
-                                                color: '#dc2626',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                borderRadius: '6px',
-                                                border: '1px solid rgba(239, 68, 68, 0.2)'
-                                            }}>
-                                                -{((data[index].value - data[index + 1].value) / 1000).toFixed(1)}k
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </Stack>
+                <EChartsWrapper 
+                    option={funnelChartOption}
+                    style={{ height: '500px' }}
+                    onEvents={{
+                        'click': (params: any) => onStageClick?.(params.name)
+                    }}
+                />
             </Paper>
             
             {/* Итоговая аналитика */}
@@ -727,8 +642,6 @@ const ProfessionalSalesFunnel: React.FC<{ data: any[]; onStageClick?: (stage: st
         </Stack>
     );
 };
-
-
 
 const WarehouseAndLogisticsPageExt: React.FC = () => {
     const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
@@ -851,20 +764,6 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
         }
     ];
 
-    // Графики для дашборда (опции будут использоваться когда подключим ECharts)
-    const salesChartOption = {
-        tooltip: { trigger: 'axis' },
-        legend: { data: ['Продажи', 'Выкупа', 'Возвраты'] },
-        yAxis: { type: 'value' },
-        series: [
-            {
-                name: 'Продажи',
-                type: 'line',
-                data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 300) + 200)
-            }
-        ]
-    };
-
     // Данные для ABC-XYZ анализа
     const abcxyzData: ABCXYZMatrix = {
         AX: { count: 85, revenue: 45, stockDays: 12, norm: '10-15', turnover: 28, status: 'optimal' },
@@ -963,6 +862,75 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
         });
     }, [searchQuery, selectedWarehouse, selectedCategory, products]);
 
+    // Данные для предупреждений склада
+    const warehouseAlerts = [
+        {
+            id: 'stock-critical',
+            type: 'critical' as const,
+            title: 'Товары с остатком < 3 дней',
+            description: '15 товаров заканчиваются в ближайшие 3 дня',
+            count: 15,
+            icon: IconPackage,
+            color: 'red',
+            items: [
+                { sku: 'WB00001234', name: 'Кроссовки Nike Air Max', stock: 5, daysLeft: 2 },
+                { sku: 'WB00001235', name: 'Футболка базовая', stock: 3, daysLeft: 1 },
+                { sku: 'WB00001236', name: 'Джинсы классические', stock: 8, daysLeft: 3 }
+            ]
+        },
+        {
+            id: 'buyout-decline',
+            type: 'warning' as const,
+            title: 'Снижение выкупа > 10%',
+            description: 'Выкуп по категории "Обувь" снизился на 12% за неделю',
+            count: 12,
+            icon: IconTrendingDown,
+            color: 'orange'
+        },
+        {
+            id: 'acceptance-delays',
+            type: 'warning' as const,
+            title: 'Задержки приемки на WB',
+            description: '3 поставки задерживаются на приемке более 2 дней',
+            count: 3,
+            icon: IconClock,
+            color: 'yellow'
+        },
+        {
+            id: 'pickup-anomalies',
+            type: 'info' as const,
+            title: 'Аномальные остатки ПВЗ',
+            description: 'Необычно высокие остатки на 8 ПВЗ в Москве',
+            count: 8,
+            icon: IconMapPin,
+            color: 'blue'
+        }
+    ];
+
+    // Синхронизация графиков
+    useEffect(() => {
+        return () => {
+            // Cleanup handled by React component unmounting
+        };
+    }, []);
+
+    // Функция генерации данных для heatmap
+    const generateWarehouseHeatmapData = () => {
+        const warehouses = ['Коледино', 'Электросталь', 'Казань', 'Екатеринбург', 'Новосибирск', 
+                           'Краснодар', 'СПб', 'Ростов', 'Самара', 'Челябинск'];
+        const categories = ['Одежда', 'Обувь', 'Электроника', 'Косметика', 'Для дома'];
+        
+        const data: any[] = [];
+        warehouses.forEach((warehouse, wIndex) => {
+            categories.forEach((category, cIndex) => {
+                const value = Math.floor(Math.random() * 1000) + 100;
+                data.push([cIndex, wIndex, value]);
+            });
+        });
+        
+        return { warehouses, categories, data };
+    };
+
     const renderOverview = () => {
         // Данные для карты остатков по складам - расширенный список
         const warehouseStockData = [
@@ -986,8 +954,6 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
             { name: 'Красноярск', stock: 3470, capacity: 4500, utilization: 77, critical: 2 }
         ];
 
-
-
         // Топ-10 товаров с риском out-of-stock
         const outOfStockRisk = [
             { sku: 'WB00001234', name: 'Кроссовки Nike Air Max', stock: 5, dailySales: 2.5, daysLeft: 2, risk: 95 },
@@ -996,6 +962,189 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
             { sku: 'WB00001237', name: 'Кроссовки Adidas', stock: 15, dailySales: 3.5, daysLeft: 4.3, risk: 80 },
             { sku: 'WB00001238', name: 'Платье летнее', stock: 18, dailySales: 3, daysLeft: 6, risk: 75 }
         ];
+
+        // График выкупаемости
+        const buyoutChartOption: EChartsOption = {
+            title: {
+                text: 'График выкупаемости (последние 30 дней)',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    animation: true
+                },
+                formatter: function(params: any) {
+                    let result = params[0].name + '<br/>';
+                    params.forEach((param: any) => {
+                        const value = param.value;
+                        const color = param.color;
+                        result += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${color};"></span>`;
+                        if (param.seriesName === '% выкупа') {
+                            result += `${param.seriesName}: ${value}%<br/>`;
+                        } else {
+                            result += `${param.seriesName}: ${value} шт<br/>`;
+                        }
+                    });
+                    return result;
+                }
+            },
+            legend: {
+                data: ['Заказы', 'Выкупы', '% выкупа'],
+                bottom: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: Array.from({ length: 30 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - 30 + i);
+                    return `${date.getDate()}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                }),
+                axisLabel: {
+                    rotate: 45,
+                    interval: 4
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Количество',
+                    position: 'left',
+                    axisLabel: {
+                        formatter: '{value} шт'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '% выкупа',
+                    position: 'right',
+                    min: 0,
+                    max: 100,
+                    axisLabel: {
+                        formatter: '{value}%'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: 'Заказы',
+                    type: 'bar',
+                    data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 100) + 150),
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                },
+                {
+                    name: 'Выкупы',
+                    type: 'bar',
+                    data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 80) + 100),
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                },
+                {
+                    name: '% выкупа',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 20) + 70),
+                    smooth: true,
+                    itemStyle: {
+                        color: '#fac858'
+                    },
+                    areaStyle: {
+                        opacity: 0.2
+                    }
+                }
+            ]
+        };
+
+        // Обработчик клика для drill-down
+        const onBuyoutChartClick = (params: any) => {
+            if (params.componentType === 'series') {
+                notifications.show({
+                    title: `Детали за ${params.name}`,
+                    message: `${params.seriesName}: ${params.value}${params.seriesName === '% выкупа' ? '%' : ' шт'}`,
+                    color: 'blue'
+                });
+            }
+        };
+
+        // Heatmap опции
+        const { warehouses: heatmapWarehouses, categories: heatmapCategories, data: heatmapData } = generateWarehouseHeatmapData();
+        const warehouseHeatmapOption: EChartsOption = {
+            title: {
+                text: 'Распределение товаров по складам и категориям',
+                left: 'center'
+            },
+            tooltip: {
+                position: 'top',
+                formatter: function(params: any) {
+                    const warehouse = heatmapWarehouses[params.value[1]];
+                    const category = heatmapCategories[params.value[0]];
+                    return `${warehouse}<br/>${category}: ${params.value[2]} шт`;
+                }
+            },
+            grid: {
+                height: '70%',
+                left: '15%',
+                top: '15%'
+            },
+            xAxis: {
+                type: 'category',
+                data: heatmapCategories,
+                splitArea: {
+                    show: true
+                },
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: heatmapWarehouses,
+                splitArea: {
+                    show: true
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: 1000,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '5%',
+                inRange: {
+                    color: ['#f8f9fa', '#e3f2fd', '#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3']
+                },
+                text: ['Больше', 'Меньше'],
+                textStyle: {
+                    color: '#666'
+                }
+            },
+            series: [{
+                name: 'Остатки',
+                type: 'heatmap',
+                data: heatmapData,
+                label: {
+                    show: true,
+                    fontSize: 10
+                },
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }]
+        };
 
         return (
             <Stack gap="lg">
@@ -1143,44 +1292,16 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                             </Paper>
                         </Grid.Col>
 
-
-
                         {/* График выкупаемости */}
                         <Grid.Col span={{ base: 12, md: 8 }}>
                             <Paper p="md" withBorder>
-                                <Text fw={600} mb="md">График выкупаемости (последние 30 дней)</Text>
-                                <EChartsComponent 
-                                    option={{
-                                        tooltip: { trigger: 'axis' },
-                                        legend: { data: ['Заказы', 'Выкупа', '% выкупа'] },
-                                        xAxis: { 
-                                            type: 'category', 
-                                            data: Array.from({ length: 30 }, (_, i) => `${i + 1}.06`) 
-                                        },
-                                        yAxis: [
-                                            { type: 'value', name: 'Количество' },
-                                            { type: 'value', name: '% выкупа', position: 'right' }
-                                        ],
-                                        series: [
-                                            {
-                                                name: 'Продажи',
-                                                type: 'bar',
-                                                data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 100) + 50)
-                                            },
-                                            {
-                                                name: 'Выкупы',
-                                                type: 'bar',
-                                                data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 80) + 40)
-                                            },
-                                            {
-                                                name: '% выкупа',
-                                                type: 'line',
-                                                yAxisIndex: 1,
-                                                data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 20) + 70)
-                                            }
-                                        ]
-                                    }} 
-                                    style={{ height: '300px' }} 
+                                <EChartsWrapper 
+                                    option={buyoutChartOption}
+                                    style={{ height: '350px' }}
+                                    onEvents={{
+                                        'click': onBuyoutChartClick
+                                    }}
+                                    syncGroup="warehouse-charts"
                                 />
                             </Paper>
                         </Grid.Col>
@@ -1224,6 +1345,17 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                                         ))}
                                     </Stack>
                                 </ScrollArea>
+                            </Paper>
+                        </Grid.Col>
+
+                        {/* Heatmap распределения товаров */}
+                        <Grid.Col span={{ base: 12, md: 12 }}>
+                            <Paper p="md" withBorder>
+                                <EChartsWrapper 
+                                    option={warehouseHeatmapOption}
+                                    style={{ height: '400px' }}
+                                    syncGroup="warehouse-charts"
+                                />
                             </Paper>
                         </Grid.Col>
                     </Grid>
@@ -1505,36 +1637,398 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
         </Stack>
     );
 
-    const renderAnalytics = () => (
-        <Stack gap="lg">
-            <Grid>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                    <Paper p="md" withBorder>
-                        <Title order={5} mb="md">ABC анализ товаров</Title>
-                        <EChartsComponent option={{}} style={{ height: '300px' }} />
-                    </Paper>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                    <Paper p="md" withBorder>
-                        <Title order={5} mb="md">XYZ анализ товаров</Title>
-                        <EChartsComponent option={{}} style={{ height: '300px' }} />
-                    </Paper>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                    <Paper p="md" withBorder>
-                        <Title order={5} mb="md">Динамика остатков по складам</Title>
-                        <EChartsComponent option={{}} style={{ height: '300px' }} />
-                    </Paper>
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                    <Paper p="md" withBorder>
-                        <Title order={5} mb="md">Анализ оборачиваемости</Title>
-                        <EChartsComponent option={{}} style={{ height: '300px' }} />
-                    </Paper>
-                </Grid.Col>
-            </Grid>
-        </Stack>
-    );
+    const renderAnalytics = () => {
+        // ABC-XYZ scatter plot
+        const abcxyzScatterOption: EChartsOption = {
+            title: {
+                text: 'ABC-XYZ анализ товаров',
+                subtext: 'Кликните на точку для детальной информации',
+                left: 'center'
+            },
+            grid: {
+                left: '3%',
+                right: '7%',
+                bottom: '7%',
+                containLabel: true
+            },
+            tooltip: {
+                showDelay: 0,
+                formatter: function (params: any) {
+                    if (params.value.length > 1) {
+                        return `${params.seriesName}<br/>
+                                Выручка: ${params.value[0]}%<br/>
+                                Вариация спроса: ${params.value[1]}%<br/>
+                                Товаров: ${params.value[2]}<br/>
+                                Группа: ${params.value[3]}`;
+                    }
+                },
+                axisPointer: {
+                    show: true,
+                    type: 'cross',
+                    lineStyle: {
+                        type: 'dashed',
+                        width: 1
+                    }
+                }
+            },
+            xAxis: {
+                type: 'value',
+                name: 'Доля в выручке, %',
+                nameLocation: 'middle',
+                nameGap: 30,
+                scale: true,
+                axisLabel: {
+                    formatter: '{value}%'
+                },
+                splitLine: {
+                    show: true
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Коэффициент вариации спроса, %',
+                nameLocation: 'middle',
+                nameGap: 50,
+                scale: true,
+                axisLabel: {
+                    formatter: '{value}%'
+                },
+                splitLine: {
+                    show: true
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: 500,
+                dimension: 2,
+                orient: 'vertical',
+                right: 10,
+                top: 'center',
+                text: ['Много товаров', 'Мало товаров'],
+                calculable: true,
+                inRange: {
+                    color: ['#50a3ba', '#eac736', '#d94e5d']
+                }
+            },
+            series: [
+                {
+                    name: 'ABC-XYZ',
+                    type: 'scatter',
+                    symbolSize: function (val: any) {
+                        return Math.sqrt(val[2]) * 5;
+                    },
+                    data: [
+                        [45, 5, 85, 'AX'],
+                        [20, 17, 45, 'AY'],
+                        [10, 35, 25, 'AZ'],
+                        [12, 7, 156, 'BX'],
+                        [6, 18, 89, 'BY'],
+                        [2, 40, 67, 'BZ'],
+                        [3, 8, 234, 'CX'],
+                        [1.5, 20, 178, 'CY'],
+                        [0.5, 55, 421, 'CZ']
+                    ],
+                    markArea: {
+                        silent: true,
+                        itemStyle: {
+                            color: 'transparent',
+                            borderWidth: 1,
+                            borderType: 'dashed'
+                        },
+                        data: [
+                            [{
+                                name: 'A группа',
+                                xAxis: 15,
+                                yAxis: 0
+                            }, {
+                                xAxis: 100,
+                                yAxis: 50
+                            }],
+                            [{
+                                name: 'B группа',
+                                xAxis: 5,
+                                yAxis: 0
+                            }, {
+                                xAxis: 15,
+                                yAxis: 50
+                            }],
+                            [{
+                                name: 'C группа',
+                                xAxis: 0,
+                                yAxis: 0
+                            }, {
+                                xAxis: 5,
+                                yAxis: 60
+                            }]
+                        ]
+                    }
+                }
+            ]
+        };
+
+        // Динамика остатков
+        const stockDynamicsOption: EChartsOption = {
+            title: {
+                text: 'Динамика остатков по складам',
+                subtext: 'Последние 7 дней'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    animation: true
+                }
+            },
+            legend: {
+                data: ['Коледино', 'Электросталь', 'Казань', 'Екатеринбург', 'Новосибирск'],
+                bottom: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - 7 + i);
+                    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                })
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Остатки, шт',
+                axisLabel: {
+                    formatter: '{value}'
+                }
+            },
+            series: [
+                {
+                    name: 'Коледино',
+                    type: 'line',
+                    smooth: true,
+                    data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 5000) + 10000),
+                    areaStyle: { opacity: 0.3 }
+                },
+                {
+                    name: 'Электросталь',
+                    type: 'line',
+                    smooth: true,
+                    data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 4000) + 8000),
+                    areaStyle: { opacity: 0.3 }
+                },
+                {
+                    name: 'Казань',
+                    type: 'line',
+                    smooth: true,
+                    data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 3000) + 6000),
+                    areaStyle: { opacity: 0.3 }
+                },
+                {
+                    name: 'Екатеринбург',
+                    type: 'line',
+                    smooth: true,
+                    data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 2500) + 5000),
+                    areaStyle: { opacity: 0.3 }
+                },
+                {
+                    name: 'Новосибирск',
+                    type: 'line',
+                    smooth: true,
+                    data: Array.from({ length: 7 }, () => Math.floor(Math.random() * 2000) + 4000),
+                    areaStyle: { opacity: 0.3 }
+                }
+            ]
+        };
+
+        // Анализ оборачиваемости
+        const turnoverAnalysisOption: EChartsOption = {
+            title: {
+                text: 'Анализ оборачиваемости по категориям',
+                subtext: 'Кликните на столбец для детализации'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: function(params: any) {
+                    let result = params[0].name + '<br/>';
+                    params.forEach((param: any) => {
+                        result += `${param.marker} ${param.seriesName}: ${param.value} дней<br/>`;
+                    });
+                    return result;
+                }
+            },
+            legend: {
+                data: ['Текущая', 'Целевая'],
+                bottom: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['Одежда', 'Обувь', 'Электроника', 'Косметика', 'Для дома', 'Спорттовары'],
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Дней',
+                axisLabel: {
+                    formatter: '{value} дн'
+                }
+            },
+            series: [
+                {
+                    name: 'Текущая',
+                    type: 'bar',
+                    data: [28, 35, 42, 25, 38, 31],
+                    itemStyle: {
+                        color: function(params: any) {
+                            const value = params.value;
+                            if (value > 40) return '#ff6666';
+                            if (value > 30) return '#fac858';
+                            return '#91cc75';
+                        }
+                    }
+                },
+                {
+                    name: 'Целевая',
+                    type: 'bar',
+                    data: [20, 25, 30, 20, 25, 25],
+                    itemStyle: {
+                        color: '#5470c6',
+                        opacity: 0.7
+                    }
+                }
+            ]
+        };
+
+        // Pie chart распределения товаров
+        const createPieChartOption = (): EChartsOption => ({
+            title: {
+                text: 'Распределение товаров по статусам',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left'
+            },
+            series: [
+                {
+                    name: 'Статус товаров',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '20',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: 45, name: 'В продаже', itemStyle: { color: '#91cc75' }},
+                        { value: 23, name: 'Критический запас', itemStyle: { color: '#ff6666' }},
+                        { value: 15, name: 'Избыток', itemStyle: { color: '#fac858' }},
+                        { value: 8, name: 'В пути', itemStyle: { color: '#5470c6' }},
+                        { value: 9, name: 'На приемке', itemStyle: { color: '#ee6666' }}
+                    ]
+                }
+            ]
+        });
+
+        // Обработчик для drill-down оборачиваемости
+        const onTurnoverChartClick = (params: any) => {
+            if (params.componentType === 'series' && params.seriesName === 'Текущая') {
+                const categoryProducts = products.filter(p => p.category === params.name);
+                notifications.show({
+                    title: `Детализация по категории "${params.name}"`,
+                    message: `Найдено ${categoryProducts.length} товаров. Средняя оборачиваемость: ${params.value} дней`,
+                    color: 'blue'
+                });
+            }
+        };
+
+        return (
+            <Stack gap="lg">
+                <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                        <Paper p="md" withBorder>
+                            <EChartsWrapper 
+                                option={abcxyzScatterOption}
+                                style={{ height: '400px' }}
+                                onEvents={{
+                                    'click': (params: any) => {
+                                        if (params.componentType === 'series') {
+                                            setSelectedGroup(params.value[3]);
+                                            setGroupModalOpened(true);
+                                        }
+                                    }
+                                }}
+                                syncGroup="analytics-charts"
+                            />
+                        </Paper>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                        <Paper p="md" withBorder>
+                            <EChartsWrapper 
+                                option={stockDynamicsOption}
+                                style={{ height: '400px' }}
+                                syncGroup="analytics-charts"
+                            />
+                        </Paper>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                        <Paper p="md" withBorder>
+                            <EChartsWrapper 
+                                option={turnoverAnalysisOption}
+                                style={{ height: '400px' }}
+                                onEvents={{
+                                    'click': onTurnoverChartClick
+                                }}
+                                syncGroup="analytics-charts"
+                            />
+                        </Paper>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                        <Paper p="md" withBorder>
+                            <EChartsWrapper 
+                                option={createPieChartOption()}
+                                style={{ height: '400px' }}
+                                syncGroup="analytics-charts"
+                            />
+                        </Paper>
+                    </Grid.Col>
+                </Grid>
+            </Stack>
+        );
+    };
 
     const renderABCXYZ = () => (
         <Stack gap="lg">
@@ -1799,79 +2293,138 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     </Table>
                 </ScrollArea>
             </Paper>
+
+            {/* ECharts визуализация ABC-XYZ анализа */}
+            <Paper p="md" withBorder>
+                <Title order={4} mb="md">Визуализация ABC-XYZ анализа</Title>
+                <EChartsWrapper 
+                    option={{
+                        title: {
+                            text: 'Матрица ABC-XYZ',
+                            subtext: 'Размер пузыря = количество товаров',
+                            left: 'center'
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '7%',
+                            bottom: '7%',
+                            containLabel: true
+                        },
+                        tooltip: {
+                            showDelay: 0,
+                            formatter: function (params: any) {
+                                if (params.value.length > 1) {
+                                    return `Группа ${params.value[3]}<br/>
+                                            Выручка: ${params.value[0]}%<br/>
+                                            Вариация спроса: ${params.value[1]}%<br/>
+                                            Товаров: ${params.value[2]}<br/>
+                                            Запас: ${abcxyzData[params.value[3]].stockDays} дней`;
+                                }
+                            }
+                        },
+                        xAxis: {
+                            type: 'value',
+                            name: 'Доля в выручке, %',
+                            nameLocation: 'middle',
+                            nameGap: 30,
+                            scale: true,
+                            axisLabel: {
+                                formatter: '{value}%'
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: 'Коэффициент вариации спроса, %',
+                            nameLocation: 'middle',
+                            nameGap: 50,
+                            scale: true,
+                            axisLabel: {
+                                formatter: '{value}%'
+                            }
+                        },
+                        visualMap: {
+                            min: 0,
+                            max: 450,
+                            dimension: 2,
+                            orient: 'vertical',
+                            right: 10,
+                            top: 'center',
+                            text: ['Много товаров', 'Мало товаров'],
+                            calculable: true,
+                            inRange: {
+                                color: ['#91cc75', '#fac858', '#ff6666']
+                            }
+                        },
+                        series: [
+                            {
+                                name: 'ABC-XYZ',
+                                type: 'scatter',
+                                symbolSize: function (val: any) {
+                                    return Math.sqrt(val[2]) * 5;
+                                },
+                                data: Object.entries(abcxyzData).map(([key, value]) => {
+                                    const xyzMap: Record<string, number> = {
+                                        'X': 7,
+                                        'Y': 20,
+                                        'Z': 40
+                                    };
+                                    return [
+                                        value.revenue,
+                                        xyzMap[key.charAt(1)],
+                                        value.count,
+                                        key
+                                    ];
+                                }),
+                                markArea: {
+                                    silent: true,
+                                    itemStyle: {
+                                        color: 'transparent',
+                                        borderWidth: 1,
+                                        borderType: 'dashed'
+                                    },
+                                    data: [
+                                        [{
+                                            name: 'A группа',
+                                            xAxis: 15,
+                                            yAxis: 0
+                                        }, {
+                                            xAxis: 100,
+                                            yAxis: 50
+                                        }],
+                                        [{
+                                            name: 'B группа',
+                                            xAxis: 5,
+                                            yAxis: 0
+                                        }, {
+                                            xAxis: 15,
+                                            yAxis: 50
+                                        }],
+                                        [{
+                                            name: 'C группа',
+                                            xAxis: 0,
+                                            yAxis: 0
+                                        }, {
+                                            xAxis: 5,
+                                            yAxis: 60
+                                        }]
+                                    ]
+                                }
+                            }
+                        ]
+                    }}
+                    style={{ height: '500px' }}
+                    onEvents={{
+                        'click': (params: any) => {
+                            if (params.componentType === 'series') {
+                                setSelectedGroup(params.value[3]);
+                                setGroupModalOpened(true);
+                            }
+                        }
+                    }}
+                />
+            </Paper>
         </Stack>
     );
-
-    // Данные для предупреждений склада
-    const warehouseAlerts = [
-        {
-            id: 'stock-critical',
-            type: 'critical' as const,
-            title: 'Товары с остатком < 3 дней',
-            description: '15 товаров заканчиваются в ближайшие 3 дня',
-            count: 15,
-            icon: IconPackage,
-            color: 'red',
-            items: [
-                { sku: 'WB00001234', name: 'Кроссовки Nike Air Max', stock: 5, daysLeft: 2 },
-                { sku: 'WB00001235', name: 'Футболка базовая', stock: 3, daysLeft: 1 },
-                { sku: 'WB00001236', name: 'Джинсы классические', stock: 8, daysLeft: 3 }
-            ]
-        },
-        {
-            id: 'buyout-decline',
-            type: 'warning' as const,
-            title: 'Снижение выкупа > 10%',
-            description: 'Выкуп по категории "Обувь" снизился на 12% за неделю',
-            count: 12,
-            icon: IconTrendingDown,
-            color: 'orange'
-        },
-        {
-            id: 'acceptance-delays',
-            type: 'warning' as const,
-            title: 'Задержки приемки на WB',
-            description: '3 поставки задерживаются на приемке более 2 дней',
-            count: 3,
-            icon: IconClock,
-            color: 'yellow'
-        },
-        {
-            id: 'pickup-anomalies',
-            type: 'info' as const,
-            title: 'Аномальные остатки ПВЗ',
-            description: 'Необычно высокие остатки на 8 ПВЗ в Москве',
-            count: 8,
-            icon: IconMapPin,
-            color: 'blue'
-        }
-    ];
-
-    // Функция для получения координат складов
-    const getWarehouseCoordinates = (warehouseName: string): [number, number] => {
-        const coordinates: Record<string, [number, number]> = {
-            'Коледино': [55.4, 37.5],
-            'Электросталь': [55.8, 38.4],
-            'Казань': [55.8, 49.1],
-            'Екатеринбург': [56.8, 60.6],
-            'Новосибирск': [55.0, 82.9],
-            'Краснодар': [45.0, 39.0],
-            'Санкт-Петербург': [59.9, 30.3],
-            'Ростов-на-Дону': [47.2, 39.6],
-            'Самара': [53.2, 50.1],
-            'Челябинск': [55.2, 61.4],
-            'Хабаровск': [48.5, 135.1],
-            'Тольятти': [52.5, 50.4],
-            'Уфа': [54.7, 55.9],
-            'Воронеж': [50.6, 38.2],
-            'Владивосток': [43.1, 131.9],
-            'Нижний Новгород': [56.3, 44.0],
-            'Омск': [54.9, 73.4],
-            'Красноярск': [56.0, 92.9],
-            'Москва': [55.7558, 37.6173] // Москва по умолчанию
-        };
-        return coordinates[warehouseName] || coordinates['Москва'];
-    };
 
     return (
         <Container size="xl" p="md">
@@ -1952,6 +2505,11 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                         <Text size="sm" c="dimmed">
                             Здесь будет детальная аналитика по выбранной группе товаров
                         </Text>
+                        {selectedGroup === 'CZ' && (
+                            <Alert icon={<IconSkull size={16} />} color="red">
+                                Товары этой группы создают убытки и требуют немедленной ликвидации
+                            </Alert>
+                        )}
                     </Stack>
                 )}
             </Modal>
@@ -1974,4 +2532,3 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
 };
 
 export default WarehouseAndLogisticsPageExt;
-
