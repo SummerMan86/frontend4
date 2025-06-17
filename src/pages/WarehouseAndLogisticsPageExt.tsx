@@ -40,8 +40,10 @@ import {
     ScrollArea,
     Burger,
     ColorSwatch,
-    HoverCard
+    HoverCard,
+    Checkbox
 } from '@mantine/core';
+
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import ReactECharts from 'echarts-for-react';
@@ -73,6 +75,7 @@ import {
     IconSun,
     IconMenu2,
     IconX,
+
     IconChevronRight,
     IconExternalLink,
     IconInfoCircle,
@@ -142,7 +145,11 @@ interface Product {
 
 interface Delivery {
     id: number;
+    sku: string;
     orderNumber: string;
+    vendorCode: string;
+    category: string;
+    barcodeWB: string;
     items: number;
     totalQuantity: number;
     packed: number;
@@ -212,6 +219,7 @@ const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
 }) => {
     const chartRef = useRef<ReactECharts>(null);
     const [isReady, setIsReady] = useState(false);
+    const resizeObserverRef = useRef<ResizeObserver>();
 
     // Задержка для правильной инициализации в модальных окнах
     useEffect(() => {
@@ -219,21 +227,47 @@ const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
             setIsReady(true);
             if (chartRef.current) {
                 const chartInstance = chartRef.current.getEchartsInstance();
-                chartInstance.resize();
+                if (chartInstance && !chartInstance.isDisposed()) {
+                    chartInstance.resize();
+                }
             }
-        }, 100);
+        }, 300);
         return () => clearTimeout(timer);
     }, []);
+
+    // Следим за изменением размеров контейнера
+    useEffect(() => {
+        if (chartRef.current) {
+            const chartDom = chartRef.current.getEchartsInstance().getDom();
+            if (chartDom) {
+                resizeObserverRef.current = new ResizeObserver(() => {
+                    if (chartRef.current) {
+                        const instance = chartRef.current.getEchartsInstance();
+                        if (instance && !instance.isDisposed()) {
+                            instance.resize();
+                        }
+                    }
+                });
+                resizeObserverRef.current.observe(chartDom);
+            }
+        }
+        
+        return () => {
+            if (resizeObserverRef.current) {
+                resizeObserverRef.current.disconnect();
+            }
+        };
+    }, [isReady]);
 
     // Обновление размеров при изменении опций
     useEffect(() => {
         if (isReady && chartRef.current) {
             const timer = setTimeout(() => {
                 const chartInstance = chartRef.current?.getEchartsInstance();
-                if (chartInstance) {
+                if (chartInstance && !chartInstance.isDisposed()) {
                     chartInstance.resize();
                 }
-            }, 50);
+            }, 100);
             return () => clearTimeout(timer);
         }
     }, [option, isReady]);
@@ -268,17 +302,17 @@ const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
             right: 20,
             top: 5
         },
-        // Анимации для плавных переходов
-        animation: true,
+        // Анимации для плавных переходов - отключаем при первой загрузке
+        animation: isReady,
         animationThreshold: 2000,
-        animationDuration: 1000,
+        animationDuration: isReady ? 1000 : 0,
         animationEasing: 'cubicOut',
         animationDelay: 0,
         animationDurationUpdate: 500,
         animationEasingUpdate: 'cubicOut',
         animationDelayUpdate: 0,
         ...option
-    }), [option]);
+    }), [option, isReady]);
 
     // Синхронизация графиков
     useEffect(() => {
@@ -289,17 +323,24 @@ const EChartsWrapper: React.FC<EChartsWrapperProps> = ({
     }, [syncGroup]);
 
     return (
-        <ReactECharts
-            ref={chartRef}
-            option={baseOption}
-            style={style}
-            notMerge={notMerge}
-            lazyUpdate={lazyUpdate}
-            showLoading={showLoading}
-            onChartReady={onChartReady}
-            onEvents={onEvents}
-            opts={{ renderer: 'canvas' }}
-        />
+        <>
+            {!isReady && (
+                <Center style={style}>
+                    <Loader size="lg" />
+                </Center>
+            )}
+            <ReactECharts
+                ref={chartRef}
+                option={baseOption}
+                style={{ ...style, display: isReady ? 'block' : 'none' }}
+                notMerge={notMerge}
+                lazyUpdate={lazyUpdate}
+                showLoading={showLoading}
+                onChartReady={onChartReady}
+                onEvents={onEvents}
+                opts={{ renderer: 'canvas' }}
+            />
+        </>
     );
 };
 
@@ -349,7 +390,11 @@ const generateTestDataFirst = () => {
     // Генерация поставок
     const deliveries: Delivery[] = Array.from({ length: 30 }, (_, i) => ({
         id: i + 1,
+        sku: `SKU${String(i + 1).padStart(6, '0')}`,
         orderNumber: `П-2024${String(i + 1).padStart(5, '0')}`,
+        vendorCode: `АРТ${String(i + 1).padStart(4, '0')}`,
+        category: ['Одежда', 'Обувь', 'Аксессуары', 'Электроника', 'Дом и сад'][Math.floor(Math.random() * 5)],
+        barcodeWB: `2${String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0')}`,
         items: Math.floor(Math.random() * 10) + 1,
         totalQuantity: Math.floor(Math.random() * 1000) + 100,
         packed: Math.floor(Math.random() * 1000) + 100,
@@ -867,13 +912,16 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
 
     // Обновление ключа графика при открытии модального окна для принудительного ререндера
     useEffect(() => {
-        if (kpiModalOpened) {
+        if (kpiModalOpened || groupModalOpened || liquidationModalOpened || funnelModalOpened) {
+            // Даем время модальному окну отрендериться
             const timer = setTimeout(() => {
                 setChartKey(prev => prev + 1);
-            }, 200);
+                // Принудительно обновляем размеры всех графиков
+                window.dispatchEvent(new Event('resize'));
+            }, 300);
             return () => clearTimeout(timer);
         }
-    }, [kpiModalOpened]);
+    }, [kpiModalOpened, groupModalOpened, liquidationModalOpened, funnelModalOpened]);
 
     // Функция для генерации данных KPI детализации
     const generateKpiDetailData = (kpiType: string): KpiDetailData[] => {
@@ -1705,12 +1753,17 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     <Table highlightOnHover>
                         <Table.Thead>
                             <Table.Tr>
-                                <Table.Th>Номер поставки</Table.Th>
-                                <Table.Th>Позиций</Table.Th>
-                                <Table.Th>Количество</Table.Th>
+                                <Table.Th>SKU</Table.Th>
+                                <Table.Th>Номер заказа</Table.Th>
+                                <Table.Th>Артикул продавца</Table.Th>
+                                <Table.Th>Категория</Table.Th>
+                                <Table.Th>Баркод WB</Table.Th>
+                                <Table.Th>Количество упаковано</Table.Th>
+                                <Table.Th>Количество принято</Table.Th>
+                                <Table.Th>Количество поступило в продажу</Table.Th>
+                                <Table.Th>Плановая дата</Table.Th>
                                 <Table.Th>Склад</Table.Th>
-                                <Table.Th>План. дата</Table.Th>
-                                <Table.Th>Статус</Table.Th>
+                                <Table.Th>Фактическая дата</Table.Th>
                                 <Table.Th>Действия</Table.Th>
                             </Table.Tr>
                         </Table.Thead>
@@ -1718,31 +1771,37 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                             {deliveries.slice(0, 15).map(delivery => (
                                 <Table.Tr key={delivery.id}>
                                     <Table.Td>
-                                        <Text size="sm" fw={500}>{delivery.orderNumber}</Text>
+                                        <Text size="sm" fw={500}>{delivery.sku}</Text>
                                     </Table.Td>
                                     <Table.Td>
-                                        <Text size="sm">{delivery.items}</Text>
+                                        <Text size="sm">{delivery.orderNumber}</Text>
                                     </Table.Td>
                                     <Table.Td>
-                                        <Text size="sm">{delivery.totalQuantity} шт</Text>
+                                        <Text size="sm">{delivery.vendorCode}</Text>
                                     </Table.Td>
                                     <Table.Td>
-                                        <Text size="sm">{delivery.warehouse}</Text>
+                                        <Text size="sm">{delivery.category}</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Text size="sm">{delivery.barcodeWB}</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Text size="sm">{delivery.packed} шт</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Text size="sm">{delivery.accepted} шт</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Text size="sm">{delivery.inSale} шт</Text>
                                     </Table.Td>
                                     <Table.Td>
                                         <Text size="sm">{delivery.plannedDate}</Text>
                                     </Table.Td>
                                     <Table.Td>
-                                        <Badge 
-                                            color={
-                                                delivery.status === 'Принята' ? 'green' :
-                                                delivery.status === 'На приемке' ? 'blue' :
-                                                delivery.status === 'В пути' ? 'orange' : 'gray'
-                                            }
-                                            variant="light"
-                                        >
-                                            {delivery.status}
-                                        </Badge>
+                                        <Text size="sm">{delivery.warehouse}</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Text size="sm">{delivery.actualDate || '-'}</Text>
                                     </Table.Td>
                                     <Table.Td>
                                         <Group gap="xs">
@@ -2760,105 +2819,107 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                         <Paper p="xl">
                             <Text size="lg" fw={600} mb="md">📈 Динамика за последние 30 дней</Text>
                             <div style={{ height: '350px', width: '100%', minHeight: '350px' }}>
-                                <EChartsWrapper
-                                    key={chartKey}
-                                    option={{
-                                        tooltip: {
-                                            trigger: 'axis',
-                                            axisPointer: {
-                                                type: 'cross',
-                                                animation: true,
-                                                label: {
-                                                    backgroundColor: '#6a7985'
-                                                }
-                                            },
-                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                            borderWidth: 1,
-                                            borderColor: '#ccc',
-                                            padding: 10,
-                                            textStyle: {
-                                                color: '#000'
-                                            }
-                                        },
-                                        grid: {
-                                            left: '3%',
-                                            right: '4%',
-                                            bottom: '3%',
-                                            containLabel: true
-                                        },
-                                        xAxis: {
-                                            type: 'category',
-                                            boundaryGap: false,
-                                            data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.date),
-                                            axisLabel: {
-                                                rotate: 45,
-                                                interval: 4
-                                            }
-                                        },
-                                        yAxis: {
-                                            type: 'value',
-                                            name: selectedKpi.unit,
-                                            axisLabel: {
-                                                formatter: function(value: number) {
-                                                    if (selectedKpi.unit === '%') return `${value}%`;
-                                                    if (selectedKpi.unit === 'дней') return `${value} дн.`;
-                                                    return value.toLocaleString();
-                                                }
-                                            }
-                                        },
-                                        series: [
-                                            {
-                                                name: selectedKpi.title,
-                                                type: 'line',
-                                                smooth: true,
-                                                symbol: 'circle',
-                                                symbolSize: 8,
-                                                sampling: 'lttb',
-                                                itemStyle: {
-                                                    color: selectedKpi.color
-                                                },
-                                                areaStyle: {
-                                                    color: {
-                                                        type: 'linear',
-                                                        x: 0,
-                                                        y: 0,
-                                                        x2: 0,
-                                                        y2: 1,
-                                                        colorStops: [{
-                                                            offset: 0,
-                                                            color: selectedKpi.color + '88' // 50% opacity
-                                                        }, {
-                                                            offset: 1,
-                                                            color: selectedKpi.color + '11' // 10% opacity
-                                                        }]
+                                {kpiModalOpened && (
+                                    <EChartsWrapper
+                                        key={`kpi-chart-${chartKey}`}
+                                        option={{
+                                            tooltip: {
+                                                trigger: 'axis',
+                                                axisPointer: {
+                                                    type: 'cross',
+                                                    animation: true,
+                                                    label: {
+                                                        backgroundColor: '#6a7985'
                                                     }
                                                 },
-                                                data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.value)
+                                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                borderWidth: 1,
+                                                borderColor: '#ccc',
+                                                padding: 10,
+                                                textStyle: {
+                                                    color: '#000'
+                                                }
                                             },
-                                            ...(selectedKpi.type === 'stock' ? [{
-                                                name: 'Целевой уровень',
-                                                type: 'line',
-                                                lineStyle: {
-                                                    type: 'dashed',
-                                                    color: '#91cc75'
+                                            grid: {
+                                                left: '3%',
+                                                right: '4%',
+                                                bottom: '3%',
+                                                containLabel: true
+                                            },
+                                            xAxis: {
+                                                type: 'category',
+                                                boundaryGap: false,
+                                                data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.date),
+                                                axisLabel: {
+                                                    rotate: 45,
+                                                    interval: 4
+                                                }
+                                            },
+                                            yAxis: {
+                                                type: 'value',
+                                                name: selectedKpi.unit,
+                                                axisLabel: {
+                                                    formatter: function(value: number) {
+                                                        if (selectedKpi.unit === '%') return `${value}%`;
+                                                        if (selectedKpi.unit === 'дней') return `${value} дн.`;
+                                                        return value.toLocaleString();
+                                                    }
+                                                }
+                                            },
+                                            series: [
+                                                {
+                                                    name: selectedKpi.title,
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    symbol: 'circle',
+                                                    symbolSize: 8,
+                                                    sampling: 'lttb',
+                                                    itemStyle: {
+                                                        color: `var(--mantine-color-${selectedKpi.color}-6)`
+                                                    },
+                                                    areaStyle: {
+                                                        color: {
+                                                            type: 'linear',
+                                                            x: 0,
+                                                            y: 0,
+                                                            x2: 0,
+                                                            y2: 1,
+                                                            colorStops: [{
+                                                                offset: 0,
+                                                                color: `rgba(var(--mantine-color-${selectedKpi.color}-6-rgb), 0.5)` // 50% opacity
+                                                            }, {
+                                                                offset: 1,
+                                                                color: `rgba(var(--mantine-color-${selectedKpi.color}-6-rgb), 0.1)` // 10% opacity
+                                                            }]
+                                                        }
+                                                    },
+                                                    data: generateKpiDetailData(selectedKpi.type || 'stock').map((d: KpiDetailData) => d.value)
                                                 },
-                                                data: generateKpiDetailData(selectedKpi.type).map((d: KpiDetailData) => 45000)
-                                            }] : [])
-                                        ],
-                                        dataZoom: [
-                                            {
-                                                type: 'inside',
-                                                start: 0,
-                                                end: 100
-                                            },
-                                            {
-                                                start: 0,
-                                                end: 100
-                                            }
-                                        ]
-                                    }}
-                                    style={{ height: '100%', width: '100%' }}
-                                />
+                                                ...(selectedKpi.type === 'stock' ? [{
+                                                    name: 'Целевой уровень',
+                                                    type: 'line',
+                                                    lineStyle: {
+                                                        type: 'dashed',
+                                                        color: '#91cc75'
+                                                    },
+                                                    data: generateKpiDetailData(selectedKpi.type).map((d: KpiDetailData) => 45000)
+                                                }] : [])
+                                            ],
+                                            dataZoom: [
+                                                {
+                                                    type: 'inside',
+                                                    start: 0,
+                                                    end: 100
+                                                },
+                                                {
+                                                    start: 0,
+                                                    end: 100
+                                                }
+                                            ]
+                                        }}
+                                        style={{ height: '100%', width: '100%' }}
+                                    />
+                                )}
                             </div>
                         </Paper>
 
@@ -3005,5 +3066,7 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
         </Container>
     );
 };
+
+
 
 export default WarehouseAndLogisticsPageExt;
