@@ -1,9 +1,5 @@
-/**
- * SupplyManagementPage.tsx
- * Страница управления поставками
- * Created on 2025-01-16
- */
-import React, { useState, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   AppShell,
   Container,
@@ -47,64 +43,6 @@ import { DatePickerInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import ReactECharts from 'echarts-for-react';
 import { create } from 'zustand';
-
-// Типы данных
-interface Delivery {
-  id: string;
-  supplier: string;
-  supplierCountry: string;
-  sendDate: string;
-  plannedDate: string;
-  status: 'in_transit' | 'delayed' | 'delivered' | 'customs';
-  progress: number;
-  warehouse: string;
-  quantity: number;
-  weight: number;
-  volume: number;
-  productCost: number;
-  logisticsCost: number;
-  trackNumber: string;
-  transportType: 'sea' | 'rail' | 'air' | 'truck';
-  currentLocation: string;
-  daysInTransit: number;
-  qualityRate: number;
-}
-
-interface Supplier {
-  id: string;
-  name: string;
-  rating: number;
-  deliveries: number;
-  onTimeRate: number;
-  defectRate: number;
-  avgDeliveryCost: number;
-  leadTime: number;
-}
-
-interface Alert {
-  id: number;
-  type: 'critical' | 'warning' | 'info';
-  message: string;
-  timestamp: string;
-}
-
-interface DeliveriesStore {
-  deliveries: Delivery[];
-  suppliers: Supplier[];
-  alerts: Alert[];
-  setDeliveries: (deliveries: Delivery[]) => void;
-  addDelivery: (delivery: Delivery) => void;
-  updateDelivery: (id: string, updates: Partial<Delivery>) => void;
-}
-
-interface KPICardProps {
-  title: string;
-  value: string;
-  target?: string;
-  trend: number;
-  icon: React.ReactNode;
-  color: string;
-}
 import {
   IconTruck,
   IconPackage,
@@ -144,6 +82,447 @@ import {
   IconCalculator,
   IconAdjustments
 } from '@tabler/icons-react';
+
+// Компонент финансовой аналитики
+const FinancialAnalytics = () => {
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+  const [chartReady1, setChartReady1] = useState(false);
+  const [chartReady2, setChartReady2] = useState(false);
+  const [chartReady3, setChartReady3] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = (ref: React.RefObject<HTMLDivElement>, setReady: (ready: boolean) => void) => {
+      if (ref.current) {
+        const { clientWidth, clientHeight } = ref.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setReady(true);
+        }
+      }
+    };
+
+    const timer1 = setTimeout(() => checkDimensions(chartRef1, setChartReady1), 100);
+    const timer2 = setTimeout(() => checkDimensions(chartRef2, setChartReady2), 150);
+    const timer3 = setTimeout(() => checkDimensions(chartRef3, setChartReady3), 200);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+  const costStructureOption = {
+    tooltip: {
+      trigger: 'item'
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 20,
+            fontWeight: 'bold'
+          }
+        },
+        data: [
+          { value: 65, name: 'Стоимость товара' },
+          { value: 15, name: 'Доставка до границы' },
+          { value: 10, name: 'Таможня и пошлины' },
+          { value: 7, name: 'Внутренняя логистика' },
+          { value: 3, name: 'Страхование' }
+        ]
+      }
+    ]
+  };
+  
+  const landedCostOption = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    xAxis: {
+      type: 'category',
+      data: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн']
+    },
+    yAxis: {
+      type: 'value',
+      name: '₽ за единицу'
+    },
+    series: [
+      {
+        data: [150, 145, 148, 143, 140, 138],
+        type: 'line',
+        smooth: true,
+        areaStyle: {
+          opacity: 0.2
+        }
+      }
+    ]
+  };
+  
+  // ABC-анализ
+  const abcOption = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: ['SKU-001', 'SKU-002', 'SKU-003', 'SKU-004', 'SKU-005', 'SKU-006', 'SKU-007', 'SKU-008']
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: 'Выручка (млн ₽)',
+        position: 'left'
+      },
+      {
+        type: 'value',
+        name: 'Накопленный %',
+        position: 'right',
+        max: 100
+      }
+    ],
+    series: [
+      {
+        name: 'Выручка',
+        type: 'bar',
+        data: [4.5, 3.2, 2.8, 1.5, 0.8, 0.5, 0.3, 0.2],
+        itemStyle: {
+          color: function(params: any) {
+            const colors = ['#51cf66', '#51cf66', '#51cf66', '#f59f00', '#f59f00', '#fa5252', '#fa5252', '#fa5252'];
+            return colors[params.dataIndex];
+          }
+        }
+      },
+      {
+        name: 'Накопленный %',
+        type: 'line',
+        yAxisIndex: 1,
+        data: [35, 60, 82, 93, 96, 98, 99, 100],
+        smooth: true
+      }
+    ],
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+  };
+  
+  // Сравнение маршрутов
+  const routeComparisonData = [
+    { route: 'Море', days: 40, cost: 15, reliability: 85 },
+    { route: 'Ж/д', days: 30, cost: 20, reliability: 90 },
+    { route: 'Авиа', days: 10, cost: 45, reliability: 95 },
+    { route: 'Авто', days: 20, cost: 25, reliability: 88 }
+  ];
+  
+  return (
+    <Grid>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Структура затрат</Text>
+          <div ref={chartRef1} style={{ height: '300px', width: '100%' }}>
+            {chartReady1 && (
+              <ReactECharts 
+                option={costStructureOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Динамика Landed Cost Per Unit</Text>
+          <div ref={chartRef2} style={{ height: '300px', width: '100%' }}>
+            {chartReady2 && (
+              <ReactECharts 
+                option={landedCostOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 8 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between" mb="md">
+            <Text size="md" fw={500}>ABC-анализ товаров</Text>
+            <Group gap="xs">
+              <Badge color="green">A: 70% выручки</Badge>
+              <Badge color="yellow">B: 20% выручки</Badge>
+              <Badge color="red">C: 10% выручки</Badge>
+            </Group>
+          </Group>
+          <div ref={chartRef3} style={{ height: '300px', width: '100%' }}>
+            {chartReady3 && (
+              <ReactECharts 
+                option={abcOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 4 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Сравнение маршрутов</Text>
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Способ</Table.Th>
+                <Table.Th>Дни</Table.Th>
+                <Table.Th>Цена</Table.Th>
+                <Table.Th>Надежность</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {routeComparisonData.map((route) => (
+                <Table.Tr key={route.route}>
+                  <Table.Td>{route.route}</Table.Td>
+                  <Table.Td>{route.days}</Table.Td>
+                  <Table.Td>{route.cost}%</Table.Td>
+                  <Table.Td>
+                    <Badge color={route.reliability >= 90 ? 'green' : 'yellow'}>
+                      {route.reliability}%
+                    </Badge>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
+      </Grid.Col>
+    </Grid>
+  );
+};// Компонент операционных метрик
+const OperationalMetrics = () => {
+  const deliveries = useDeliveriesStore((state) => state.deliveries);
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+  const [chartReady1, setChartReady1] = useState(false);
+  const [chartReady2, setChartReady2] = useState(false);
+  const [chartReady3, setChartReady3] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = (ref: React.RefObject<HTMLDivElement>, setReady: (ready: boolean) => void) => {
+      if (ref.current) {
+        const { clientWidth, clientHeight } = ref.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setReady(true);
+        }
+      }
+    };
+
+    const timer1 = setTimeout(() => checkDimensions(chartRef1, setChartReady1), 100);
+    const timer2 = setTimeout(() => checkDimensions(chartRef2, setChartReady2), 150);
+    const timer3 = setTimeout(() => checkDimensions(chartRef3, setChartReady3), 200);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+  
+  // Control Chart для качества процессов
+  const controlChartOption = {
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+    },
+    yAxis: {
+      type: 'value',
+      min: 90,
+      max: 100,
+      axisLabel: { formatter: '{value}%' }
+    },
+    series: [
+      {
+        name: 'Качество',
+        type: 'line',
+        data: [96, 97, 95, 98, 97, 96, 98],
+        markLine: {
+          data: [
+            { yAxis: 98, name: 'UCL', lineStyle: { color: '#fa5252' } },
+            { yAxis: 95, name: 'LCL', lineStyle: { color: '#fa5252' } },
+            { type: 'average', name: 'Среднее' }
+          ]
+        }
+      }
+    ],
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+  };
+  
+  // Pareto Chart причин задержек
+  const paretoOption = {
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: ['Таможня', 'Транспорт', 'Документы', 'Погода', 'Склад', 'Прочее']
+    },
+    yAxis: [
+      { type: 'value', name: 'Количество' },
+      { type: 'value', name: 'Накопленный %', max: 100 }
+    ],
+    series: [
+      {
+        name: 'Задержки',
+        type: 'bar',
+        data: [45, 32, 18, 12, 8, 5],
+        itemStyle: { color: '#339af0' }
+      },
+      {
+        name: 'Накопленный %',
+        type: 'line',
+        yAxisIndex: 1,
+        data: [37.5, 64.2, 79.2, 89.2, 95.8, 100],
+        itemStyle: { color: '#fa5252' }
+      }
+    ],
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+  };
+  
+  // Forecast Accuracy
+  const forecastOption = {
+    tooltip: { trigger: 'axis' },
+    legend: { data: ['Прогноз', 'Факт'] },
+    xAxis: {
+      type: 'category',
+      data: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн']
+    },
+    yAxis: { type: 'value', name: 'Единиц' },
+    series: [
+      {
+        name: 'Прогноз',
+        type: 'line',
+        data: [5000, 5200, 5500, 5300, 5600, 5800],
+        lineStyle: { type: 'dashed' }
+      },
+      {
+        name: 'Факт',
+        type: 'line',
+        data: [4800, 5300, 5100, 5400, 5200, 5500]
+      }
+    ]
+  };
+
+  return (
+    <Grid>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Control Chart - Качество процессов</Text>
+          <div ref={chartRef1} style={{ height: '300px', width: '100%' }}>
+            {chartReady1 && (
+              <ReactECharts 
+                option={controlChartOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Pareto - Причины задержек</Text>
+          <div ref={chartRef2} style={{ height: '300px', width: '100%' }}>
+            {chartReady2 && (
+              <ReactECharts 
+                option={paretoOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={12}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Точность прогнозирования</Text>
+          <div ref={chartRef3} style={{ height: '300px', width: '100%' }}>
+            {chartReady3 && (
+              <ReactECharts 
+                option={forecastOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+    </Grid>
+  );
+};
+
+
+
+// Типы для данных
+interface Delivery {
+  id: string;
+  supplier: string;
+  supplierCountry: string;
+  sendDate: string;
+  plannedDate: string;
+  status: string;
+  progress: number;
+  warehouse: string;
+  quantity: number;
+  weight: number;
+  volume: number;
+  productCost: number;
+  logisticsCost: number;
+  trackNumber: string;
+  transportType: string;
+  currentLocation: string;
+  daysInTransit: number;
+  qualityRate: number;
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  country: string;
+  rating: number;
+  deliveries: number;
+  onTimeRate: number;
+  defectRate: number;
+  avgDeliveryCost: number;
+  leadTime: number;
+}
+
+interface Alert {
+  id: string | number;
+  type: string;
+  message: string;
+  timestamp: string;
+}
+
+interface DeliveriesStore {
+  deliveries: Delivery[];
+  suppliers: Supplier[];
+  alerts: Alert[];
+  setDeliveries: (deliveries: Delivery[]) => void;
+  addDelivery: (delivery: Delivery) => void;
+  updateDelivery: (id: string, updates: Partial<Delivery>) => void;
+}
 
 // Zustand store для управления состоянием
 const useDeliveriesStore = create<DeliveriesStore>((set) => ({
@@ -214,6 +593,7 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
     {
       id: 'SUP-001',
       name: 'Shanghai Trading Co.',
+      country: 'Китай',
       rating: 4.8,
       deliveries: 45,
       onTimeRate: 92,
@@ -224,6 +604,7 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
     {
       id: 'SUP-002',
       name: 'Guangzhou Electronics',
+      country: 'Китай',
       rating: 4.5,
       deliveries: 32,
       onTimeRate: 85,
@@ -234,6 +615,7 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
     {
       id: 'SUP-003',
       name: 'Shenzhen Textiles',
+      country: 'Китай',
       rating: 4.9,
       deliveries: 58,
       onTimeRate: 95,
@@ -264,17 +646,29 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
     }
   ],
   
-  setDeliveries: (deliveries: Delivery[]) => set({ deliveries }),
-  addDelivery: (delivery: Delivery) => set((state) => ({ 
+
+  
+  setDeliveries: (deliveries) => set({ deliveries }),
+  addDelivery: (delivery) => set((state) => ({ 
     deliveries: [...state.deliveries, delivery] 
   })),
-  updateDelivery: (id: string, updates: Partial<Delivery>) => set((state) => ({
+  updateDelivery: (id, updates) => set((state) => ({
     deliveries: state.deliveries.map(d => d.id === id ? { ...d, ...updates } : d)
   }))
 }));
 
 // Компонент KPI карточки
-const KPICard: React.FC<KPICardProps> = ({ title, value, target, trend, icon, color }) => {
+interface KPICardProps {
+  title: string;
+  value: string;
+  target?: string;
+  trend: number;
+  icon: React.ReactNode;
+  color: string;
+  type?: string;
+}
+
+const KPICard = ({ title, value, target, trend, icon, color }: KPICardProps) => {
   const isPositive = trend > 0;
   
   return (
@@ -308,8 +702,197 @@ const KPICard: React.FC<KPICardProps> = ({ title, value, target, trend, icon, co
   );
 };
 
+
+
+// Компонент складов и остатков
+const InventoryAnalytics = () => {
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const [chartReady1, setChartReady1] = useState(false);
+  const [chartReady2, setChartReady2] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = (ref: React.RefObject<HTMLDivElement>, setReady: (ready: boolean) => void) => {
+      if (ref.current) {
+        const { clientWidth, clientHeight } = ref.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setReady(true);
+        }
+      }
+    };
+
+    const timer1 = setTimeout(() => checkDimensions(chartRef1, setChartReady1), 100);
+    const timer2 = setTimeout(() => checkDimensions(chartRef2, setChartReady2), 150);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+  // Распределение по складам
+  const warehouseDistributionOption = {
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: ['Коледино', 'Электросталь', 'Подольск', 'Казань', 'Екатеринбург']
+    },
+    yAxis: { type: 'value', name: 'Единиц' },
+    series: [
+      {
+        name: 'Текущий остаток',
+        type: 'bar',
+        data: [15000, 12000, 8000, 6000, 4500],
+        itemStyle: { color: '#339af0' }
+      },
+      {
+        name: 'Оптимальный уровень',
+        type: 'line',
+        data: [14000, 13000, 7500, 7000, 5000],
+        lineStyle: { type: 'dashed', color: '#51cf66' }
+      }
+    ],
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+  };
+  
+  // Дни запаса по SKU
+  const stockDaysOption = {
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'value', name: 'Дни запаса' },
+    yAxis: {
+      type: 'category',
+      data: ['SKU-001', 'SKU-002', 'SKU-003', 'SKU-004', 'SKU-005']
+    },
+    series: [{
+      type: 'bar',
+      data: [
+        { value: 45, itemStyle: { color: '#51cf66' } },
+        { value: 12, itemStyle: { color: '#fa5252' } },
+        { value: 30, itemStyle: { color: '#339af0' } },
+        { value: 8, itemStyle: { color: '#fa5252' } },
+        { value: 25, itemStyle: { color: '#f59f00' } }
+      ],
+      markLine: {
+        data: [{ xAxis: 30, label: { formatter: 'Оптимум' } }]
+      }
+    }],
+    grid: { left: '10%', right: '4%', bottom: '3%', containLabel: true }
+  };
+  
+  // Reorder Points
+  const reorderData = [
+    { sku: 'SKU-001', current: 1200, reorderPoint: 1500, orderQty: 5000, status: 'warning' },
+    { sku: 'SKU-002', current: 800, reorderPoint: 1000, orderQty: 3000, status: 'critical' },
+    { sku: 'SKU-003', current: 2500, reorderPoint: 2000, orderQty: 4000, status: 'ok' },
+    { sku: 'SKU-004', current: 500, reorderPoint: 800, orderQty: 2000, status: 'critical' },
+    { sku: 'SKU-005', current: 1800, reorderPoint: 1600, orderQty: 3500, status: 'ok' }
+  ];
+  
+  return (
+    <Grid>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Распределение по складам</Text>
+          <div ref={chartRef1} style={{ height: '250px', width: '100%' }}>
+            {chartReady1 && (
+              <ReactECharts 
+                option={warehouseDistributionOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Text size="md" fw={500} mb="md">Дни запаса по SKU</Text>
+          <div ref={chartRef2} style={{ height: '250px', width: '100%' }}>
+            {chartReady2 && (
+              <ReactECharts 
+                option={stockDaysOption} 
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            )}
+          </div>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={12}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between" mb="md">
+            <Text size="md" fw={500}>Reorder Points</Text>
+          </Group>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>SKU</Table.Th>
+                <Table.Th>Текущий остаток</Table.Th>
+                <Table.Th>Reorder Point</Table.Th>
+                <Table.Th>Рекомендуемый заказ</Table.Th>
+                <Table.Th>Статус</Table.Th>
+                <Table.Th>Действия</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {reorderData.map((item) => (
+                <Table.Tr key={item.sku}>
+                  <Table.Td fw={500}>{item.sku}</Table.Td>
+                  <Table.Td>{item.current}</Table.Td>
+                  <Table.Td>{item.reorderPoint}</Table.Td>
+                  <Table.Td>{item.orderQty}</Table.Td>
+                  <Table.Td>
+                    <Badge 
+                      color={
+                        item.status === 'critical' ? 'red' : 
+                        item.status === 'warning' ? 'yellow' : 'green'
+                      }
+                    >
+                      {item.status === 'critical' ? 'Критично' : 
+                       item.status === 'warning' ? 'Внимание' : 'В норме'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Button size="xs" variant="light">Заказать</Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
+      </Grid.Col>
+    </Grid>
+  );
+};
+
 // Компонент карты маршрутов
 const RoutesMap = () => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [chartReady, setChartReady] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = () => {
+      if (chartRef.current) {
+        const { clientWidth, clientHeight } = chartRef.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setChartReady(true);
+        }
+      }
+    };
+
+    // Проверяем размеры сразу
+    checkDimensions();
+
+    // Проверяем размеры после загрузки
+    const timer = setTimeout(checkDimensions, 100);
+
+    // Проверяем размеры при изменении размера окна
+    window.addEventListener('resize', checkDimensions);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkDimensions);
+    };
+  }, []);
   const mapOption = {
     backgroundColor: '#f8f9fa',
     geo: {
@@ -406,12 +989,44 @@ const RoutesMap = () => {
     ]
   };
   
-  return <ReactECharts option={simplifiedMapOption} style={{ height: '400px' }} />;
+  return (
+    <div ref={chartRef} style={{ height: '400px', width: '100%' }}>
+      {chartReady && (
+        <ReactECharts 
+          option={simplifiedMapOption} 
+          style={{ height: '100%', width: '100%' }}
+          opts={{ renderer: 'canvas' }}
+        />
+      )}
+    </div>
+  );
 };
 
 // Компонент Timeline поставок
 const DeliveryTimeline = () => {
   const deliveries = useDeliveriesStore((state) => state.deliveries);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [chartReady, setChartReady] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = () => {
+      if (chartRef.current) {
+        const { clientWidth, clientHeight } = chartRef.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setChartReady(true);
+        }
+      }
+    };
+
+    checkDimensions();
+    const timer = setTimeout(checkDimensions, 100);
+    window.addEventListener('resize', checkDimensions);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkDimensions);
+    };
+  }, []);
   
   const ganttOption = {
     tooltip: {
@@ -460,7 +1075,7 @@ const DeliveryTimeline = () => {
             }
           };
         },
-        data: deliveries.map((d: Delivery, idx: number) => [
+        data: deliveries.map((d, idx) => [
           idx,
           new Date(d.sendDate).getTime(),
           new Date(d.plannedDate).getTime()
@@ -469,12 +1084,38 @@ const DeliveryTimeline = () => {
     ]
   };
   
-  return <ReactECharts option={ganttOption} style={{ height: '300px' }} />;
+  return (
+    <div ref={chartRef} style={{ height: '300px', width: '100%' }}>
+      {chartReady && (
+        <ReactECharts 
+          option={ganttOption} 
+          style={{ height: '100%', width: '100%' }}
+          opts={{ renderer: 'canvas' }}
+        />
+      )}
+    </div>
+  );
 };
 
 // Компонент анализа поставщиков
 const SupplierAnalysis = () => {
   const suppliers = useDeliveriesStore((state) => state.suppliers);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [chartReady, setChartReady] = useState(false);
+
+  useEffect(() => {
+    const checkDimensions = () => {
+      if (chartRef.current) {
+        const { clientWidth, clientHeight } = chartRef.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setChartReady(true);
+        }
+      }
+    };
+
+    const timer = setTimeout(checkDimensions, 100);
+    return () => clearTimeout(timer);
+  }, []);
   
   const radarOption = {
     tooltip: {},
@@ -490,7 +1131,7 @@ const SupplierAnalysis = () => {
     series: [
       {
         type: 'radar',
-        data: suppliers.map((s: Supplier) => ({
+        data: suppliers.map(s => ({
           value: [
             85,
             100 - s.defectRate * 10,
@@ -507,7 +1148,15 @@ const SupplierAnalysis = () => {
   return (
     <Grid>
       <Grid.Col span={{ base: 12, md: 6 }}>
-        <ReactECharts option={radarOption} style={{ height: '300px' }} />
+        <div ref={chartRef} style={{ height: '300px', width: '100%' }}>
+          {chartReady && (
+            <ReactECharts 
+              option={radarOption} 
+              style={{ height: '100%', width: '100%' }}
+              opts={{ renderer: 'canvas' }}
+            />
+          )}
+        </div>
       </Grid.Col>
       <Grid.Col span={{ base: 12, md: 6 }}>
         <Table striped highlightOnHover>
@@ -537,96 +1186,23 @@ const SupplierAnalysis = () => {
   );
 };
 
-// Компонент финансовой аналитики
-const FinancialAnalytics = () => {
-  const costStructureOption = {
-    tooltip: {
-      trigger: 'item'
-    },
-    series: [
-      {
-        type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        itemStyle: {
-          borderRadius: 10,
-          borderColor: '#fff',
-          borderWidth: 2
-        },
-        label: {
-          show: false,
-          position: 'center'
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: 20,
-            fontWeight: 'bold'
-          }
-        },
-        data: [
-          { value: 65, name: 'Стоимость товара' },
-          { value: 15, name: 'Доставка до границы' },
-          { value: 10, name: 'Таможня и пошлины' },
-          { value: 7, name: 'Внутренняя логистика' },
-          { value: 3, name: 'Страхование' }
-        ]
-      }
-    ]
-  };
-  
-  const landedCostOption = {
-    tooltip: {
-      trigger: 'axis'
-    },
-    xAxis: {
-      type: 'category',
-      data: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн']
-    },
-    yAxis: {
-      type: 'value',
-      name: '₽ за единицу'
-    },
-    series: [
-      {
-        data: [150, 145, 148, 143, 140, 138],
-        type: 'line',
-        smooth: true,
-        areaStyle: {
-          opacity: 0.2
-        }
-      }
-    ]
-  };
-  
-  return (
-    <Grid>
-      <Grid.Col span={{ base: 12, md: 6 }}>
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
-          <Text size="md" fw={500} mb="md">Структура затрат</Text>
-          <ReactECharts option={costStructureOption} style={{ height: '300px' }} />
-        </Card>
-      </Grid.Col>
-      <Grid.Col span={{ base: 12, md: 6 }}>
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
-          <Text size="md" fw={500} mb="md">Динамика Landed Cost Per Unit</Text>
-          <ReactECharts option={landedCostOption} style={{ height: '300px' }} />
-        </Card>
-      </Grid.Col>
-    </Grid>
-  );
-};
+
 
 // Главный компонент страницы
-export default function SupplyManagementPage() {
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([new Date(2024, 0, 1), new Date()]);
+export default function DeliveriesControlPage() {
+  const [dateRange, setDateRange] = useState<[any, any]>([new Date(2024, 0, 1), new Date()]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
   const [selectedWarehouses, setSelectedWarehouses] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('suppliers');
+  const [activeTab, setActiveTab] = useState<string | null>('suppliers');
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [alertsOpened, setAlertsOpened] = useState(true);
+  const [newDeliveryOpened, setNewDeliveryOpened] = useState(false);
+  const [calcOpened, setCalcOpened] = useState(false);
+
+  const closeNewDelivery = () => setNewDeliveryOpened(false);
+  const closeCalc = () => setCalcOpened(false);
   
   const { deliveries, suppliers, alerts } = useDeliveriesStore();
   
@@ -646,8 +1222,8 @@ export default function SupplyManagementPage() {
     };
   }, [deliveries]);
   
-  const getStatusBadge = (status: Delivery['status']) => {
-    const statusConfig = {
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; label: string }> = {
       in_transit: { color: 'blue', label: 'В пути' },
       delayed: { color: 'red', label: 'Задержка' },
       delivered: { color: 'green', label: 'Доставлено' },
@@ -658,8 +1234,8 @@ export default function SupplyManagementPage() {
     return <Badge color={config.color}>{config.label}</Badge>;
   };
   
-  const getTransportIcon = (type: Delivery['transportType']) => {
-    const icons = {
+  const getTransportIcon = (type: string) => {
+    const icons: Record<string, React.ReactElement> = {
       sea: <IconShip size={16} />,
       rail: <IconTrain size={16} />,
       air: <IconPlane size={16} />,
@@ -688,14 +1264,11 @@ export default function SupplyManagementPage() {
           <Group>
             <DatePickerInput
               value={dateRange[0]}
-              onChange={(value: string) => {
-                const date = value ? new Date(value) : new Date();
-                setDateRange([date, dateRange[1] || new Date()]);
-              }}
-              placeholder="Выберите период"
+              onChange={(date) => setDateRange([date, dateRange[1]])}
+              placeholder="Выберите дату"
               style={{ width: 250 }}
             />
-            <Button leftSection={<IconPlus size={16} />} color="blue">
+            <Button leftSection={<IconPlus size={16} />} color="blue" onClick={() => setNewDeliveryOpened(true)}>
               Новая поставка
             </Button>
             <ActionIcon variant="light" size="lg">
@@ -718,7 +1291,7 @@ export default function SupplyManagementPage() {
               { value: 'customs', label: 'Таможня' }
             ]}
             value={selectedStatuses}
-            onChange={(value: string[]) => setSelectedStatuses(value)}
+            onChange={(value) => setSelectedStatuses(value)}
             clearable
             style={{ width: 200 }}
           />
@@ -726,7 +1299,7 @@ export default function SupplyManagementPage() {
             placeholder="Поставщик"
             data={suppliers.map(s => ({ value: s.id, label: s.name }))}
             value={selectedSuppliers}
-            onChange={(value: string[]) => setSelectedSuppliers(value)}
+            onChange={(value) => setSelectedSuppliers(value)}
             clearable
             searchable
             style={{ width: 250 }}
@@ -739,7 +1312,7 @@ export default function SupplyManagementPage() {
               { value: 'podolsk', label: 'Подольск' }
             ]}
             value={selectedWarehouses}
-            onChange={(value: string[]) => setSelectedWarehouses(value)}
+            onChange={(value) => setSelectedWarehouses(value)}
             clearable
             style={{ width: 200 }}
           />
@@ -765,6 +1338,7 @@ export default function SupplyManagementPage() {
           trend={3.2}
           icon={<IconCheck size={20} />}
           color="green"
+          type="perfect-order"
         />
         <KPICard
           title="Средний срок доставки"
@@ -773,6 +1347,7 @@ export default function SupplyManagementPage() {
           trend={-5.1}
           icon={<IconClock size={20} />}
           color="blue"
+          type="delivery-time"
         />
         <KPICard
           title="Логистические затраты"
@@ -781,6 +1356,7 @@ export default function SupplyManagementPage() {
           trend={-2.3}
           icon={<IconCurrencyRubel size={20} />}
           color="orange"
+          type="logistics-cost"
         />
         <KPICard
           title="Качество поставок"
@@ -789,6 +1365,7 @@ export default function SupplyManagementPage() {
           trend={1.5}
           icon={<IconPackage size={20} />}
           color="teal"
+          type="quality"
         />
       </SimpleGrid>
       
@@ -820,7 +1397,7 @@ export default function SupplyManagementPage() {
       
       {/* Аналитический блок */}
       <Card shadow="sm" padding="lg" radius="md" withBorder mb="md">
-        <Tabs value={activeTab} onChange={(value: string | null) => setActiveTab(value || 'suppliers')}>
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value)}>
           <Tabs.List>
             <Tabs.Tab value="suppliers" leftSection={<IconChartDots size={16} />}>
               Анализ поставщиков
@@ -845,11 +1422,11 @@ export default function SupplyManagementPage() {
           </Tabs.Panel>
           
           <Tabs.Panel value="operations" pt="md">
-            <Text c="dimmed">Операционные метрики в разработке...</Text>
+            <OperationalMetrics />
           </Tabs.Panel>
           
           <Tabs.Panel value="inventory" pt="md">
-            <Text c="dimmed">Склады и остатки в разработке...</Text>
+            <InventoryAnalytics />
           </Tabs.Panel>
         </Tabs>
       </Card>
@@ -882,7 +1459,7 @@ export default function SupplyManagementPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {deliveries.map((delivery) => (
+              {deliveries.map((delivery: Delivery) => (
                 <Table.Tr key={delivery.id}>
                   <Table.Td fw={500}>{delivery.id}</Table.Td>
                   <Table.Td>
@@ -985,7 +1562,7 @@ export default function SupplyManagementPage() {
           </Group>
           
           <Stack gap="sm">
-            {alerts.map((alert) => (
+            {alerts.map((alert: Alert) => (
               <Alert
                 key={alert.id}
                 color={
@@ -1106,6 +1683,147 @@ export default function SupplyManagementPage() {
           </ActionIcon>
         </Indicator>
       )}
+      
+      {/* Модальное окно новой поставки */}
+      <Modal
+        opened={newDeliveryOpened}
+        onClose={closeNewDelivery}
+        title="Создание новой поставки"
+        size="xl"
+      >
+        <Stack>
+          <SimpleGrid cols={2}>
+            <Select
+              label="Поставщик"
+              placeholder="Выберите поставщика"
+              data={suppliers.map(s => ({ value: s.id, label: s.name }))}
+              required
+            />
+            <Select
+              label="Склад назначения"
+              placeholder="Выберите склад"
+              data={[
+                { value: 'koledino', label: 'Коледино' },
+                { value: 'elektrostal', label: 'Электросталь' },
+                { value: 'podolsk', label: 'Подольск' }
+              ]}
+              required
+            />
+            <DatePickerInput
+              label="Дата поставки"
+              placeholder="Выберите дату"
+              required
+            />
+            <DatePickerInput
+              label="Планируемая дата доставки"
+              placeholder="Выберите дату"
+              required
+            />
+            <NumberInput
+              label="Количество единиц"
+              placeholder="0"
+              min={1}
+              required
+            />
+            <NumberInput
+              label="Вес (кг)"
+              placeholder="0"
+              min={0.1}
+              required
+            />
+            <NumberInput
+              label="Объем (м³)"
+              placeholder="0"
+              min={0.01}
+              required
+            />
+            <Select
+              label="Способ доставки"
+              placeholder="Выберите способ"
+              data={[
+                { value: 'sea', label: 'Море (35-45 дней)' },
+                { value: 'rail', label: 'Ж/д (25-35 дней)' },
+                { value: 'air', label: 'Авиа (7-15 дней)' },
+                { value: 'truck', label: 'Авто (15-25 дней)' }
+              ]}
+              required
+            />
+          </SimpleGrid>
+          
+          <Divider my="md" />
+          
+          <SimpleGrid cols={2}>
+            <NumberInput
+              label="Стоимость товара (₽)"
+              placeholder="0"
+              min={0}
+              required
+            />
+            <NumberInput
+              label="Прогноз логистических затрат (₽)"
+              placeholder="Рассчитается автоматически"
+              readOnly
+            />
+          </SimpleGrid>
+          
+          <Group justify="flex-end" mt="xl">
+            <Button variant="light" onClick={closeNewDelivery}>Отмена</Button>
+            <Button>Создать поставку</Button>
+          </Group>
+        </Stack>
+      </Modal>
+      
+      {/* Модальное окно калькулятора оптимальной партии */}
+      <Modal
+        opened={calcOpened}
+        onClose={closeCalc}
+        title="Калькулятор оптимальной партии (EOQ)"
+        size="lg"
+      >
+        <Stack>
+          <Alert icon={<IconCalculator size={16} />} color="blue">
+            Economic Order Quantity (EOQ) = √(2DS/H), где D - годовой спрос, S - стоимость заказа, H - стоимость хранения
+          </Alert>
+          
+          <NumberInput
+            label="Годовой спрос (единиц)"
+            placeholder="0"
+            min={1}
+          />
+          <NumberInput
+            label="Стоимость одного заказа (₽)"
+            placeholder="0"
+            min={0}
+          />
+          <NumberInput
+            label="Стоимость хранения единицы в год (₽)"
+            placeholder="0"
+            min={0}
+          />
+          
+          <Divider my="md" />
+          
+          <Card withBorder>
+            <Text size="sm" c="dimmed" mb="xs">Оптимальный размер заказа:</Text>
+            <Text size="xl" fw={700} c="blue">0 единиц</Text>
+            <Group mt="md" gap="xl">
+              <Box>
+                <Text size="xs" c="dimmed">Количество заказов в год:</Text>
+                <Text fw={500}>0</Text>
+              </Box>
+              <Box>
+                <Text size="xs" c="dimmed">Общие затраты:</Text>
+                <Text fw={500}>₽0</Text>
+              </Box>
+            </Group>
+          </Card>
+          
+          <Group justify="flex-end">
+             <Button variant="light" onClick={closeCalc}>Закрыть</Button>
+             <Button>Применить к заказу</Button>
+           </Group>
+         </Stack>
+       </Modal>
     </Container>
   );
 }
