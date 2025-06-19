@@ -37,6 +37,7 @@ import {
   SegmentedControl,
   Collapse,
   UnstyledButton,
+  Loader,
   rem
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
@@ -864,140 +865,257 @@ const InventoryAnalytics = () => {
   );
 };
 
-// Компонент карты маршрутов
+// Типы для Yandex Maps API
+declare global {
+  interface Window {
+    ymaps: any;
+  }
+}
+
+
+
+// Типы для данных маршрутов
+interface RouteData {
+  id: string;
+  name: string;
+  origin: string;
+  destination: string;
+  coordinates: [number, number][];
+  status: 'active' | 'completed' | 'delayed' | 'planned';
+  deliveryId: string;
+  transportType: 'truck' | 'train' | 'ship' | 'plane';
+  progress: number;
+}
+
+// Данные маршрутов поставок
+const routesData: RouteData[] = [
+  {
+    id: 'route-001',
+    name: 'Шанхай → Владивосток',
+    origin: 'Шанхай',
+    destination: 'Владивосток',
+    coordinates: [[121.4737, 31.2304], [131.8613, 43.2918]],
+    status: 'active',
+    deliveryId: 'DEL-2024-001',
+    transportType: 'ship',
+    progress: 65
+  },
+  {
+    id: 'route-002',
+    name: 'Гуанчжоу → Алматы',
+    origin: 'Гуанчжоу',
+    destination: 'Алматы',
+    coordinates: [[113.2644, 23.1291], [76.9129, 43.2380]],
+    status: 'active',
+    deliveryId: 'DEL-2024-002',
+    transportType: 'train',
+    progress: 45
+  },
+  {
+    id: 'route-003',
+    name: 'Шэньчжэнь → Москва',
+    origin: 'Шэньчжэнь',
+    destination: 'Москва',
+    coordinates: [[114.0579, 22.5431], [55.7558, 37.6176]],
+    status: 'delayed',
+    deliveryId: 'DEL-2024-003',
+    transportType: 'plane',
+    progress: 30
+  },
+  {
+    id: 'route-004',
+    name: 'Пекин → Екатеринбург',
+    origin: 'Пекин',
+    destination: 'Екатеринбург',
+    coordinates: [[116.4074, 39.9042], [60.6454, 56.8431]],
+    status: 'planned',
+    deliveryId: 'DEL-2024-004',
+    transportType: 'train',
+    progress: 0
+  }
+];
+
+// Компонент карты маршрутов с Yandex Maps
 const RoutesMap = () => {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const [chartReady, setChartReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [map, setMap] = useState<any>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return '#339af0';
+      case 'completed': return '#51cf66';
+      case 'delayed': return '#f03e3e';
+      case 'planned': return '#868e96';
+      default: return '#339af0';
+    }
+  };
+
+  const getTransportIcon = (type: string) => {
+    switch (type) {
+      case 'truck': return '🚛';
+      case 'train': return '🚂';
+      case 'ship': return '🚢';
+      case 'plane': return '✈️';
+      default: return '📦';
+    }
+  };
+
+  const loadYandexMaps = () => {
+    return new Promise<void>((resolve, reject) => {
+      if (window.ymaps) {
+        resolve();
+        return;
+      }
+
+      const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
+      if (existingScript) {
+        // Если скрипт уже загружается, ждем его загрузки
+        const checkYmaps = () => {
+          if (window.ymaps) {
+            resolve();
+          } else {
+            setTimeout(checkYmaps, 100);
+          }
+        };
+        checkYmaps();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Не удалось загрузить Yandex Maps API'));
+      document.head.appendChild(script);
+    });
+  };
+
+  const initializeMap = async () => {
+    try {
+      await loadYandexMaps();
+      
+      if (!mapRef.current) return;
+
+      await new Promise(resolve => window.ymaps.ready(resolve));
+
+      const mapInstance = new window.ymaps.Map(mapRef.current, {
+        center: [55.7558, 37.6176], // Москва
+        zoom: 3,
+        controls: ['zoomControl', 'fullscreenControl']
+      });
+
+      // Добавляем маршруты на карту
+      routesData.forEach((route) => {
+        const [start, end] = route.coordinates;
+        
+        // Создаем линию маршрута
+        const routeLine = new window.ymaps.Polyline(
+          [start, end],
+          {
+            balloonContent: `
+              <div style="padding: 10px;">
+                <h4>${route.name}</h4>
+                <p><strong>Статус:</strong> ${route.status}</p>
+                <p><strong>Прогресс:</strong> ${route.progress}%</p>
+                <p><strong>Транспорт:</strong> ${getTransportIcon(route.transportType)} ${route.transportType}</p>
+                <p><strong>ID поставки:</strong> ${route.deliveryId}</p>
+              </div>
+            `
+          },
+          {
+            strokeColor: getStatusColor(route.status),
+            strokeWidth: 4,
+            strokeOpacity: 0.8
+          }
+        );
+
+        // Добавляем точки начала и конца
+        const startPlacemark = new window.ymaps.Placemark(
+          start,
+          {
+            balloonContent: `<strong>${route.origin}</strong><br/>Точка отправления`,
+            iconContent: getTransportIcon(route.transportType)
+          },
+          {
+            preset: 'islands#blueStretchyIcon'
+          }
+        );
+
+        const endPlacemark = new window.ymaps.Placemark(
+          end,
+          {
+            balloonContent: `<strong>${route.destination}</strong><br/>Точка назначения`,
+            iconContent: '📍'
+          },
+          {
+            preset: 'islands#redStretchyIcon'
+          }
+        );
+
+        mapInstance.geoObjects.add(routeLine);
+        mapInstance.geoObjects.add(startPlacemark);
+        mapInstance.geoObjects.add(endPlacemark);
+      });
+
+      setMap(mapInstance);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Ошибка инициализации карты:', error);
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const checkDimensions = () => {
-      if (chartRef.current) {
-        const { clientWidth, clientHeight } = chartRef.current;
-        if (clientWidth > 0 && clientHeight > 0) {
-          setChartReady(true);
-        }
-      }
-    };
-
-    // Проверяем размеры сразу
-    checkDimensions();
-
-    // Проверяем размеры после загрузки
-    const timer = setTimeout(checkDimensions, 100);
-
-    // Проверяем размеры при изменении размера окна
-    window.addEventListener('resize', checkDimensions);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkDimensions);
-    };
+    initializeMap();
   }, []);
-  const mapOption = {
-    backgroundColor: '#f8f9fa',
-    geo: {
-      map: 'world',
-      roam: true,
-      zoom: 2,
-      center: [80, 45],
-      itemStyle: {
-        areaColor: '#e9ecef',
-        borderColor: '#dee2e6'
-      },
-      emphasis: {
-        itemStyle: {
-          areaColor: '#ced4da'
-        }
-      }
-    },
-    series: [
-      {
-        type: 'lines',
-        coordinateSystem: 'geo',
-        data: [
-          {
-            coords: [[121.4737, 31.2304], [131.8613, 43.2918]], // Shanghai to Vladivostok
-            lineStyle: { color: '#339af0', width: 3, curveness: 0.3 }
-          },
-          {
-            coords: [[113.2644, 23.1291], [76.9129, 43.2380]], // Guangzhou to Almaty
-            lineStyle: { color: '#f59f00', width: 3, curveness: 0.3 }
-          },
-          {
-            coords: [[114.0579, 22.5431], [37.6173, 55.7558]], // Shenzhen to Moscow
-            lineStyle: { color: '#51cf66', width: 3, curveness: 0.3 }
-          }
-        ],
-        effect: {
-          show: true,
-          period: 6,
-          trailLength: 0.1,
-          symbolSize: 8
-        }
-      },
-      {
-        type: 'scatter',
-        coordinateSystem: 'geo',
-        data: [
-          { name: 'Shanghai', value: [121.4737, 31.2304] },
-          { name: 'Vladivostok', value: [131.8613, 43.2918] },
-          { name: 'Guangzhou', value: [113.2644, 23.1291] },
-          { name: 'Almaty', value: [76.9129, 43.2380] },
-          { name: 'Shenzhen', value: [114.0579, 22.5431] },
-          { name: 'Moscow', value: [37.6173, 55.7558] }
-        ],
-        symbolSize: 12,
-        itemStyle: {
-          color: '#228be6'
-        }
-      }
-    ]
-  };
-  
-  // Упрощенная версия без реальной карты
-  const simplifiedMapOption = {
-    tooltip: {
-      trigger: 'item'
-    },
-    series: [
-      {
-        type: 'graph',
-        layout: 'force',
-        symbolSize: 50,
-        roam: true,
-        label: {
-          show: true
-        },
-        force: {
-          repulsion: 1000,
-          edgeLength: 200
-        },
-        data: [
-          { name: 'Шанхай', x: 100, y: 200 },
-          { name: 'Гуанчжоу', x: 150, y: 250 },
-          { name: 'Шэньчжэнь', x: 200, y: 230 },
-          { name: 'Владивосток', x: 400, y: 150 },
-          { name: 'Алматы', x: 350, y: 300 },
-          { name: 'Москва', x: 500, y: 200 }
-        ],
-        links: [
-          { source: 'Шанхай', target: 'Владивосток' },
-          { source: 'Гуанчжоу', target: 'Алматы' },
-          { source: 'Шэньчжэнь', target: 'Москва' }
-        ]
-      }
-    ]
-  };
-  
+
+  if (isLoading) {
+    return (
+      <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Stack align="center" gap="md">
+          <Loader size="md" />
+          <Text size="sm" c="dimmed">Загрузка карты маршрутов...</Text>
+        </Stack>
+      </div>
+    );
+  }
+
   return (
-    <div ref={chartRef} style={{ height: '400px', width: '100%' }}>
-      {chartReady && (
-        <ReactECharts 
-          option={simplifiedMapOption} 
-          style={{ height: '100%', width: '100%' }}
-          opts={{ renderer: 'canvas' }}
-        />
-      )}
+    <div style={{ height: '400px', width: '100%', position: 'relative' }}>
+      <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+      
+      {/* Легенда */}
+      <Paper 
+        shadow="sm" 
+        p="xs" 
+        style={{ 
+          position: 'absolute', 
+          top: 10, 
+          right: 10, 
+          zIndex: 1000,
+          maxWidth: 200
+        }}
+      >
+        <Text size="xs" fw={500} mb={5}>Статусы маршрутов:</Text>
+        <Stack gap={2}>
+          <Group gap={5}>
+            <div style={{ width: 12, height: 3, backgroundColor: '#339af0' }} />
+            <Text size="xs">Активные</Text>
+          </Group>
+          <Group gap={5}>
+            <div style={{ width: 12, height: 3, backgroundColor: '#51cf66' }} />
+            <Text size="xs">Завершенные</Text>
+          </Group>
+          <Group gap={5}>
+            <div style={{ width: 12, height: 3, backgroundColor: '#f03e3e' }} />
+            <Text size="xs">Задержанные</Text>
+          </Group>
+          <Group gap={5}>
+            <div style={{ width: 12, height: 3, backgroundColor: '#868e96' }} />
+            <Text size="xs">Планируемые</Text>
+          </Group>
+        </Stack>
+      </Paper>
     </div>
   );
 };

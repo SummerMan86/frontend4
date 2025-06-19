@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Stack, Title, Text, Divider, Group, Button, Paper } from '@mantine/core';
+import { Container, Stack, Title, Text, Divider, Group, Button, Paper, Badge, Progress, Table } from '@mantine/core';
 import { 
   IconBuildingWarehouse, 
   IconTruck, 
@@ -14,13 +14,18 @@ import {
   IconRefresh,
   IconDownload,
   IconTrendingDown,
-  IconCurrencyDollar
+  IconCurrencyDollar,
+  IconCalendar,
+  IconMapPin,
+  IconPackage
 } from '@tabler/icons-react';
 import { KPICard, type KPICardProps } from '../components/KPICard';
 import { KPIGrid } from '../components/KPIGrid';
 import { KPISparklineCard } from '../components/KPISparklineCard';
 import { KPISparklineExamples } from '../components/KPISparklineCard.examples';
 import { SimpleKPIExamples } from '../components/SimpleKPISparklineChart.examples';
+import KPICardDropDown from '../components/KPICardDropDown';
+import ReactECharts from 'echarts-for-react';
 
 /**
  * Демо-страница для демонстрации возможностей KPI компонентов
@@ -459,6 +464,284 @@ export const KPIDemoPage: React.FC = () => {
 
         <Divider />
 
+        {/* KPI карточки с раскрывающимися деталями */}
+        <div>
+          <Title order={2} mb="md">📋 KPI карточки с детальной информацией</Title>
+          <Text mb="lg" c="gray.6">
+            Демонстрация KPICardDropDown компонента с различными типами детальной информации
+          </Text>
+          
+          <Group align="start">
+            {/* Карточка с графиком */}
+            <KPICardDropDown
+              title="Выручка за месяц"
+              value="2,847,392 ₽"
+              target="3,000,000 ₽"
+              trend={15.3}
+              icon={<IconCoin size={20} />}
+              color="green"
+              detailComponent={
+                <Stack gap="md">
+                  <Text size="sm" fw={500}>Динамика выручки за 30 дней</Text>
+                  <ReactECharts
+                    option={{
+                      grid: { top: 10, right: 10, bottom: 30, left: 40 },
+                      xAxis: {
+                        type: 'category',
+                        data: Array.from({length: 30}, (_, i) => `${i+1}`),
+                        axisLabel: { fontSize: 10 }
+                      },
+                      yAxis: {
+                        type: 'value',
+                        axisLabel: { fontSize: 10, formatter: '{value}к' }
+                      },
+                      series: [{
+                        data: generateSparklineData(95, 'up'),
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: { color: '#51cf66', width: 2 },
+                        areaStyle: { color: 'rgba(81, 207, 102, 0.1)' }
+                      }]
+                    }}
+                    style={{ height: '200px' }}
+                  />
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">Рост к прошлому месяцу: +15.3%</Text>
+                    <Badge color="green" size="sm">Цель достигнута</Badge>
+                  </Group>
+                </Stack>
+              }
+            />
+
+            {/* Карточка с таблицей */}
+            <KPICardDropDown
+              title="Остатки на складах"
+              value="45,382 шт"
+              target="50,000 шт"
+              trend={-3.2}
+              icon={<IconBuildingWarehouse size={20} />}
+              color="blue"
+              detailComponent={
+                <Stack gap="md">
+                  <Text size="sm" fw={500}>Распределение по складам</Text>
+                  <Table>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Склад</Table.Th>
+                        <Table.Th>Остаток</Table.Th>
+                        <Table.Th>Статус</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      <Table.Tr>
+                        <Table.Td>Москва</Table.Td>
+                        <Table.Td>18,450 шт</Table.Td>
+                        <Table.Td><Badge color="green" size="xs">Норма</Badge></Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>СПб</Table.Td>
+                        <Table.Td>12,380 шт</Table.Td>
+                        <Table.Td><Badge color="yellow" size="xs">Низкий</Badge></Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Екатеринбург</Table.Td>
+                        <Table.Td>8,920 шт</Table.Td>
+                        <Table.Td><Badge color="green" size="xs">Норма</Badge></Table.Td>
+                      </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Казань</Table.Td>
+                        <Table.Td>5,632 шт</Table.Td>
+                        <Table.Td><Badge color="red" size="xs">Критический</Badge></Table.Td>
+                      </Table.Tr>
+                    </Table.Tbody>
+                  </Table>
+                  <Text size="xs" c="dimmed">Последнее обновление: 2 часа назад</Text>
+                </Stack>
+              }
+            />
+
+            {/* Карточка с прогрессом */}
+            <KPICardDropDown
+              title="Выполнение плана"
+              value="78.4%"
+              target="100%"
+              trend={2.1}
+              icon={<IconPercentage size={20} />}
+              color="orange"
+              detailComponent={
+                <Stack gap="md">
+                  <Text size="sm" fw={500}>Детализация по направлениям</Text>
+                  
+                  <div>
+                    <Group justify="space-between" mb={5}>
+                      <Text size="sm">Продажи</Text>
+                      <Text size="sm" fw={500}>85%</Text>
+                    </Group>
+                    <Progress value={85} color="green" size="sm" />
+                  </div>
+                  
+                  <div>
+                    <Group justify="space-between" mb={5}>
+                      <Text size="sm">Маркетинг</Text>
+                      <Text size="sm" fw={500}>72%</Text>
+                    </Group>
+                    <Progress value={72} color="yellow" size="sm" />
+                  </div>
+                  
+                  <div>
+                    <Group justify="space-between" mb={5}>
+                      <Text size="sm">Логистика</Text>
+                      <Text size="sm" fw={500}>91%</Text>
+                    </Group>
+                    <Progress value={91} color="blue" size="sm" />
+                  </div>
+                  
+                  <div>
+                    <Group justify="space-between" mb={5}>
+                      <Text size="sm">Закупки</Text>
+                      <Text size="sm" fw={500}>65%</Text>
+                    </Group>
+                    <Progress value={65} color="red" size="sm" />
+                  </div>
+                  
+                  <Group justify="space-between" mt="md">
+                    <Text size="xs" c="dimmed">До конца месяца: 8 дней</Text>
+                    <Badge color="orange" size="sm">Требует внимания</Badge>
+                  </Group>
+                </Stack>
+              }
+            />
+          </Group>
+
+          <Group align="start" mt="md">
+            {/* Карточка с метриками */}
+            <KPICardDropDown
+              title="Критические товары"
+              value="23 товара"
+              trend={8.2}
+              icon={<IconAlertTriangle size={20} />}
+              color="red"
+              detailComponent={
+                <Stack gap="md">
+                  <Text size="sm" fw={500}>Товары с критическим остатком</Text>
+                  
+                  <Stack gap="xs">
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconPackage size={16} color="var(--mantine-color-red-6)" />
+                        <Text size="sm">Смартфон XYZ</Text>
+                      </Group>
+                      <Badge color="red" size="xs">2 шт</Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconPackage size={16} color="var(--mantine-color-red-6)" />
+                        <Text size="sm">Наушники ABC</Text>
+                      </Group>
+                      <Badge color="red" size="xs">1 шт</Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconPackage size={16} color="var(--mantine-color-orange-6)" />
+                        <Text size="sm">Планшет DEF</Text>
+                      </Group>
+                      <Badge color="orange" size="xs">5 шт</Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconPackage size={16} color="var(--mantine-color-orange-6)" />
+                        <Text size="sm">Зарядка GHI</Text>
+                      </Group>
+                      <Badge color="orange" size="xs">8 шт</Badge>
+                    </Group>
+                  </Stack>
+                  
+                  <Divider />
+                  
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">Автозаказ настроен для 18 товаров</Text>
+                    <Button size="xs" variant="light" color="red">
+                      Создать заказ
+                    </Button>
+                  </Group>
+                </Stack>
+              }
+            />
+
+            {/* Карточка с временной информацией */}
+            <KPICardDropDown
+              title="Оборачиваемость"
+              value="24.7 дней"
+              target="≤ 30 дней"
+              trend={-5.8}
+              icon={<IconRotate size={20} />}
+              color="violet"
+              detailComponent={
+                <Stack gap="md">
+                  <Text size="sm" fw={500}>Анализ оборачиваемости</Text>
+                  
+                  <Group justify="space-between">
+                    <Text size="sm">Текущий период:</Text>
+                    <Badge color="green" size="sm">24.7 дней</Badge>
+                  </Group>
+                  
+                  <Group justify="space-between">
+                    <Text size="sm">Прошлый период:</Text>
+                    <Text size="sm" c="dimmed">26.2 дней</Text>
+                  </Group>
+                  
+                  <Group justify="space-between">
+                    <Text size="sm">Улучшение:</Text>
+                    <Text size="sm" c="green">-1.5 дней (-5.8%)</Text>
+                  </Group>
+                  
+                  <Divider />
+                  
+                  <Stack gap="xs">
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconCalendar size={16} />
+                        <Text size="sm">Быстрые товары:</Text>
+                      </Group>
+                      <Text size="sm" fw={500}>≤ 15 дней (45%)</Text>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconCalendar size={16} />
+                        <Text size="sm">Средние товары:</Text>
+                      </Group>
+                      <Text size="sm" fw={500}>15-30 дней (38%)</Text>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <IconCalendar size={16} />
+                        <Text size="sm">Медленные товары:</Text>
+                      </Group>
+                      <Text size="sm" fw={500}>&gt; 30 дней (17%)</Text>
+                    </Group>
+                  </Stack>
+                </Stack>
+              }
+            />
+
+            {/* Простая карточка без деталей */}
+            <KPICardDropDown
+              title="Новые клиенты"
+              value="156 чел"
+              trend={12.1}
+              icon={<IconUsers size={20} />}
+              color="pink"
+            />
+          </Group>
+        </div>
+
+        <Divider />
+
         {/* Простые KPI карточки для PIX BI */}
         <div>
           <Title order={2} mb="md">📊 Простые KPI карточки для PIX BI</Title>
@@ -478,6 +761,9 @@ export const KPIDemoPage: React.FC = () => {
               <strong>KPICard</strong> - основной компонент для отображения одной KPI метрики
             </Text>
             <Text>
+              <strong>KPICardDropDown</strong> - расширенная версия KPI карточки с раскрывающейся детальной информацией
+            </Text>
+            <Text>
               <strong>KPIGrid</strong> - компонент для отображения сетки KPI карточек с дополнительными возможностями
             </Text>
             <Text>
@@ -487,7 +773,10 @@ export const KPIDemoPage: React.FC = () => {
               <strong>Размеры:</strong> sm (маленький), md (средний), lg (большой)
             </Text>
             <Text>
-              <strong>Особенности:</strong> автоматические градиенты, анимации при наведении, адаптивная сетка, поддержка кликов
+              <strong>Особенности KPICardDropDown:</strong> раскрывающиеся детали, поддержка любого React компонента в детальной секции, анимированные переходы, индикатор раскрытия
+            </Text>
+            <Text>
+              <strong>Общие особенности:</strong> автоматические градиенты, анимации при наведении, адаптивная сетка, поддержка кликов
             </Text>
           </Stack>
         </Paper>
