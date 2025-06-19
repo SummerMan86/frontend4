@@ -165,7 +165,7 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
     },
     {
       id: 'warehouse-logistics',
-      label: 'Склад и логистика',
+      label: 'ABC анализ остатков',
       path: '/warehouse-logistics',
       icon: <IconTruck size="1.2rem" stroke={1.5} />,
       children: [
@@ -174,6 +174,12 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
         { id: 'delivery-tracking', label: 'Отслеживание доставки', path: '/warehouse-logistics/tracking' },
         { id: 'suppliers', label: 'Поставщики', path: '/warehouse-logistics/suppliers' },
       ],
+    },
+    {
+      id: 'supply-management',
+      label: 'Управление поставками',
+      path: '/supply-management',
+      icon: <IconTruck size="1.2rem" stroke={1.5} />
     },
     {
       id: 'marketplace',
@@ -214,7 +220,7 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
   // Check if a path is valid for navigation
   function isValidPath(path: string): boolean {
     const validRootPaths = ['/', '/sales', '/inventory', '/marketplace', 
-                          '/supplier-incomes', '/reports', '/settings', '/warehouse-logistics'];
+                          '/supplier-incomes', '/reports', '/settings', '/warehouse-logistics', '/supply-management'];
     
     return validRootPaths.some(validPath => 
       path === validPath || path.startsWith(`${validPath}/`)
@@ -409,7 +415,12 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
                   active={isPathActive(item.path)}
                   onClick={() => handleNavigation(item.path)}
                   data-testid={`nav-item-${item.id}`}
-                  style={isPathActive(item.path) ? styles.activeLink : undefined}
+                  style={{
+                    ...isPathActive(item.path) ? styles.activeLink : undefined,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
                   rightSection={
                     <>
                       {item.notifications && (

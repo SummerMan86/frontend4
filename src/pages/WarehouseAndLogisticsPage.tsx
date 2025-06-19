@@ -653,7 +653,7 @@ export default function WarehouseLogistics() {
         {/* Заголовок и управление */}
         <Group justify="space-between" align="flex-end">
           <div>
-            <Title order={2}>Склад и логистика</Title>
+            <Title order={2}>ABC анализ остатков</Title>
             <Text c="dimmed" size="sm">Многофакторный ABC-XYZ анализ и управление запасами</Text>
           </div>
           

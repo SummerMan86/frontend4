@@ -1,7 +1,7 @@
-import { SimpleGrid, Card, Title, Loader, Center } from "@mantine/core";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import { useCubeQuery } from "@cubejs-client/react";
+import { SimpleGrid, Card, Title, Loader, Center, Drawer, Text, Table, Group, Button, Badge, Stack } from "@mantine/core";
 import { buildQuery } from "../utils/buildQuery";
 import { useFiltersStore } from "../stores/useFiltersStore";
 
@@ -144,7 +144,12 @@ export default function SupplierIncomesDashboard() {
         </Center>
       )}
       {!loading && option && (
-        <ReactECharts option={option} style={{ height: 240 }} />
+        <ReactECharts 
+          option={option} 
+          style={{ height: 240, width: '100%' }} 
+          opts={{ renderer: 'canvas', width: 'auto', height: 'auto' }}
+          notMerge={true}
+        />
       )}
     </Card>
   );

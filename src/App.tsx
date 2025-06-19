@@ -11,7 +11,10 @@ import MainPage from './pages/MainPage';
 import ProductAnalysisPage from './pages/ProductAnalysisPage';
 import WarehouseAndLogisticsPage from './pages/WarehouseAndLogisticsPage';
 import WarehouseAndLogisticsPageExt from './pages/WarehouseAndLogisticsPageExt';
+import SupplyManagementPage from './pages/SupplyManagementPage';
 import FinancialAnalysisPage from './pages/FinancialAnalysisPage';
+import KPIDemoPage from './pages/KPIDemoPage';
+import DeliveriesPage from './pages/DeliveriesPage';
 import { ThemeProvider } from './theme';
 
 // Create router with future flags
@@ -35,9 +38,12 @@ function App() {
               <Route path="sales" element={<SupplierIncomesPage />} />
               <Route path="warehouse-logistics" element={<WarehouseAndLogisticsPage />} />
               <Route path="warehouse-logistics-ext" element={<WarehouseAndLogisticsPageExt />} />
+      <Route path="supply-management" element={<SupplyManagementPage />} />
               <Route path="operational-control" element={<OperationalControlPage />} />
               <Route path="product-analysis" element={<ProductAnalysisPage />} />
               <Route path="financial-analysis" element={<FinancialAnalysisPage />} />
+              <Route path="kpi-demo" element={<KPIDemoPage />} />
+              <Route path="deliveries" element={<DeliveriesPage />} />
               {/* остальные страницы */}
               <Route path="*" element={<TestPage />} />
             </Route>

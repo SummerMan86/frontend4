@@ -43,7 +43,11 @@ import {
     HoverCard,
     Checkbox
 } from '@mantine/core';
-
+import { AgGridReact } from 'ag-grid-react';
+import { AllCommunityModule, ColDef } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import '../components/SupplierIncomesTableAG.css';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import ReactECharts from 'echarts-for-react';
@@ -75,7 +79,7 @@ import {
     IconSun,
     IconMenu2,
     IconX,
-
+    IconColumns,
     IconChevronRight,
     IconExternalLink,
     IconInfoCircle,
@@ -1738,7 +1742,7 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
         <Stack gap="lg">
             <Paper p="md" withBorder>
                 <Group justify="space-between" mb="md">
-                    <Title order={4}>Управление поставками</Title>
+                    <Title order={4}>Остатки и ПВЗ</Title>
                     <Group>
                         <Button leftSection={<IconDownload size={16} />} variant="light">
                             Экспорт
@@ -1749,75 +1753,7 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     </Group>
                 </Group>
 
-                <ScrollArea>
-                    <Table highlightOnHover>
-                        <Table.Thead>
-                            <Table.Tr>
-                                <Table.Th>SKU</Table.Th>
-                                <Table.Th>Номер заказа</Table.Th>
-                                <Table.Th>Артикул продавца</Table.Th>
-                                <Table.Th>Категория</Table.Th>
-                                <Table.Th>Баркод WB</Table.Th>
-                                <Table.Th>Количество упаковано</Table.Th>
-                                <Table.Th>Количество принято</Table.Th>
-                                <Table.Th>Количество поступило в продажу</Table.Th>
-                                <Table.Th>Плановая дата</Table.Th>
-                                <Table.Th>Склад</Table.Th>
-                                <Table.Th>Фактическая дата</Table.Th>
-                                <Table.Th>Действия</Table.Th>
-                            </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                            {deliveries.slice(0, 15).map(delivery => (
-                                <Table.Tr key={delivery.id}>
-                                    <Table.Td>
-                                        <Text size="sm" fw={500}>{delivery.sku}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.orderNumber}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.vendorCode}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.category}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.barcodeWB}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.packed} шт</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.accepted} шт</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.inSale} шт</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.plannedDate}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.warehouse}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Text size="sm">{delivery.actualDate || '-'}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Group gap="xs">
-                                            <ActionIcon variant="light" color="blue">
-                                                <IconEye size={16} />
-                                            </ActionIcon>
-                                            <ActionIcon variant="light" color="green">
-                                                <IconTruck size={16} />
-                                            </ActionIcon>
-                                        </Group>
-                                    </Table.Td>
-                                </Table.Tr>
-                            ))}
-                        </Table.Tbody>
-                    </Table>
-                </ScrollArea>
+                <DeliveriesTable deliveries={deliveries} />
             </Paper>
         </Stack>
     );
@@ -3067,6 +3003,177 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
     );
 };
 
+// Компонент таблицы поставок с AG Grid
+interface DeliveriesTableProps {
+    deliveries: Delivery[];
+}
 
+const DeliveriesTable: React.FC<DeliveriesTableProps> = ({ deliveries }) => {
+    const [selectedFields, setSelectedFields] = React.useState<string[]>([
+        'sku', 'orderNumber', 'vendorCode', 'category', 'barcodeWB', 
+        'packed', 'accepted', 'inSale', 'plannedDate', 'warehouse', 'actualDate'
+    ]);
+
+    const allColumns: ColDef[] = [
+        {
+            field: 'sku',
+            headerName: 'SKU',
+            width: 120,
+            pinned: 'left'
+        },
+        {
+            field: 'orderNumber',
+            headerName: 'Номер заказа',
+            width: 140
+        },
+        {
+            field: 'vendorCode',
+            headerName: 'Артикул продавца',
+            width: 150
+        },
+        {
+            field: 'category',
+            headerName: 'Категория',
+            width: 180
+        },
+        {
+            field: 'barcodeWB',
+            headerName: 'Баркод WB',
+            width: 130
+        },
+        {
+            field: 'packed',
+            headerName: 'Количество упаковано',
+            width: 180,
+            valueFormatter: (params) => `${params.value} шт`
+        },
+        {
+            field: 'accepted',
+            headerName: 'Количество принято',
+            width: 170,
+            valueFormatter: (params) => `${params.value} шт`
+        },
+        {
+            field: 'inSale',
+            headerName: 'Количество поступило в продажу',
+            width: 220,
+            valueFormatter: (params) => `${params.value} шт`
+        },
+        {
+            field: 'plannedDate',
+            headerName: 'Плановая дата',
+            width: 130
+        },
+        {
+            field: 'warehouse',
+            headerName: 'Склад',
+            width: 150
+        },
+        {
+            field: 'actualDate',
+            headerName: 'Фактическая дата',
+            width: 150,
+            valueFormatter: (params) => params.value || '-'
+        }
+    ];
+
+    const visibleColumns = allColumns.filter(col => selectedFields.includes(col.field!));
+
+    const handleFieldToggle = (field: string) => {
+        setSelectedFields(prev => 
+            prev.includes(field) 
+                ? prev.filter(f => f !== field)
+                : [...prev, field]
+        );
+    };
+
+    return (
+        <Stack gap="md">
+            <style>{`
+                .mantine-ag-grid {
+                    --ag-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                    --ag-font-size: 0.75rem;
+                    --ag-row-height: 32px;
+                    --ag-header-height: 44px;
+                    --ag-row-hover-color: #f1f3f5;
+                    --ag-border-color: #e9ecef;
+                }
+                
+                .mantine-ag-grid .ag-header {
+                    background-color: #f8f9fa;
+                    border-bottom: 1px solid #dee2e6;
+                }
+                
+                .mantine-ag-grid .ag-header-cell,
+                .mantine-ag-grid .ag-header-group-cell {
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    color: #495057;
+                    padding: 8px;
+                }
+                
+                .mantine-ag-grid .ag-cell {
+                    padding: 4px 6px;
+                    font-size: 0.75rem;
+                }
+                
+                .mantine-ag-grid .ag-row:nth-child(even) {
+                    background-color: #fafbfc;
+                }
+                .mantine-ag-grid .ag-row:nth-child(odd) {
+                    background-color: #ffffff;
+                }
+                
+                .mantine-ag-grid .ag-row:hover {
+                    background-color: #f1f3f5 !important;
+                }
+            `}</style>
+            <Group justify="flex-end">
+                <Menu shadow="md" width={300}>
+                    <Menu.Target>
+                        <Button variant="outline" leftSection={<IconColumns size={16} />}>
+                            Колонки
+                        </Button>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                        <Menu.Label>Выберите колонки для отображения</Menu.Label>
+                        <Menu.Divider />
+                        {allColumns.map((column) => (
+                            <Menu.Item key={column.field}>
+                                <Checkbox
+                                    label={column.headerName}
+                                    checked={selectedFields.includes(column.field!)}
+                                    onChange={() => handleFieldToggle(column.field!)}
+                                />
+                            </Menu.Item>
+                        ))}
+                    </Menu.Dropdown>
+                </Menu>
+            </Group>
+            
+            <div className="ag-theme-alpine mantine-ag-grid" style={{ 
+                height: '600px', 
+                width: '100%'
+            }}>
+                <AgGridReact
+                    modules={[AllCommunityModule]}
+                    rowData={deliveries}
+                    columnDefs={visibleColumns}
+                    defaultColDef={{
+                        sortable: true,
+                        filter: true,
+                        resizable: true,
+                        minWidth: 100
+                    }}
+                    pagination={true}
+                    paginationPageSize={20}
+                    animateRows={true}
+                    rowSelection="multiple"
+                    suppressRowClickSelection={true}
+                />
+            </div>
+        </Stack>
+    );
+};
 
 export default WarehouseAndLogisticsPageExt;
