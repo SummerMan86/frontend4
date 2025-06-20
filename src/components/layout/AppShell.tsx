@@ -43,6 +43,7 @@ const PATH_LABELS = {
   '/financial-analysis': 'Финансовый анализ',
   '/operational-control': 'Оперативный контроль',
   '/kpi-demo': 'Демо KPI',
+  '/supply-graph-test': 'Карта поставок',
   '/settings': 'Настройки',
 } as const;
 type PathKey = keyof typeof PATH_LABELS;
@@ -64,6 +65,7 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/financial-analysis', icon: IconReportAnalytics },
   { path: '/operational-control', icon: IconActivity, showIndicator: true },
   { path: '/kpi-demo', icon: IconTarget },
+  { path: '/supply-graph-test', icon: IconTruck, showIndicator: true },
 
 ];
 

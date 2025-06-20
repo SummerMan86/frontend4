@@ -99,29 +99,7 @@ const SupplyGraphTestPage: React.FC = () => {
 
       <Space h="xl" />
 
-      {/* Инструкции по использованию */}
-      <Paper p="md" withBorder>
-        <Title order={3} mb="md">Как использовать</Title>
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Title order={4} mb="sm">Интерактивность</Title>
-            <Text size="sm" mb="xs">🖱️ Кликните на узел для просмотра информации</Text>
-            <Text size="sm" mb="xs">🖱️ Кликните на линию поставки для деталей</Text>
-            <Text size="sm" mb="xs">🔄 Используйте кнопку обновления</Text>
-            <Text size="sm" mb="xs">🔍 Масштабируйте карту колесом мыши</Text>
-          </Grid.Col>
-          
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Title order={4} mb="sm">Замена данных</Title>
-            <Text size="sm" mb="xs">📝 Отредактируйте supplyTestData.ts</Text>
-            <Text size="sm" mb="xs">🔌 Подключите API вместо моковых данных</Text>
-            <Text size="sm" mb="xs">🎨 Настройте цвета в том же файле</Text>
-            <Text size="sm" mb="xs">🔧 Добавьте новые типы узлов/связей</Text>
-          </Grid.Col>
-        </Grid>
-      </Paper>
 
-      <Space h="xl" />
 
       {/* Статистика по данным */}
       <Paper p="md" withBorder>

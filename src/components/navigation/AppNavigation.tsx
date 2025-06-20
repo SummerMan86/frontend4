@@ -218,8 +218,10 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
     },
     {
       id: 'supply-graph-test',
-      label: 'Тест графа поставок',
-      path: '/supply-graph-test'
+      label: 'Карта поставок',
+      path: '/supply-graph-test',
+      icon: <IconTruck size="1.2rem" stroke={1.5} />,
+      badge: 'New'
     },
     { 
       id: 'settings', 

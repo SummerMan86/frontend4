@@ -407,20 +407,8 @@ const YandexSupplyGraphMap: React.FC<YandexSupplyGraphMapProps> = ({
 
   return (
     <Stack gap="md">
-      {/* Заголовок и управление */}
-      <Group justify="space-between" align="center">
-        <Group align="center">
-          <ThemeIcon size="lg" variant="light" color="blue">
-            <IconTruck size={20} />
-          </ThemeIcon>
-          <div>
-            <Title order={3}>Граф поставок из Китая</Title>
-            <Text size="sm" c="dimmed">
-              Интерактивная карта цепочки поставок
-            </Text>
-          </div>
-        </Group>
-        
+      {/* Управление */}
+      <Group justify="flex-end" align="center">
         <ActionIcon 
           variant="light" 
           color="blue" 

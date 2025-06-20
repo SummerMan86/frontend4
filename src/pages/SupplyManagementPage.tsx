@@ -45,6 +45,8 @@ import { useDisclosure } from '@mantine/hooks';
 import ReactECharts from 'echarts-for-react';
 import { create } from 'zustand';
 import { ExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
+import YandexSupplyGraphMap from '../components/YandexSupplyGraphMap';
+import { supplyNodes, supplyEdges } from '../data/supplyTestData';
 import {
   IconTruck,
   IconPackage,
@@ -1100,246 +1102,19 @@ const routesData: RouteData[] = [
   }
 ];
 
-// Компонент карты маршрутов с Yandex Maps
+// Компонент карты маршрутов поставок из Китая
 const RoutesMap = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [map, setMap] = useState<any>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return '#339af0';
-      case 'completed': return '#51cf66';
-      case 'delayed': return '#f03e3e';
-      case 'planned': return '#868e96';
-      default: return '#339af0';
-    }
-  };
-
-  const getTransportIcon = (type: string) => {
-    switch (type) {
-      case 'truck': return '🚛';
-      case 'train': return '🚂';
-      case 'ship': return '🚢';
-      case 'plane': return '✈️';
-      default: return '📦';
-    }
-  };
-
-  const loadYandexMaps = () => {
-    return new Promise<void>((resolve, reject) => {
-      if (window.ymaps) {
-        resolve();
-        return;
-      }
-
-      const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
-      if (existingScript) {
-        // Если скрипт уже загружается, ждем его загрузки
-        let attempts = 0;
-        const maxAttempts = 100; // 10 секунд максимум
-        
-        const checkYmaps = () => {
-          attempts++;
-          if (window.ymaps) {
-            resolve();
-          } else if (attempts >= maxAttempts) {
-            reject(new Error('Таймаут загрузки Yandex Maps API'));
-          } else {
-            setTimeout(checkYmaps, 100);
-          }
-        };
-        checkYmaps();
-        return;
-      }
-
-      const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      script.src = apiKey 
-        ? `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`
-        : 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
-      script.onload = () => {
-        // Дополнительная проверка после загрузки скрипта
-        let attempts = 0;
-        const maxAttempts = 50; // 5 секунд максимум
-        
-        const checkReady = () => {
-          attempts++;
-          if (window.ymaps) {
-            resolve();
-          } else if (attempts >= maxAttempts) {
-            reject(new Error('Yandex Maps API загружен, но не готов'));
-          } else {
-            setTimeout(checkReady, 100);
-          }
-        };
-        checkReady();
-      };
-      script.onerror = () => reject(new Error('Не удалось загрузить Yandex Maps API'));
-      document.head.appendChild(script);
-    });
-  };
-
-  const initializeMap = async () => {
-    try {
-      await loadYandexMaps();
-      
-      if (!mapRef.current) {
-        throw new Error('Контейнер карты не найден');
-      }
-
-      await new Promise((resolve) => {
-        window.ymaps.ready(resolve);
-      });
-
-      const mapInstance = new window.ymaps.Map(mapRef.current, {
-        center: [55.7558, 37.6176], // Москва
-        zoom: 3,
-        controls: ['zoomControl', 'fullscreenControl']
-      });
-
-      // Добавляем маршруты на карту
-      routesData.forEach((route) => {
-        const [start, end] = route.coordinates;
-        
-        // Создаем линию маршрута
-        const routeLine = new window.ymaps.Polyline(
-          [start, end],
-          {
-            balloonContent: `
-              <div style="padding: 10px;">
-                <h4>${route.name}</h4>
-                <p><strong>Статус:</strong> ${route.status}</p>
-                <p><strong>Прогресс:</strong> ${route.progress}%</p>
-                <p><strong>Транспорт:</strong> ${getTransportIcon(route.transportType)} ${route.transportType}</p>
-                <p><strong>ID поставки:</strong> ${route.deliveryId}</p>
-              </div>
-            `
-          },
-          {
-            strokeColor: getStatusColor(route.status),
-            strokeWidth: 4,
-            strokeOpacity: 0.8
-          }
-        );
-
-        // Добавляем точки начала и конца
-        const startPlacemark = new window.ymaps.Placemark(
-          start,
-          {
-            balloonContent: `<strong>${route.origin}</strong><br/>Точка отправления`,
-            iconContent: getTransportIcon(route.transportType)
-          },
-          {
-            preset: 'islands#blueStretchyIcon'
-          }
-        );
-
-        const endPlacemark = new window.ymaps.Placemark(
-          end,
-          {
-            balloonContent: `<strong>${route.destination}</strong><br/>Точка назначения`,
-            iconContent: '📍'
-          },
-          {
-            preset: 'islands#redStretchyIcon'
-          }
-        );
-
-        mapInstance.geoObjects.add(routeLine);
-        mapInstance.geoObjects.add(startPlacemark);
-        mapInstance.geoObjects.add(endPlacemark);
-      });
-
-      setMap(mapInstance);
-      setIsLoading(false);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка загрузки карты';
-      setError(errorMessage);
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (mapRef.current) {
-        initializeMap();
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Stack align="center" gap="md">
-          <Loader size="md" />
-          <Text size="sm" c="dimmed">Загрузка карты маршрутов...</Text>
-        </Stack>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Stack align="center" gap="md">
-          <Text size="lg" c="red">❌ Ошибка загрузки карты</Text>
-          <Text size="sm" c="dimmed" ta="center">{error}</Text>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => {
-              setError(null);
-              setIsLoading(true);
-              initializeMap();
-            }}
-          >
-            Попробовать снова
-          </Button>
-        </Stack>
-      </div>
-    );
-  }
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any>(null);
 
   return (
-    <div style={{ height: '400px', width: '100%', position: 'relative', minHeight: '400px', minWidth: '300px' }}>
-      <div ref={mapRef} style={{ height: '100%', width: '100%', minHeight: '400px', minWidth: '300px', display: 'block' }} />
-      
-      {/* Легенда */}
-      <Paper 
-        shadow="sm" 
-        p="xs" 
-        style={{ 
-          position: 'absolute', 
-          top: 10, 
-          right: 10, 
-          zIndex: 1000,
-          maxWidth: 200
-        }}
-      >
-        <Text size="xs" fw={500} mb={5}>Статусы маршрутов:</Text>
-        <Stack gap={2}>
-          <Group gap={5}>
-            <div style={{ width: 12, height: 3, backgroundColor: '#339af0' }} />
-            <Text size="xs">Активные</Text>
-          </Group>
-          <Group gap={5}>
-            <div style={{ width: 12, height: 3, backgroundColor: '#51cf66' }} />
-            <Text size="xs">Завершенные</Text>
-          </Group>
-          <Group gap={5}>
-            <div style={{ width: 12, height: 3, backgroundColor: '#f03e3e' }} />
-            <Text size="xs">Задержанные</Text>
-          </Group>
-          <Group gap={5}>
-            <div style={{ width: 12, height: 3, backgroundColor: '#868e96' }} />
-            <Text size="xs">Планируемые</Text>
-          </Group>
-        </Stack>
-      </Paper>
+    <div style={{ height: '400px', width: '100%' }}>
+      <YandexSupplyGraphMap
+        nodes={supplyNodes}
+        edges={supplyEdges}
+        onNodeClick={setSelectedNode}
+        onEdgeClick={setSelectedEdge}
+      />
     </div>
   );
 };
