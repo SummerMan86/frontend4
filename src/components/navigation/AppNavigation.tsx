@@ -210,6 +210,18 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
       ],
     },
     { 
+      id: 'routes-map-test', 
+      label: 'Тест карты маршрутов', 
+      path: '/routes-map-test',
+      icon: <IconTruck size="1.2rem" stroke={1.5} />,
+      badge: 'Test'
+    },
+    {
+      id: 'supply-graph-test',
+      label: 'Тест графа поставок',
+      path: '/supply-graph-test'
+    },
+    { 
       id: 'settings', 
       label: 'Settings', 
       path: '/settings',
@@ -220,7 +232,7 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
   // Check if a path is valid for navigation
   function isValidPath(path: string): boolean {
     const validRootPaths = ['/', '/sales', '/inventory', '/marketplace', 
-                          '/supplier-incomes', '/reports', '/settings', '/warehouse-logistics', '/supply-management'];
+                          '/supplier-incomes', '/reports', '/settings', '/warehouse-logistics', '/supply-management', '/routes-map-test', '/supply-graph-test'];
     
     return validRootPaths.some(validPath => 
       path === validPath || path.startsWith(`${validPath}/`)

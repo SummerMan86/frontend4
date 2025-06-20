@@ -19,6 +19,8 @@ const FinancialAnalysisPage = lazy(() => import('./pages/FinancialAnalysisPage')
 const KPIDemoPage = lazy(() => import('./pages/KPIDemoPage'));
 const KPITestPage = lazy(() => import('./pages/KPITestPage'));
 const DeliveriesPage = lazy(() => import('./pages/DeliveriesPage'));
+const RoutesMapTestPage = lazy(() => import('./pages/RoutesMapTestPage'));
+const SupplyGraphTestPage = lazy(() => import('./pages/SupplyGraphTestPage'));
 const TestPage = lazy(() => import('./pages/TestPage'));
 
 // Loading component
@@ -60,6 +62,8 @@ function App() {
                 <Route path="kpi-demo" element={<KPIDemoPage />} />
                 <Route path="kpi-test" element={<KPITestPage />} />
                 <Route path="deliveries" element={<DeliveriesPage />} />
+                <Route path="/routes-map-test" element={<RoutesMapTestPage />} />
+            <Route path="/supply-graph-test" element={<SupplyGraphTestPage />} />
                 {/* остальные страницы */}
                 <Route path="*" element={<TestPage />} />
               </Route>

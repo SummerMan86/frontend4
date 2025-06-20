@@ -1155,7 +1155,10 @@ const RoutesMap = () => {
       }
 
       const script = document.createElement('script');
-      script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+      script.src = apiKey 
+        ? `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`
+        : 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
       script.onload = () => {
         // Дополнительная проверка после загрузки скрипта
         let attempts = 0;
@@ -1180,61 +1183,21 @@ const RoutesMap = () => {
 
   const initializeMap = async () => {
     try {
-      console.log('Начинаем загрузку Yandex Maps API...');
       await loadYandexMaps();
-      console.log('Yandex Maps API загружен успешно');
       
       if (!mapRef.current) {
-        console.error('Контейнер карты не найден');
         throw new Error('Контейнер карты не найден');
       }
-      
-      // Детальная проверка контейнера
-      const container = mapRef.current;
-      const rect = container.getBoundingClientRect();
-      const { clientWidth, clientHeight, offsetWidth, offsetHeight } = container;
-      const computedStyle = window.getComputedStyle(container);
-      
-      console.log('Детальная информация о контейнере:', {
-        clientWidth, clientHeight,
-        offsetWidth, offsetHeight,
-        rectWidth: rect.width, rectHeight: rect.height,
-        display: computedStyle.display,
-        visibility: computedStyle.visibility,
-        position: computedStyle.position,
-        parentElement: container.parentElement?.tagName
-      });
-      
-      // Проверяем, что контейнер имеет размеры
-      const hasValidSize = (clientWidth > 0 && clientHeight > 0) || 
-                          (offsetWidth > 0 && offsetHeight > 0) ||
-                          (rect.width > 0 && rect.height > 0);
-      
-      if (!hasValidSize) {
-        console.error('Контейнер карты не имеет размеров');
-        throw new Error('Контейнер карты не готов к отображению');
-      }
-      console.log('Контейнер карты готов:', { clientWidth, clientHeight, rectWidth: rect.width, rectHeight: rect.height });
 
-      console.log('Ожидаем готовности Yandex Maps...');
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Таймаут ожидания готовности Yandex Maps'));
-        }, 10000); // 10 секунд таймаут
-        
-        window.ymaps.ready(() => {
-          clearTimeout(timeout);
-          resolve(undefined);
-        });
+      await new Promise((resolve) => {
+        window.ymaps.ready(resolve);
       });
-      console.log('Yandex Maps готов к использованию');
 
       const mapInstance = new window.ymaps.Map(mapRef.current, {
         center: [55.7558, 37.6176], // Москва
         zoom: 3,
         controls: ['zoomControl', 'fullscreenControl']
       });
-      console.log('Карта создана успешно');
 
       // Добавляем маршруты на карту
       routesData.forEach((route) => {
@@ -1291,61 +1254,19 @@ const RoutesMap = () => {
 
       setMap(mapInstance);
       setIsLoading(false);
-      console.log('Карта инициализирована успешно');
     } catch (error) {
-      console.error('Ошибка инициализации карты:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке карты';
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка загрузки карты';
       setError(errorMessage);
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 15; // Увеличиваем количество попыток
-    
-    const isContainerReady = () => {
-      if (!mapRef.current) return false;
-      
-      const rect = mapRef.current.getBoundingClientRect();
-      const { clientWidth, clientHeight, offsetWidth, offsetHeight } = mapRef.current;
-      
-      // Проверяем различные метрики размеров
-      const hasSize = (clientWidth > 0 && clientHeight > 0) || 
-                     (offsetWidth > 0 && offsetHeight > 0) ||
-                     (rect.width > 0 && rect.height > 0);
-      
-      // Проверяем, что элемент видим в DOM
-      const isVisible = rect.width > 0 && rect.height > 0;
-      
-      console.log('Проверка контейнера:', {
-        clientWidth, clientHeight,
-        offsetWidth, offsetHeight,
-        rectWidth: rect.width, rectHeight: rect.height,
-        hasSize, isVisible
-      });
-      
-      return hasSize && isVisible;
-    };
-    
-    const tryInitialize = () => {
-      attempts++;
-      console.log(`Попытка инициализации карты #${attempts}`);
-      
-      if (isContainerReady()) {
+    const timer = setTimeout(() => {
+      if (mapRef.current) {
         initializeMap();
-      } else if (attempts < maxAttempts) {
-        console.log('Контейнер не готов, повторная попытка через 300ms');
-        setTimeout(tryInitialize, 300);
-      } else {
-        console.error('Не удалось инициализировать карту после', maxAttempts, 'попыток');
-        setError('Контейнер карты не готов к отображению. Попробуйте обновить страницу.');
-        setIsLoading(false);
       }
-    };
-    
-    // Начинаем с небольшой задержки
-    const timer = setTimeout(tryInitialize, 100);
+    }, 100);
     
     return () => clearTimeout(timer);
   }, []);
