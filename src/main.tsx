@@ -16,7 +16,13 @@ import { MantineEmotionProvider } from '@mantine/emotion';
 // You can add your own global CSS here
 import './index.css';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import { suppressInertWarnings } from './utils/react-warnings-suppressor';
+
+// Register AG Grid modules
 ModuleRegistry.registerModules([ AllCommunityModule ]);
+
+// Suppress React 18 inert warnings for Mantine compatibility
+suppressInertWarnings();
 
 // Render the application
 ReactDOM.createRoot(document.getElementById('root')!).render(

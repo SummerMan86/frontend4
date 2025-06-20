@@ -97,15 +97,14 @@ export const ExpandableKPIGrid: React.FC<ExpandableKPIGridProps> = ({
                       <ThemeIcon color={kpi.color} size="lg" radius="md">
                         {kpi.icon}
                       </ThemeIcon>
-                      <ActionIcon variant="subtle" size="sm">
-                        <IconChevronRight 
-                          size={16} 
-                          style={{ 
-                            transform: expandedCard === kpi.id ? 'rotate(90deg)' : 'none', 
-                            transition: `transform ${animationDuration}ms ${animationTimingFunction}` 
-                          }}
-                        />
-                      </ActionIcon>
+                      <IconChevronRight 
+                        size={16} 
+                        style={{ 
+                          transform: expandedCard === kpi.id ? 'rotate(90deg)' : 'none', 
+                          transition: `transform ${animationDuration}ms ${animationTimingFunction}`,
+                          color: 'var(--mantine-color-gray-6)'
+                        }}
+                      />
                     </Group>
                   </Group>
                   

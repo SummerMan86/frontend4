@@ -496,6 +496,14 @@ interface Delivery {
   currentLocation: string;
   daysInTransit: number;
   qualityRate: number;
+  // Новые поля
+  category: string;
+  sellerArticle: string;
+  quantityPacked: number;
+  quantityAccepted: number;
+  quantityInSale: number;
+  plannedAcceptanceDate: string;
+  actualAcceptanceDate: string;
 }
 
 interface Supplier {
@@ -547,7 +555,14 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
       transportType: 'sea',
       currentLocation: 'Владивосток',
       daysInTransit: 18,
-      qualityRate: 98.5
+      qualityRate: 98.5,
+      category: 'Электроника',
+      sellerArticle: 'SH-EL-001',
+      quantityPacked: 5000,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-02-22',
+      actualAcceptanceDate: ''
     },
     {
       id: 'DEL-002',
@@ -567,7 +582,14 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
       transportType: 'rail',
       currentLocation: 'Алматы',
       daysInTransit: 15,
-      qualityRate: 97.2
+      qualityRate: 97.2,
+      category: 'Компьютеры',
+      sellerArticle: 'GZ-COMP-002',
+      quantityPacked: 3000,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-02-17',
+      actualAcceptanceDate: ''
     },
     {
       id: 'DEL-003',
@@ -587,7 +609,149 @@ const useDeliveriesStore = create<DeliveriesStore>((set) => ({
       transportType: 'air',
       currentLocation: 'Подольск',
       daysInTransit: 10,
-      qualityRate: 99.1
+      qualityRate: 99.1,
+      category: 'Текстиль',
+      sellerArticle: 'SZ-TEX-003',
+      quantityPacked: 8000,
+      quantityAccepted: 7850,
+      quantityInSale: 7650,
+      plannedAcceptanceDate: '2024-02-07',
+      actualAcceptanceDate: '2024-02-06'
+    },
+    {
+      id: 'DEL-004',
+      supplier: 'Beijing Manufacturing',
+      supplierCountry: 'Китай',
+      sendDate: '2024-02-01',
+      plannedDate: '2024-02-25',
+      status: 'in_transit',
+      progress: 30,
+      warehouse: 'Коледино',
+      quantity: 2500,
+      weight: 600,
+      volume: 4.2,
+      productCost: 450000,
+      logisticsCost: 67500,
+      trackNumber: 'BJ9876543210CN',
+      transportType: 'rail',
+      currentLocation: 'Новосибирск',
+      daysInTransit: 8,
+      qualityRate: 96.8,
+      category: 'Бытовая техника',
+      sellerArticle: 'BJ-TECH-004',
+      quantityPacked: 2500,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-02-27',
+      actualAcceptanceDate: ''
+    },
+    {
+      id: 'DEL-005',
+      supplier: 'Dongguan Sports',
+      supplierCountry: 'Китай',
+      sendDate: '2024-01-28',
+      plannedDate: '2024-02-18',
+      status: 'delayed',
+      progress: 75,
+      warehouse: 'Электросталь',
+      quantity: 4200,
+      weight: 950,
+      volume: 6.8,
+      productCost: 680000,
+      logisticsCost: 102000,
+      trackNumber: 'DG5432167890CN',
+      transportType: 'sea',
+      currentLocation: 'Владивосток',
+      daysInTransit: 12,
+      qualityRate: 94.5,
+      category: 'Спорттовары',
+      sellerArticle: 'DG-SPORT-005',
+      quantityPacked: 4200,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-02-20',
+      actualAcceptanceDate: ''
+    },
+    {
+      id: 'DEL-006',
+      supplier: 'Hangzhou Fashion',
+      supplierCountry: 'Китай',
+      sendDate: '2024-02-05',
+      plannedDate: '2024-03-01',
+      status: 'in_transit',
+      progress: 15,
+      warehouse: 'Подольск',
+      quantity: 6500,
+      weight: 1800,
+      volume: 12.5,
+      productCost: 920000,
+      logisticsCost: 138000,
+      trackNumber: 'HZ1234567890CN',
+      transportType: 'air',
+      currentLocation: 'Алматы',
+      daysInTransit: 4,
+      qualityRate: 98.2,
+      category: 'Одежда',
+      sellerArticle: 'HZ-FASH-006',
+      quantityPacked: 6500,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-03-03',
+      actualAcceptanceDate: ''
+    },
+    {
+      id: 'DEL-007',
+      supplier: 'Tianjin Tools',
+      supplierCountry: 'Китай',
+      sendDate: '2024-01-18',
+      plannedDate: '2024-02-08',
+      status: 'delivered',
+      progress: 100,
+      warehouse: 'Коледино',
+      quantity: 1800,
+      weight: 420,
+      volume: 2.8,
+      productCost: 320000,
+      logisticsCost: 48000,
+      trackNumber: 'TJ0987654321CN',
+      transportType: 'rail',
+      currentLocation: 'Коледино',
+      daysInTransit: 21,
+      qualityRate: 97.8,
+      category: 'Инструменты',
+      sellerArticle: 'TJ-TOOL-007',
+      quantityPacked: 1800,
+      quantityAccepted: 1750,
+      quantityInSale: 1680,
+      plannedAcceptanceDate: '2024-02-10',
+      actualAcceptanceDate: '2024-02-09'
+    },
+    {
+      id: 'DEL-008',
+      supplier: 'Qingdao Marine',
+      supplierCountry: 'Китай',
+      sendDate: '2024-02-08',
+      plannedDate: '2024-03-05',
+      status: 'in_transit',
+      progress: 8,
+      warehouse: 'Электросталь',
+      quantity: 3200,
+      weight: 850,
+      volume: 7.2,
+      productCost: 580000,
+      logisticsCost: 87000,
+      trackNumber: 'QD2468135790CN',
+      transportType: 'sea',
+      currentLocation: 'Шанхай',
+      daysInTransit: 1,
+      qualityRate: 95.6,
+      category: 'Морские товары',
+      sellerArticle: 'QD-MAR-008',
+      quantityPacked: 3200,
+      quantityAccepted: 0,
+      quantityInSale: 0,
+      plannedAcceptanceDate: '2024-03-07',
+      actualAcceptanceDate: ''
     }
   ],
   
@@ -939,6 +1103,7 @@ const routesData: RouteData[] = [
 // Компонент карты маршрутов с Yandex Maps
 const RoutesMap = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [map, setMap] = useState<any>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -972,9 +1137,15 @@ const RoutesMap = () => {
       const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
       if (existingScript) {
         // Если скрипт уже загружается, ждем его загрузки
+        let attempts = 0;
+        const maxAttempts = 100; // 10 секунд максимум
+        
         const checkYmaps = () => {
+          attempts++;
           if (window.ymaps) {
             resolve();
+          } else if (attempts >= maxAttempts) {
+            reject(new Error('Таймаут загрузки Yandex Maps API'));
           } else {
             setTimeout(checkYmaps, 100);
           }
@@ -985,7 +1156,23 @@ const RoutesMap = () => {
 
       const script = document.createElement('script');
       script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
-      script.onload = () => resolve();
+      script.onload = () => {
+        // Дополнительная проверка после загрузки скрипта
+        let attempts = 0;
+        const maxAttempts = 50; // 5 секунд максимум
+        
+        const checkReady = () => {
+          attempts++;
+          if (window.ymaps) {
+            resolve();
+          } else if (attempts >= maxAttempts) {
+            reject(new Error('Yandex Maps API загружен, но не готов'));
+          } else {
+            setTimeout(checkReady, 100);
+          }
+        };
+        checkReady();
+      };
       script.onerror = () => reject(new Error('Не удалось загрузить Yandex Maps API'));
       document.head.appendChild(script);
     });
@@ -993,17 +1180,61 @@ const RoutesMap = () => {
 
   const initializeMap = async () => {
     try {
+      console.log('Начинаем загрузку Yandex Maps API...');
       await loadYandexMaps();
+      console.log('Yandex Maps API загружен успешно');
       
-      if (!mapRef.current) return;
+      if (!mapRef.current) {
+        console.error('Контейнер карты не найден');
+        throw new Error('Контейнер карты не найден');
+      }
+      
+      // Детальная проверка контейнера
+      const container = mapRef.current;
+      const rect = container.getBoundingClientRect();
+      const { clientWidth, clientHeight, offsetWidth, offsetHeight } = container;
+      const computedStyle = window.getComputedStyle(container);
+      
+      console.log('Детальная информация о контейнере:', {
+        clientWidth, clientHeight,
+        offsetWidth, offsetHeight,
+        rectWidth: rect.width, rectHeight: rect.height,
+        display: computedStyle.display,
+        visibility: computedStyle.visibility,
+        position: computedStyle.position,
+        parentElement: container.parentElement?.tagName
+      });
+      
+      // Проверяем, что контейнер имеет размеры
+      const hasValidSize = (clientWidth > 0 && clientHeight > 0) || 
+                          (offsetWidth > 0 && offsetHeight > 0) ||
+                          (rect.width > 0 && rect.height > 0);
+      
+      if (!hasValidSize) {
+        console.error('Контейнер карты не имеет размеров');
+        throw new Error('Контейнер карты не готов к отображению');
+      }
+      console.log('Контейнер карты готов:', { clientWidth, clientHeight, rectWidth: rect.width, rectHeight: rect.height });
 
-      await new Promise(resolve => window.ymaps.ready(resolve));
+      console.log('Ожидаем готовности Yandex Maps...');
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Таймаут ожидания готовности Yandex Maps'));
+        }, 10000); // 10 секунд таймаут
+        
+        window.ymaps.ready(() => {
+          clearTimeout(timeout);
+          resolve(undefined);
+        });
+      });
+      console.log('Yandex Maps готов к использованию');
 
       const mapInstance = new window.ymaps.Map(mapRef.current, {
         center: [55.7558, 37.6176], // Москва
         zoom: 3,
         controls: ['zoomControl', 'fullscreenControl']
       });
+      console.log('Карта создана успешно');
 
       // Добавляем маршруты на карту
       routesData.forEach((route) => {
@@ -1060,14 +1291,63 @@ const RoutesMap = () => {
 
       setMap(mapInstance);
       setIsLoading(false);
+      console.log('Карта инициализирована успешно');
     } catch (error) {
       console.error('Ошибка инициализации карты:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке карты';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    initializeMap();
+    let attempts = 0;
+    const maxAttempts = 15; // Увеличиваем количество попыток
+    
+    const isContainerReady = () => {
+      if (!mapRef.current) return false;
+      
+      const rect = mapRef.current.getBoundingClientRect();
+      const { clientWidth, clientHeight, offsetWidth, offsetHeight } = mapRef.current;
+      
+      // Проверяем различные метрики размеров
+      const hasSize = (clientWidth > 0 && clientHeight > 0) || 
+                     (offsetWidth > 0 && offsetHeight > 0) ||
+                     (rect.width > 0 && rect.height > 0);
+      
+      // Проверяем, что элемент видим в DOM
+      const isVisible = rect.width > 0 && rect.height > 0;
+      
+      console.log('Проверка контейнера:', {
+        clientWidth, clientHeight,
+        offsetWidth, offsetHeight,
+        rectWidth: rect.width, rectHeight: rect.height,
+        hasSize, isVisible
+      });
+      
+      return hasSize && isVisible;
+    };
+    
+    const tryInitialize = () => {
+      attempts++;
+      console.log(`Попытка инициализации карты #${attempts}`);
+      
+      if (isContainerReady()) {
+        initializeMap();
+      } else if (attempts < maxAttempts) {
+        console.log('Контейнер не готов, повторная попытка через 300ms');
+        setTimeout(tryInitialize, 300);
+      } else {
+        console.error('Не удалось инициализировать карту после', maxAttempts, 'попыток');
+        setError('Контейнер карты не готов к отображению. Попробуйте обновить страницу.');
+        setIsLoading(false);
+      }
+    };
+    
+    // Начинаем с небольшой задержки
+    const timer = setTimeout(tryInitialize, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   if (isLoading) {
@@ -1081,9 +1361,31 @@ const RoutesMap = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Stack align="center" gap="md">
+          <Text size="lg" c="red">❌ Ошибка загрузки карты</Text>
+          <Text size="sm" c="dimmed" ta="center">{error}</Text>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              setError(null);
+              setIsLoading(true);
+              initializeMap();
+            }}
+          >
+            Попробовать снова
+          </Button>
+        </Stack>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ height: '400px', width: '100%', position: 'relative' }}>
-      <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+    <div style={{ height: '400px', width: '100%', position: 'relative', minHeight: '400px', minWidth: '300px' }}>
+      <div ref={mapRef} style={{ height: '100%', width: '100%', minHeight: '400px', minWidth: '300px', display: 'block' }} />
       
       {/* Легенда */}
       <Paper 
@@ -1149,55 +1451,110 @@ const DeliveryTimeline = () => {
   
   const ganttOption = {
     tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
+      trigger: 'item',
+      formatter: (params: any) => {
+        const delivery = deliveries[params.dataIndex];
+        return `
+          <div style="padding: 8px;">
+            <strong>${delivery.id}</strong><br/>
+            Поставщик: ${delivery.supplier}<br/>
+            Отправка: ${delivery.sendDate}<br/>
+            План доставки: ${delivery.plannedDate}<br/>
+            Статус: ${delivery.status === 'delivered' ? 'Доставлено' : 
+                      delivery.status === 'delayed' ? 'Задержка' : 'В пути'}<br/>
+            Прогресс: ${delivery.progress}%
+          </div>
+        `;
       }
     },
     grid: {
-      left: '10%',
-      right: '4%',
+      left: '15%',
+      right: '10%',
       top: '10%',
-      bottom: '3%'
+      bottom: '15%'
     },
     xAxis: {
       type: 'time',
       splitLine: {
-        show: true
+        show: true,
+        lineStyle: {
+          color: '#e9ecef',
+          type: 'dashed'
+        }
+      },
+      axisLabel: {
+        formatter: (value: number) => {
+          const date = new Date(value);
+          return `${date.getDate()}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
       }
     },
     yAxis: {
       type: 'category',
-      data: deliveries.map(d => d.id)
+      data: deliveries.map(d => d.id),
+      axisLabel: {
+        fontSize: 11
+      }
     },
     series: [
       {
         type: 'custom',
         renderItem: (params: any, api: any) => {
-          const categoryIndex = api.value(0);
-          const start = api.coord([api.value(1), categoryIndex]);
-          const end = api.coord([api.value(2), categoryIndex]);
+          const categoryIndex = params.dataIndex;
+          const startTime = api.value(0);
+          const endTime = api.value(1);
+          const start = api.coord([startTime, categoryIndex]);
+          const end = api.coord([endTime, categoryIndex]);
           const height = api.size([0, 1])[1] * 0.6;
           const delivery = deliveries[categoryIndex];
           
-          return {
+          if (!delivery || start[0] === end[0]) {
+            return null;
+          }
+          
+          // Основная полоса (план)
+          const mainRect = {
             type: 'rect',
             shape: {
               x: start[0],
               y: start[1] - height / 2,
-              width: end[0] - start[0],
+              width: Math.max(end[0] - start[0], 2),
               height: height
             },
             style: {
               fill: delivery.status === 'delayed' ? '#fa5252' : 
-                    delivery.status === 'delivered' ? '#51cf66' : '#339af0'
+                    delivery.status === 'delivered' ? '#51cf66' : '#339af0',
+              opacity: 0.8,
+              stroke: '#fff',
+              lineWidth: 1
             }
+          };
+          
+          // Полоса прогресса
+          const progressWidth = Math.max((end[0] - start[0]) * (delivery.progress / 100), 1);
+          const progressRect = {
+            type: 'rect',
+            shape: {
+              x: start[0],
+              y: start[1] - height / 2,
+              width: progressWidth,
+              height: height
+            },
+            style: {
+              fill: delivery.status === 'delayed' ? '#c92a2a' : 
+                    delivery.status === 'delivered' ? '#37b24d' : '#1971c2'
+            }
+          };
+          
+          return {
+            type: 'group',
+            children: [mainRect, progressRect]
           };
         },
         data: deliveries.map((d, idx) => [
-          idx,
           new Date(d.sendDate).getTime(),
-          new Date(d.plannedDate).getTime()
+          new Date(d.plannedDate).getTime(),
+          idx
         ])
       }
     ]
@@ -1751,11 +2108,17 @@ export default function DeliveriesControlPage() {
               <Table.Tr>
                 <Table.Th>Номер</Table.Th>
                 <Table.Th>Поставщик</Table.Th>
+                <Table.Th>Категория</Table.Th>
+                <Table.Th>Артикул продавца</Table.Th>
                 <Table.Th>Отправка / План</Table.Th>
                 <Table.Th>Статус</Table.Th>
                 <Table.Th>Прогресс</Table.Th>
                 <Table.Th>Склад</Table.Th>
-                <Table.Th>Кол-во</Table.Th>
+                <Table.Th>Кол-во упаковано</Table.Th>
+                <Table.Th>Кол-во принято</Table.Th>
+                <Table.Th>Кол-во в продаже</Table.Th>
+                <Table.Th>Дата приемки план</Table.Th>
+                <Table.Th>Дата приемки факт</Table.Th>
                 <Table.Th>Стоимость</Table.Th>
                 <Table.Th>Трек-номер</Table.Th>
                 <Table.Th>Действия</Table.Th>
@@ -1772,6 +2135,12 @@ export default function DeliveriesControlPage() {
                     </Group>
                   </Table.Td>
                   <Table.Td>
+                    <Badge variant="light" size="sm">{delivery.category}</Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" fw={500}>{delivery.sellerArticle}</Text>
+                  </Table.Td>
+                  <Table.Td>
                     <Stack gap={0}>
                       <Text size="sm">{delivery.sendDate}</Text>
                       <Text size="xs" c="dimmed">{delivery.plannedDate}</Text>
@@ -1782,7 +2151,27 @@ export default function DeliveriesControlPage() {
                     <Progress value={delivery.progress} size="sm" />
                   </Table.Td>
                   <Table.Td>{delivery.warehouse}</Table.Td>
-                  <Table.Td>{delivery.quantity} шт</Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{delivery.quantityPacked.toLocaleString()} шт</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={delivery.quantityAccepted > 0 ? 'green' : 'dimmed'}>
+                      {delivery.quantityAccepted.toLocaleString()} шт
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={delivery.quantityInSale > 0 ? 'blue' : 'dimmed'}>
+                      {delivery.quantityInSale.toLocaleString()} шт
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{delivery.plannedAcceptanceDate}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c={delivery.actualAcceptanceDate ? 'green' : 'dimmed'}>
+                      {delivery.actualAcceptanceDate || 'Ожидается'}
+                    </Text>
+                  </Table.Td>
                   <Table.Td>
                     <Stack gap={0}>
                       <Text size="sm">₽{delivery.productCost.toLocaleString()}</Text>
