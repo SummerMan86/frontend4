@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Stack, Title, Text, Divider, Group, Button, Paper, Badge, Progress, Table } from '@mantine/core';
+import { Container, Stack, Title, Text, Divider, Group, Button, Paper, Badge, Progress, Table, Grid, Card, UnstyledButton, ThemeIcon, ActionIcon, Collapse, Transition } from '@mantine/core';
 import { 
   IconBuildingWarehouse, 
   IconTruck, 
@@ -17,7 +17,9 @@ import {
   IconCurrencyDollar,
   IconCalendar,
   IconMapPin,
-  IconPackage
+  IconPackage,
+  IconChevronRight,
+  IconX
 } from '@tabler/icons-react';
 import { KPICard, type KPICardProps } from '../components/KPICard';
 import { KPIGrid } from '../components/KPIGrid';
@@ -26,6 +28,7 @@ import { KPISparklineExamples } from '../components/KPISparklineCard.examples';
 import { SimpleKPIExamples } from '../components/SimpleKPISparklineChart.examples';
 import KPICardDropDown from '../components/KPICardDropDown';
 import ReactECharts from 'echarts-for-react';
+import { ExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
 
 /**
  * Демо-страница для демонстрации возможностей KPI компонентов
@@ -753,6 +756,18 @@ export const KPIDemoPage: React.FC = () => {
 
         <Divider />
 
+        {/* Полноширинные KPI карточки */}
+        <div>
+          <Title order={2} mb="md">📊 Полноширинные KPI карточки</Title>
+          <Text mb="lg" c="gray.6">
+            Демонстрация KPI карточек с детальной информацией, раскрывающейся на всю ширину блока
+          </Text>
+          
+          <FullWidthKPISection />
+        </div>
+
+        <Divider />
+
         {/* Информация о компонентах */}
         <Paper p="lg" withBorder>
           <Title order={3} mb="md">ℹ️ Информация о компонентах</Title>
@@ -782,6 +797,250 @@ export const KPIDemoPage: React.FC = () => {
         </Paper>
       </Stack>
     </Container>
+  );
+}
+
+// Компонент для полноширинных KPI карточек
+function FullWidthKPISection() {
+  const kpiData: KPICardData[] = [
+    {
+      id: 'revenue',
+      title: 'Общая выручка за квартал',
+      value: '8,547,392 ₽',
+      target: '9,000,000 ₽',
+      trend: 18.7,
+      icon: <IconCurrencyDollar size={20} />,
+      color: 'green'
+    },
+    {
+      id: 'logistics',
+      title: 'Логистика и доставка',
+      value: '1,247 заказов',
+      target: '1,500 заказов',
+      trend: -5.3,
+      icon: <IconTruck size={20} />,
+      color: 'blue'
+    },
+    {
+      id: 'products',
+      title: 'Управление товарами',
+      value: '2,847 SKU',
+      target: '3,000 SKU',
+      trend: 12.4,
+      icon: <IconShoppingCart size={20} />,
+      color: 'violet'
+    }
+  ];
+
+  const renderDetailContent = (cardId: string) => {
+    switch (cardId) {
+      case 'revenue':
+        return (
+          <Stack gap="lg">
+            <Group justify="space-between" align="flex-start">
+              <div style={{ flex: 1 }}>
+                <Text size="sm" fw={500} mb="md">Динамика продаж по месяцам</Text>
+                <ReactECharts
+                  option={{
+                    grid: { top: 20, right: 20, bottom: 40, left: 60 },
+                    xAxis: {
+                      type: 'category',
+                      data: ['Январь', 'Февраль', 'Март'],
+                      axisLabel: { fontSize: 12 }
+                    },
+                    yAxis: {
+                      type: 'value',
+                      axisLabel: { fontSize: 12, formatter: '{value}М ₽' }
+                    },
+                    series: [{
+                      name: 'Выручка',
+                      data: [2.4, 2.8, 3.3],
+                      type: 'bar',
+                      itemStyle: { color: '#51cf66' },
+                      label: {
+                        show: true,
+                        position: 'top',
+                        formatter: '{c}М ₽'
+                      }
+                    }]
+                  }}
+                  style={{ height: '250px', width: '100%' }}
+                />
+              </div>
+              <div style={{ flex: 1, marginLeft: '2rem' }}>
+                <Text size="sm" fw={500} mb="md">Ключевые показатели</Text>
+                <Stack gap="sm">
+                  <Group justify="space-between">
+                    <Text size="sm">Средний чек:</Text>
+                    <Text size="sm" fw={600}>2,847 ₽</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Количество заказов:</Text>
+                    <Text size="sm" fw={600}>3,002</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Конверсия:</Text>
+                    <Text size="sm" fw={600}>4.2%</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Возвраты:</Text>
+                    <Text size="sm" fw={600} c="red">2.1%</Text>
+                  </Group>
+                </Stack>
+                <Divider my="md" />
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">До цели осталось:</Text>
+                  <Badge color="orange" size="sm">452,608 ₽</Badge>
+                </Group>
+              </div>
+            </Group>
+          </Stack>
+        );
+      case 'logistics':
+        return (
+          <Stack gap="lg">
+            <Group align="flex-start" gap="xl">
+              <div style={{ flex: 1 }}>
+                <Text size="sm" fw={500} mb="md">Статистика доставки</Text>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Регион</Table.Th>
+                      <Table.Th>Заказы</Table.Th>
+                      <Table.Th>Среднее время</Table.Th>
+                      <Table.Th>Статус</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    <Table.Tr>
+                      <Table.Td>Москва и МО</Table.Td>
+                      <Table.Td>487</Table.Td>
+                      <Table.Td>1.2 дня</Table.Td>
+                      <Table.Td><Badge color="green" size="xs">Отлично</Badge></Table.Td>
+                    </Table.Tr>
+                    <Table.Tr>
+                      <Table.Td>Санкт-Петербург</Table.Td>
+                      <Table.Td>298</Table.Td>
+                      <Table.Td>1.8 дня</Table.Td>
+                      <Table.Td><Badge color="green" size="xs">Хорошо</Badge></Table.Td>
+                    </Table.Tr>
+                    <Table.Tr>
+                      <Table.Td>Регионы РФ</Table.Td>
+                      <Table.Td>462</Table.Td>
+                      <Table.Td>3.2 дня</Table.Td>
+                      <Table.Td><Badge color="yellow" size="xs">Норма</Badge></Table.Td>
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Text size="sm" fw={500} mb="md">Проблемные зоны</Text>
+                <Stack gap="md">
+                  <Group justify="space-between">
+                    <Group gap="xs">
+                      <IconAlertTriangle size={16} color="orange" />
+                      <Text size="sm">Задержки доставки:</Text>
+                    </Group>
+                    <Text size="sm" fw={500}>23 заказа</Text>
+                  </Group>
+                  <Progress value={85} color="orange" size="sm" />
+                  
+                  <Group justify="space-between">
+                    <Group gap="xs">
+                      <IconMapPin size={16} color="red" />
+                      <Text size="sm">Потерянные посылки:</Text>
+                    </Group>
+                    <Text size="sm" fw={500}>3 заказа</Text>
+                  </Group>
+                  <Progress value={12} color="red" size="sm" />
+                  
+                  <Group justify="space-between">
+                    <Group gap="xs">
+                      <IconPackage size={16} color="blue" />
+                      <Text size="sm">Возвраты:</Text>
+                    </Group>
+                    <Text size="sm" fw={500}>18 заказов</Text>
+                  </Group>
+                  <Progress value={45} color="blue" size="sm" />
+                </Stack>
+              </div>
+            </Group>
+          </Stack>
+        );
+      case 'products':
+        return (
+          <Stack gap="lg">
+            <Group align="flex-start" gap="xl">
+              <div style={{ flex: 1 }}>
+                <Text size="sm" fw={500} mb="md">Топ категории по продажам</Text>
+                <ReactECharts
+                  option={{
+                    grid: { top: 20, right: 20, bottom: 40, left: 100 },
+                    xAxis: {
+                      type: 'value',
+                      axisLabel: { fontSize: 10 }
+                    },
+                    yAxis: {
+                      type: 'category',
+                      data: ['Электроника', 'Одежда', 'Дом и сад', 'Спорт', 'Красота'],
+                      axisLabel: { fontSize: 11 }
+                    },
+                    series: [{
+                      data: [850, 720, 580, 420, 380],
+                      type: 'bar',
+                      itemStyle: { color: '#9775fa' },
+                      label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c} шт'
+                      }
+                    }]
+                  }}
+                  style={{ height: '200px', width: '100%' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Text size="sm" fw={500} mb="md">Анализ остатков</Text>
+                <Stack gap="sm">
+                  <Group justify="space-between">
+                    <Text size="sm">Товары в наличии:</Text>
+                    <Text size="sm" fw={600} c="green">2,547 SKU</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Заканчиваются:</Text>
+                    <Text size="sm" fw={600} c="orange">187 SKU</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Нет в наличии:</Text>
+                    <Text size="sm" fw={600} c="red">113 SKU</Text>
+                  </Group>
+                  <Divider my="xs" />
+                  <Group justify="space-between">
+                    <Text size="sm">Новые товары:</Text>
+                    <Text size="sm" fw={600} c="blue">45 SKU</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Медленные товары:</Text>
+                    <Text size="sm" fw={600} c="gray">&gt; 30 дней (17%)</Text>
+                  </Group>
+                </Stack>
+              </div>
+            </Group>
+          </Stack>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <ExpandableKPIGrid
+      kpiData={kpiData}
+      renderDetailContent={renderDetailContent}
+      columnsPerCard={4}
+      animationDuration={500}
+      animationTimingFunction="ease-in-out"
+    />
   );
 };
 

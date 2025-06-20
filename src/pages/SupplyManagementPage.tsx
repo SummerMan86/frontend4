@@ -44,6 +44,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import ReactECharts from 'echarts-for-react';
 import { create } from 'zustand';
+import { ExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
 import {
   IconTruck,
   IconPackage,
@@ -1447,45 +1448,229 @@ export default function DeliveriesControlPage() {
         </Group>
       </Paper>
       
-      {/* KPI карточки */}
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md" mb="md">
-        <KPICard
-          title="Perfect Order Rate"
-          value={`${kpiData.perfectOrderRate}%`}
-          target="85-95%"
-          trend={3.2}
-          icon={<IconCheck size={20} />}
-          color="green"
-          type="perfect-order"
-        />
-        <KPICard
-          title="Средний срок доставки"
-          value={`${kpiData.avgDeliveryTime} дней`}
-          target="25-30 дней"
-          trend={-5.1}
-          icon={<IconClock size={20} />}
-          color="blue"
-          type="delivery-time"
-        />
-        <KPICard
-          title="Логистические затраты"
-          value={`${kpiData.logisticsCostPercentage}%`}
-          target="15-20%"
-          trend={-2.3}
-          icon={<IconCurrencyRubel size={20} />}
-          color="orange"
-          type="logistics-cost"
-        />
-        <KPICard
-          title="Качество поставок"
-          value={`${kpiData.avgQualityRate}%`}
-          target=">95%"
-          trend={1.5}
-          icon={<IconPackage size={20} />}
-          color="teal"
-          type="quality"
-        />
-      </SimpleGrid>
+      {/* KPI карточки с раскрывающейся детализацией */}
+      <ExpandableKPIGrid
+        kpiData={[
+          {
+            id: 'perfect-order',
+            title: 'Perfect Order Rate',
+            value: `${kpiData.perfectOrderRate}%`,
+            target: '85-95%',
+            trend: 3.2,
+            icon: <IconCheck size={20} />,
+            color: 'green'
+          },
+          {
+            id: 'delivery-time',
+            title: 'Средний срок доставки',
+            value: `${kpiData.avgDeliveryTime} дней`,
+            target: '25-30 дней',
+            trend: -5.1,
+            icon: <IconClock size={20} />,
+            color: 'blue'
+          },
+          {
+            id: 'logistics-cost',
+            title: 'Логистические затраты',
+            value: `${kpiData.logisticsCostPercentage}%`,
+            target: '15-20%',
+            trend: -2.3,
+            icon: <IconCurrencyRubel size={20} />,
+            color: 'orange'
+          },
+          {
+            id: 'quality',
+            title: 'Качество поставок',
+            value: `${kpiData.avgQualityRate}%`,
+            target: '>95%',
+            trend: 1.5,
+            icon: <IconPackage size={20} />,
+            color: 'teal'
+          }
+        ]}
+        renderDetailContent={(cardId) => {
+          switch (cardId) {
+            case 'perfect-order':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Детализация Perfect Order Rate</Text>
+                  <Grid>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Успешные заказы</Text>
+                        <Text size="xl" fw={700} c="green">{Math.round(deliveries.length * parseFloat(kpiData.perfectOrderRate) / 100)}</Text>
+                        <Text size="xs" c="dimmed">из {deliveries.length} общих</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Проблемные заказы</Text>
+                        <Text size="xl" fw={700} c="red">{deliveries.filter(d => d.status === 'delayed').length}</Text>
+                        <Text size="xs" c="dimmed">задержки и проблемы</Text>
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  <Text size="sm" c="dimmed">
+                    Perfect Order Rate показывает долю заказов, выполненных без ошибок, задержек и повреждений. 
+                    Текущий показатель {kpiData.perfectOrderRate}% находится в целевом диапазоне 85-95%.
+                  </Text>
+                </Stack>
+              );
+            case 'delivery-time':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Анализ сроков доставки</Text>
+                  <Grid>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Быстрые (≤20 дней)</Text>
+                        <Text size="xl" fw={700} c="green">{Math.round(deliveries.length * 0.25)}</Text>
+                        <Progress value={25} color="green" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Средние (21-35 дней)</Text>
+                        <Text size="xl" fw={700} c="blue">{Math.round(deliveries.length * 0.60)}</Text>
+                        <Progress value={60} color="blue" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Медленные ({'>'}35 дней)</Text>
+                        <Text size="xl" fw={700} c="orange">{Math.round(deliveries.length * 0.15)}</Text>
+                        <Progress value={15} color="orange" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  <Text size="sm" c="dimmed">
+                    Средний срок доставки составляет {kpiData.avgDeliveryTime} дней. Основные факторы влияния: 
+                    таможенное оформление, выбор транспорта, географическое расположение поставщика.
+                  </Text>
+                </Stack>
+              );
+            case 'logistics-cost':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Структура логистических затрат</Text>
+                  <Grid>
+                    <Grid.Col span={3}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Транспорт</Text>
+                        <Text size="xl" fw={700}>{(parseFloat(kpiData.logisticsCostPercentage) * 0.6).toFixed(1)}%</Text>
+                        <Text size="xs" c="dimmed">от общих затрат</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={3}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Таможня</Text>
+                        <Text size="xl" fw={700}>{(parseFloat(kpiData.logisticsCostPercentage) * 0.25).toFixed(1)}%</Text>
+                        <Text size="xs" c="dimmed">пошлины и сборы</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={3}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Склад</Text>
+                        <Text size="xl" fw={700}>{(parseFloat(kpiData.logisticsCostPercentage) * 0.10).toFixed(1)}%</Text>
+                        <Text size="xs" c="dimmed">хранение и обработка</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={3}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Прочее</Text>
+                        <Text size="xl" fw={700}>{(parseFloat(kpiData.logisticsCostPercentage) * 0.05).toFixed(1)}%</Text>
+                        <Text size="xs" c="dimmed">страхование, документы</Text>
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  <Text size="sm" c="dimmed">
+                    Логистические затраты составляют {kpiData.logisticsCostPercentage}% от стоимости товара. 
+                    Целевой показатель: 15-20%. Основные возможности оптимизации: консолидация грузов, выбор оптимальных маршрутов.
+                  </Text>
+                </Stack>
+              );
+            case 'quality':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Показатели качества поставок</Text>
+                  <Grid>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Соответствие спецификации</Text>
+                        <Text size="xl" fw={700} c="green">{(parseFloat(kpiData.avgQualityRate) + 2).toFixed(1)}%</Text>
+                        <Progress value={parseFloat(kpiData.avgQualityRate) + 2} color="green" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Сохранность груза</Text>
+                        <Text size="xl" fw={700} c="blue">{(parseFloat(kpiData.avgQualityRate) - 1).toFixed(1)}%</Text>
+                        <Progress value={parseFloat(kpiData.avgQualityRate) - 1} color="blue" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Документооборот</Text>
+                        <Text size="xl" fw={700} c="teal">{(parseFloat(kpiData.avgQualityRate) + 1).toFixed(1)}%</Text>
+                        <Progress value={parseFloat(kpiData.avgQualityRate) + 1} color="teal" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Соблюдение сроков</Text>
+                        <Text size="xl" fw={700} c="violet">{parseFloat(kpiData.avgQualityRate).toFixed(1)}%</Text>
+                        <Progress value={parseFloat(kpiData.avgQualityRate)} color="violet" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  
+                  {/* Диаграмма процента брака по поставщикам */}
+                  <Card padding="md" withBorder mt="md">
+                    <Text size="md" fw={600} mb="md">Процент брака по поставщикам</Text>
+                    <Stack gap="sm">
+                      {[
+                        { name: 'ООО "Альфа-Логистик"', defectRate: 2.1, color: 'red' },
+                        { name: 'ТК "Быстрая доставка"', defectRate: 1.8, color: 'orange' },
+                        { name: 'Логистик Центр', defectRate: 1.2, color: 'yellow' },
+                        { name: 'ПЭК', defectRate: 0.9, color: 'lime' },
+                        { name: 'Деловые Линии', defectRate: 0.7, color: 'green' },
+                        { name: 'СДЭК', defectRate: 0.5, color: 'teal' }
+                      ].map((supplier, index) => (
+                        <div key={index}>
+                          <Group justify="space-between" mb={4}>
+                            <Text size="sm">{supplier.name}</Text>
+                            <Text size="sm" fw={600} c={supplier.color}>{supplier.defectRate}%</Text>
+                          </Group>
+                          <Progress 
+                            value={supplier.defectRate * 20} // масштабируем для визуализации
+                            color={supplier.color} 
+                            size="sm" 
+                            radius="xs"
+                          />
+                        </div>
+                      ))}
+                    </Stack>
+                    <Text size="xs" c="dimmed" mt="md">
+                      Средний процент брака по всем поставщикам: 1.2%. 
+                      Целевой показатель: менее 1.0%. Данные за последние 3 месяца.
+                    </Text>
+                  </Card>
+
+                  <Text size="sm" c="dimmed" mt="md">
+                    Общий показатель качества поставок: {kpiData.avgQualityRate}%. Цель: {'>'}95%. 
+                    Включает оценку соответствия товара спецификации, сохранности при транспортировке, 
+                    качества документооборота и соблюдения сроков поставки.
+                  </Text>
+                </Stack>
+              );
+            default:
+              return <Text>Детальная информация недоступна</Text>;
+          }
+        }}
+        columnsPerCard={3}
+        animationDuration={500}
+        animationTimingFunction="ease-in-out"
+      />
       
       {/* Визуализация маршрутов и статусов */}
       <Grid mb="md">
@@ -1776,7 +1961,6 @@ export default function DeliveriesControlPage() {
           position="top-start"
           color="red"
           size={10}
-          processing
           styles={{
             indicator: {
               right: rem(18),
