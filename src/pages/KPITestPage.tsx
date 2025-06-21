@@ -59,7 +59,7 @@ const KPITestPage: React.FC = () => {
         <Space h="md" />
         
         <ExpandableKPIGrid
-          kpiData={testKPIData}
+          data={testKPIData}
           renderDetailContent={(kpiId) => {
             const kpi = testKPIData.find(item => item.id === kpiId);
             if (!kpi) return <div>Данные не найдены</div>;

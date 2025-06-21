@@ -1035,7 +1035,7 @@ function FullWidthKPISection() {
 
   return (
     <ExpandableKPIGrid
-      kpiData={kpiData}
+      data={kpiData}
       renderDetailContent={renderDetailContent}
       columnsPerCard={4}
       animationDuration={500}

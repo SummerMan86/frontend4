@@ -44,7 +44,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import ReactECharts from 'echarts-for-react';
 import { create } from 'zustand';
-import { ExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
+import ExpandableKPIGrid, { LegacyExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
 import YandexSupplyGraphMap from '../components/YandexSupplyGraphMap';
 import { supplyNodes, supplyEdges } from '../data/supplyTestData';
 import {
@@ -84,7 +84,9 @@ import {
   IconMessage,
   IconHistory,
   IconCalculator,
-  IconAdjustments
+  IconAdjustments,
+  IconBox,
+  IconAlertTriangle
 } from '@tabler/icons-react';
 
 // Компонент финансовой аналитики
@@ -997,7 +999,7 @@ const InventoryAnalytics = () => {
                 <Table.Th>Текущий остаток</Table.Th>
                 <Table.Th>Reorder Point</Table.Th>
                 <Table.Th>Рекомендуемый заказ</Table.Th>
-                <Table.Th>Статус</Table.Th>
+                <Table.Th style={{ width: '200px', minWidth: '200px' }}>Статус</Table.Th>
                 <Table.Th>Действия</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -1385,12 +1387,18 @@ export default function DeliveriesControlPage() {
     const totalLogisticsCost = deliveries.reduce((sum, d) => sum + d.logisticsCost, 0);
     const totalProductCost = deliveries.reduce((sum, d) => sum + d.productCost, 0);
     const avgQualityRate = deliveries.reduce((sum, d) => sum + d.qualityRate, 0) / totalDeliveries;
+    const totalVolume = deliveries.reduce((sum, d) => sum + d.volume, 0);
+    const avgVolume = totalVolume / totalDeliveries;
     
     return {
       perfectOrderRate: ((totalDeliveries - delayedDeliveries) / totalDeliveries * 100).toFixed(1),
       avgDeliveryTime: 28,
       logisticsCostPercentage: (totalLogisticsCost / totalProductCost * 100).toFixed(1),
-      avgQualityRate: avgQualityRate.toFixed(1)
+      avgQualityRate: avgQualityRate.toFixed(1),
+      avgVolume: avgVolume.toFixed(1),
+      totalVolume: totalVolume.toFixed(1),
+      totalQuantity: deliveries.reduce((sum, d) => sum + d.quantity, 0),
+      totalValue: totalProductCost
     };
   }, [deliveries]);
   
@@ -1502,11 +1510,11 @@ export default function DeliveriesControlPage() {
       </Paper>
       
       {/* KPI карточки с раскрывающейся детализацией */}
-      <ExpandableKPIGrid
+      <LegacyExpandableKPIGrid
         kpiData={[
           {
             id: 'perfect-order',
-            title: 'Perfect Order Rate',
+            title: 'Безупречные поставки',
             value: `${kpiData.perfectOrderRate}%`,
             target: '85-95%',
             trend: 3.2,
@@ -1539,6 +1547,24 @@ export default function DeliveriesControlPage() {
             trend: 1.5,
             icon: <IconPackage size={20} />,
             color: 'teal'
+          },
+          {
+            id: 'avg-volume',
+            title: 'Средний объем поставки',
+            value: `${kpiData.avgVolume} м³`,
+            target: '8-12 м³',
+            trend: 2.1,
+            icon: <IconBox size={20} />,
+            color: 'violet'
+          },
+          {
+            id: 'errors-incidents',
+            title: 'Ошибки и инциденты',
+            value: `${(100 - parseFloat(kpiData.perfectOrderRate)).toFixed(1)}%`,
+            target: '<5%',
+            trend: -1.2,
+            icon: <IconAlertTriangle size={20} />,
+            color: 'red'
           }
         ]}
         renderDetailContent={(cardId) => {
@@ -1546,7 +1572,7 @@ export default function DeliveriesControlPage() {
             case 'perfect-order':
               return (
                 <Stack gap="md">
-                  <Text size="lg" fw={600}>Детализация Perfect Order Rate</Text>
+                  <Text size="lg" fw={600}>Детализация безупречных поставок</Text>
                   <Grid>
                     <Grid.Col span={6}>
                       <Card padding="md" withBorder>
@@ -1564,7 +1590,7 @@ export default function DeliveriesControlPage() {
                     </Grid.Col>
                   </Grid>
                   <Text size="sm" c="dimmed">
-                    Perfect Order Rate показывает долю заказов, выполненных без ошибок, задержек и повреждений. 
+                    Безупречные поставки показывают долю заказов, выполненных без ошибок, задержек и повреждений. 
                     Текущий показатель {kpiData.perfectOrderRate}% находится в целевом диапазоне 85-95%.
                   </Text>
                 </Stack>
@@ -1716,11 +1742,224 @@ export default function DeliveriesControlPage() {
                   </Text>
                 </Stack>
               );
+            case 'avg-volume':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Анализ объемов поставок</Text>
+                  <Grid>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Общий объем</Text>
+                        <Text size="xl" fw={700} c="violet">{kpiData.totalVolume} м³</Text>
+                        <Text size="xs" c="dimmed">за период</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Общее количество</Text>
+                        <Text size="xl" fw={700} c="blue">{kpiData.totalQuantity.toLocaleString()} шт</Text>
+                        <Text size="xs" c="dimmed">единиц товара</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Общая стоимость</Text>
+                        <Text size="xl" fw={700} c="green">{(kpiData.totalValue / 1000000).toFixed(1)} млн ₽</Text>
+                        <Text size="xs" c="dimmed">стоимость товаров</Text>
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  
+                  <Grid>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Малые поставки ({'<'}5 м³)</Text>
+                        <Text size="xl" fw={700} c="orange">{Math.round(deliveries.filter(d => d.volume < 5).length)}</Text>
+                        <Progress value={(deliveries.filter(d => d.volume < 5).length / deliveries.length) * 100} color="orange" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Крупные поставки ({'>'}15 м³)</Text>
+                        <Text size="xl" fw={700} c="green">{Math.round(deliveries.filter(d => d.volume > 15).length)}</Text>
+                        <Progress value={(deliveries.filter(d => d.volume > 15).length / deliveries.length) * 100} color="green" size="xs" mt="xs" />
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+                  
+                  <Text size="sm" c="dimmed">
+                    Средний объем поставки составляет {kpiData.avgVolume} м³. Целевой диапазон: 8-12 м³. 
+                    Оптимизация объемов поставок позволяет снизить логистические затраты и улучшить эффективность складских операций.
+                    Рекомендуется консолидировать малые поставки и планировать крупные партии для снижения удельных затрат.
+                  </Text>
+                </Stack>
+              );
+            case 'errors-incidents':
+              return (
+                <Stack gap="md">
+                  <Text size="lg" fw={600}>Анализ ошибок и инцидентов</Text>
+                  
+                  {/* Основные метрики */}
+                  <Grid>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Общее количество инцидентов</Text>
+                        <Text size="xl" fw={700} c="red">{Math.round(deliveries.length * (100 - parseFloat(kpiData.perfectOrderRate)) / 100)}</Text>
+                        <Text size="xs" c="dimmed">за период</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">Среднее время решения</Text>
+                        <Text size="xl" fw={700} c="orange">4.2 часа</Text>
+                        <Text size="xs" c="dimmed">цель: {'<'}3 часа</Text>
+                      </Card>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <Card padding="md" withBorder>
+                        <Text size="sm" c="dimmed" mb="xs">"Чистые" поставки</Text>
+                        <Text size="xl" fw={700} c="green">{kpiData.perfectOrderRate}%</Text>
+                        <Text size="xs" c="dimmed">без ошибок</Text>
+                      </Card>
+                    </Grid.Col>
+                  </Grid>
+
+                  {/* Распределение по типам ошибок */}
+                  <Card padding="md" withBorder>
+                    <Text size="md" fw={600} mb="md">Распределение по типам ошибок</Text>
+                    <Grid>
+                      <Grid.Col span={6}>
+                        <Stack gap="sm">
+                          {[
+                            { type: 'Недостача', count: 12, percentage: 35, color: 'red' },
+                            { type: 'Повреждение', count: 8, percentage: 24, color: 'orange' },
+                            { type: 'Несоответствие маркировки', count: 6, percentage: 18, color: 'yellow' },
+                            { type: 'Проблемы с документами', count: 5, percentage: 15, color: 'blue' },
+                            { type: 'Излишек', count: 3, percentage: 8, color: 'green' }
+                          ].map((error, index) => (
+                            <div key={index}>
+                              <Group justify="space-between" mb={4}>
+                                <Text size="sm">{error.type}</Text>
+                                <Group gap="xs">
+                                  <Text size="sm" fw={600}>{error.count}</Text>
+                                  <Text size="xs" c="dimmed">({error.percentage}%)</Text>
+                                </Group>
+                              </Group>
+                              <Progress 
+                                value={error.percentage * 2} 
+                                color={error.color} 
+                                size="sm" 
+                                radius="xs"
+                              />
+                            </div>
+                          ))}
+                        </Stack>
+                      </Grid.Col>
+                      <Grid.Col span={6}>
+                        <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
+                          <Stack align="center" gap="xs">
+                            <Text size="sm" c="dimmed">Круговая диаграмма</Text>
+                            <Text size="xs" c="dimmed">Визуализация распределения ошибок</Text>
+                          </Stack>
+                        </div>
+                      </Grid.Col>
+                    </Grid>
+                  </Card>
+
+                  {/* Heatmap по типам ошибок и поставщикам */}
+                  <Card padding="md" withBorder>
+                    <Text size="md" fw={600} mb="md">Карта ошибок по поставщикам</Text>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Поставщик</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #eee' }}>Недостача</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #eee' }}>Повреждение</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #eee' }}>Маркировка</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #eee' }}>Документы</th>
+                            <th style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid #eee' }}>Излишек</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { name: 'ООО "Альфа-Логистик"', errors: [3, 2, 1, 2, 0] },
+                            { name: 'ТК "Быстрая доставка"', errors: [2, 3, 2, 1, 1] },
+                            { name: 'Логистик Центр', errors: [4, 1, 2, 1, 1] },
+                            { name: 'ПЭК', errors: [1, 1, 0, 1, 0] },
+                            { name: 'Деловые Линии', errors: [2, 1, 1, 0, 1] }
+                          ].map((supplier, index) => (
+                            <tr key={index}>
+                              <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>
+                                <Text size="sm">{supplier.name}</Text>
+                              </td>
+                              {supplier.errors.map((errorCount, errorIndex) => {
+                                const intensity = errorCount / 4; // нормализация для цвета
+                                const bgColor = errorCount === 0 ? '#f8f9fa' : 
+                                  errorCount === 1 ? '#fff3cd' :
+                                  errorCount === 2 ? '#ffeaa7' :
+                                  errorCount === 3 ? '#fdcb6e' : '#e17055';
+                                return (
+                                  <td key={errorIndex} style={{ 
+                                    padding: '8px', 
+                                    textAlign: 'center', 
+                                    backgroundColor: bgColor,
+                                    borderBottom: '1px solid #f0f0f0'
+                                  }}>
+                                    <Text size="sm" fw={errorCount > 0 ? 600 : 400}>{errorCount}</Text>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Text size="xs" c="dimmed" mt="md">
+                      Интенсивность цвета показывает количество ошибок: светлый = мало ошибок, темный = много ошибок
+                    </Text>
+                  </Card>
+
+                  {/* Bar chart по причинам ошибок */}
+                  <Card padding="md" withBorder>
+                    <Text size="md" fw={600} mb="md">Основные причины ошибок</Text>
+                    <Stack gap="sm">
+                      {[
+                        { cause: 'Неправильная упаковка', count: 15, color: 'red' },
+                        { cause: 'Ошибки при комплектации', count: 12, color: 'orange' },
+                        { cause: 'Повреждения при транспортировке', count: 8, color: 'yellow' },
+                        { cause: 'Неточности в документах', count: 7, color: 'blue' },
+                        { cause: 'Проблемы с маркировкой', count: 6, color: 'purple' },
+                        { cause: 'Ошибки поставщика', count: 4, color: 'teal' }
+                      ].map((cause, index) => (
+                        <div key={index}>
+                          <Group justify="space-between" mb={4}>
+                            <Text size="sm">{cause.cause}</Text>
+                            <Text size="sm" fw={600}>{cause.count} случаев</Text>
+                          </Group>
+                          <Progress 
+                            value={(cause.count / 15) * 100} 
+                            color={cause.color} 
+                            size="md" 
+                            radius="xs"
+                          />
+                        </div>
+                      ))}
+                    </Stack>
+                  </Card>
+
+                  <Text size="sm" c="dimmed">
+                    Общий уровень ошибок составляет {(100 - parseFloat(kpiData.perfectOrderRate)).toFixed(1)}% от всех поставок. 
+                    Цель: менее 5%. Основные направления для улучшения: усиление контроля качества упаковки, 
+                    обучение персонала, улучшение процедур приемки и документооборота.
+                  </Text>
+                </Stack>
+              );
             default:
               return <Text>Детальная информация недоступна</Text>;
           }
         }}
-        columnsPerCard={3}
+        columnsPerCard={2}
         animationDuration={500}
         animationTimingFunction="ease-in-out"
       />
@@ -1804,10 +2043,10 @@ export default function DeliveriesControlPage() {
               <Table.Tr>
                 <Table.Th>Номер</Table.Th>
                 <Table.Th>Поставщик</Table.Th>
-                <Table.Th>Категория</Table.Th>
+                <Table.Th style={{ width: '200px', minWidth: '200px' }}>Категория</Table.Th>
                 <Table.Th>Артикул продавца</Table.Th>
                 <Table.Th>Отправка / План</Table.Th>
-                <Table.Th>Статус</Table.Th>
+                <Table.Th style={{ width: '200px', minWidth: '200px' }}>Статус</Table.Th>
                 <Table.Th>Прогресс</Table.Th>
                 <Table.Th>Склад</Table.Th>
                 <Table.Th>Кол-во упаковано</Table.Th>

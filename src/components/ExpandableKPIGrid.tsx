@@ -2,30 +2,51 @@ import React, { useState, ReactNode } from 'react';
 import {
   Stack,
   Grid,
-  Card,
-  UnstyledButton,
-  Group,
-  Text,
-  ThemeIcon,
   ActionIcon,
   Divider,
-  Collapse
+  Collapse,
+  Card,
+  Text
 } from '@mantine/core';
-import { IconChevronRight, IconX } from '@tabler/icons-react';
+import { IconX } from '@tabler/icons-react';
+import { DefaultKPICard, DefaultKPICardData } from './DefaultKPICard';
 
-// Интерфейс для данных KPI карточки
-export interface KPICardData {
+// Базовый интерфейс для любого элемента в сетке
+export interface ExpandableGridItem {
   id: string;
-  title: string;
-  value: string;
-  target?: string;
-  trend: number;
-  icon: ReactNode;
-  color: string;
+  [key: string]: any; // Позволяет любые дополнительные свойства
 }
 
-// Интерфейс для пропсов компонента
-export interface ExpandableKPIGridProps {
+// Пропсы для кастомного компонента карточки
+export interface CustomCardProps<T extends ExpandableGridItem> {
+  data: T;
+  isExpanded: boolean;
+  onClick: () => void;
+  animationDuration: number;
+  animationTimingFunction: string;
+}
+
+// Основные пропсы компонента
+export interface ExpandableKPIGridProps<T extends ExpandableGridItem = DefaultKPICardData> {
+  /** Массив данных для карточек */
+  data: T[];
+  /** Функция для рендеринга детального контента */
+  renderDetailContent: (itemId: string, item: T) => ReactNode;
+  /** Кастомный компонент карточки (опционально) */
+  CardComponent?: React.ComponentType<CustomCardProps<T>>;
+  /** Количество колонок в сетке (по умолчанию 4) */
+  columnsPerCard?: number;
+  /** Длительность анимации в миллисекундах (по умолчанию 500) */
+  animationDuration?: number;
+  /** Функция анимации (по умолчанию 'ease-in-out') */
+  animationTimingFunction?: string;
+  /** Дополнительные стили для контейнера */
+  containerStyle?: React.CSSProperties;
+}
+
+// Экспортируем старые интерфейсы для обратной совместимости
+export interface KPICardData extends DefaultKPICardData {}
+export interface LegacyExpandableKPIGridProps {
   /** Массив данных для KPI карточек */
   kpiData: KPICardData[];
   /** Функция для рендеринга детального контента */
@@ -41,40 +62,71 @@ export interface ExpandableKPIGridProps {
 }
 
 /**
- * Компонент для отображения сетки KPI карточек с раскрывающейся детализацией
+ * Универсальный компонент для отображения сетки карточек с раскрывающейся детализацией
  * 
  * Особенности:
- * - Горизонтальное расположение карточек в сетке
- * - Плавная анимация раскрытия детализации на всю ширину
- * - Кнопка закрытия в правом нижнем углу детализации
- * - Анимированная стрелка поворота
+ * - Поддержка любых типов карточек через generic типы
+ * - Дефолтная KPI карточка или кастомная через пропс
+ * - Плавная анимация раскрытия детализации
  * - Полностью настраиваемый контент детализации
+ * - Обратная совместимость с существующим API
  */
-export const ExpandableKPIGrid: React.FC<ExpandableKPIGridProps> = ({
-  kpiData,
+export const ExpandableKPIGrid = <T extends ExpandableGridItem = DefaultKPICardData>({
+  data,
   renderDetailContent,
+  CardComponent,
   columnsPerCard = 4,
   animationDuration = 500,
   animationTimingFunction = 'ease-in-out',
   containerStyle
-}) => {
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+}: ExpandableKPIGridProps<T>) => {
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  const handleCardClick = (cardId: string) => {
-    setExpandedCard(expandedCard === cardId ? null : cardId);
+  const handleCardClick = (itemId: string) => {
+    setExpandedItem(expandedItem === itemId ? null : itemId);
   };
 
-  const renderTrendIcon = (trend: number) => {
-    const isPositive = trend > 0;
-    // Импортируем иконки динамически для избежания проблем с зависимостями
-    const TrendIcon = isPositive ? '↗' : '↘';
+  // Функция для рендеринга карточки
+  const renderCard = (item: T, isExpanded: boolean, onClick: () => void) => {
+    if (CardComponent) {
+      return (
+        <CardComponent
+          data={item}
+          isExpanded={isExpanded}
+          onClick={onClick}
+          animationDuration={animationDuration}
+          animationTimingFunction={animationTimingFunction}
+        />
+      );
+    }
+    
+    // Проверяем, что данные совместимы с DefaultKPICardData
+    const isDefaultKPIData = (data: any): data is DefaultKPICardData => {
+      return data && 
+        typeof data.title === 'string' &&
+        typeof data.value === 'string' &&
+        typeof data.trend === 'number' &&
+        data.icon &&
+        typeof data.color === 'string';
+    };
+    
+    if (isDefaultKPIData(item)) {
+      return (
+        <DefaultKPICard
+          data={item}
+          isExpanded={isExpanded}
+          onClick={onClick}
+          animationDuration={animationDuration}
+          animationTimingFunction={animationTimingFunction}
+        />
+      );
+    }
+    
+    // Fallback для несовместимых данных
     return (
-      <span style={{ 
-        color: isPositive ? 'var(--mantine-color-green-6)' : 'var(--mantine-color-red-6)',
-        fontSize: '14px'
-      }}>
-        {TrendIcon}
-      </span>
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Text>Unsupported data format</Text>
+      </Card>
     );
   };
 
@@ -82,70 +134,33 @@ export const ExpandableKPIGrid: React.FC<ExpandableKPIGridProps> = ({
     <Stack gap="md" style={containerStyle}>
       {/* Карточки в горизонтальной сетке */}
       <Grid>
-        {kpiData.map((kpi) => {
-          const isPositive = kpi.trend > 0;
-          return (
-            <Grid.Col key={kpi.id} span={columnsPerCard}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <UnstyledButton 
-                  onClick={() => handleCardClick(kpi.id)} 
-                  style={{ width: '100%' }}
-                >
-                  <Group justify="space-between" mb="xs">
-                    <Text size="sm" c="dimmed" fw={500}>{kpi.title}</Text>
-                    <Group gap="xs">
-                      <ThemeIcon color={kpi.color} size="lg" radius="md">
-                        {kpi.icon}
-                      </ThemeIcon>
-                      <IconChevronRight 
-                        size={16} 
-                        style={{ 
-                          transform: expandedCard === kpi.id ? 'rotate(90deg)' : 'none', 
-                          transition: `transform ${animationDuration}ms ${animationTimingFunction}`,
-                          color: 'var(--mantine-color-gray-6)'
-                        }}
-                      />
-                    </Group>
-                  </Group>
-                  
-                  <Text size="xl" fw={700} mb="xs">{kpi.value}</Text>
-                  
-                  {kpi.target && (
-                    <Text size="xs" c="dimmed" mb="xs">
-                      Цель: {kpi.target}
-                    </Text>
-                  )}
-                  
-                  <Group gap="xs">
-                    {renderTrendIcon(kpi.trend)}
-                    <Text size="xs" c={isPositive ? 'green' : 'red'}>
-                      {isPositive ? '+' : ''}{kpi.trend}%
-                    </Text>
-                  </Group>
-                </UnstyledButton>
-              </Card>
-            </Grid.Col>
-          );
-        })}
+        {data.map((item) => (
+          <Grid.Col key={item.id} span={columnsPerCard}>
+            {renderCard(
+              item,
+              expandedItem === item.id,
+              () => handleCardClick(item.id)
+            )}
+          </Grid.Col>
+        ))}
       </Grid>
       
-      {/* Детализация с увеличенным отступом снизу и ограниченной шириной */}
+      {/* Детализация */}
       <Collapse 
-        in={!!expandedCard}
+        in={!!expandedItem}
         transitionDuration={animationDuration}
         transitionTimingFunction={animationTimingFunction}
       >
-        {expandedCard && (
+        {expandedItem && (
           <div style={{ marginBottom: '32px' }}>
             <Card shadow="sm" padding="lg" radius="md" withBorder style={{ maxWidth: '100%', position: 'relative', margin: '0 auto' }}>
               <Divider mb="md" />
-              {renderDetailContent(expandedCard)}
+              {renderDetailContent(expandedItem, data.find(item => item.id === expandedItem)!)}
               
-              {/* Кнопка свернуть в правом нижнем углу */}
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                onClick={() => setExpandedCard(null)}
+                onClick={() => setExpandedItem(null)}
                 style={{
                   position: 'absolute',
                   bottom: '16px',
@@ -163,6 +178,27 @@ export const ExpandableKPIGrid: React.FC<ExpandableKPIGridProps> = ({
         )}
       </Collapse>
     </Stack>
+  );
+};
+
+// Функция-обертка для обратной совместимости
+export const LegacyExpandableKPIGrid: React.FC<LegacyExpandableKPIGridProps> = ({
+  kpiData,
+  renderDetailContent,
+  columnsPerCard,
+  animationDuration,
+  animationTimingFunction,
+  containerStyle
+}) => {
+  return (
+    <ExpandableKPIGrid
+      data={kpiData}
+      renderDetailContent={(itemId) => renderDetailContent(itemId)}
+      columnsPerCard={columnsPerCard}
+      animationDuration={animationDuration}
+      animationTimingFunction={animationTimingFunction}
+      containerStyle={containerStyle}
+    />
   );
 };
 
