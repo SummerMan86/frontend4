@@ -1,61 +1,109 @@
-chunk-MXUSTU7W.js?v=e2099f97:21536 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
-cubeApi.ts:13 API_URL: http://localhost:4000/cubejs-api/v1
-chunk-MXUSTU7W.js?v=e2099f97:521 Warning: Received `true` for a non-boolean attribute `inert`.
+var option = {
+tooltip: {
+trigger: 'axis',
+formatter: function(params) {
+console.log('params[0]', params[0]);
+console.log('params[1]', params[1]);
+const xDate = params[0].name;
+const y = String(Math.round(params[0].value*100)/100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');;
+const name = params[0].seriesName;
 
-If you want to write it to the DOM, pass a string instead: inert="true" or inert={value.toString()}.
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:4071:7
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:27239:17
-    at ExpandableKPIGrid (http://localhost:3001/src/components/ExpandableKPIGrid.tsx:33:3)
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:27239:17
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:17800:17
-    at KPITestPage
-    at RenderedRoute (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:4104:5)
-    at Outlet (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:4511:26)
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at main
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:13158:17
-    at div
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:3816:5
-    at Provider (http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:904:23)
-    at http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:13590:17
-    at MyAppShell (http://localhost:3001/src/components/layout/AppShell.tsx:79:24)
-    at RenderedRoute (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:4104:5)
-    at Routes (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:4575:5)
-    at Suspense
-    at Router (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:4518:15)
-    at BrowserRouter (http://localhost:3001/node_modules/.vite/deps/react-router-dom.js?v=e2099f97:5267:5)
-    at CubeProvider (http://localhost:3001/node_modules/.vite/deps/@cubejs-client_react.js?v=e2099f97:1894:3)
-    at MantineThemeProvider (http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:2175:3)
-    at MantineProvider (http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:2671:3)
-    at ThemeProvider (http://localhost:3001/src/theme/ThemeProvider.tsx:40:33)
-    at App
-    at MantineThemeProvider (http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:2175:3)
-    at MantineProvider (http://localhost:3001/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=e2099f97:2671:3)
-    at http://localhost:3001/node_modules/.vite/deps/chunk-Z5PUXNLE.js?v=e2099f97:1380:45
-printWarning @ chunk-MXUSTU7W.js?v=e2099f97:521
-error @ chunk-MXUSTU7W.js?v=e2099f97:505
-validateProperty$1 @ chunk-MXUSTU7W.js?v=e2099f97:3433
-warnUnknownProperties @ chunk-MXUSTU7W.js?v=e2099f97:3459
-validateProperties$2 @ chunk-MXUSTU7W.js?v=e2099f97:3478
-validatePropertiesInDevelopment @ chunk-MXUSTU7W.js?v=e2099f97:7349
-setInitialProperties @ chunk-MXUSTU7W.js?v=e2099f97:7540
-finalizeInitialChildren @ chunk-MXUSTU7W.js?v=e2099f97:8356
-completeWork @ chunk-MXUSTU7W.js?v=e2099f97:16282
-completeUnitOfWork @ chunk-MXUSTU7W.js?v=e2099f97:19220
-performUnitOfWork @ chunk-MXUSTU7W.js?v=e2099f97:19202
-workLoopConcurrent @ chunk-MXUSTU7W.js?v=e2099f97:19185
-renderRootConcurrent @ chunk-MXUSTU7W.js?v=e2099f97:19160
-performConcurrentWorkOnRoot @ chunk-MXUSTU7W.js?v=e2099f97:18674
-workLoop @ chunk-MXUSTU7W.js?v=e2099f97:197
-flushWork @ chunk-MXUSTU7W.js?v=e2099f97:176
-performWorkUntilDeadline @ chunk-MXUSTU7W.js?v=e2099f97:384
+return `${name}<br>
+Дата: ${xDate } <br>
+Q зак.: ${y} м3/сут. 
+`;
+}
+},
+legend: { 
+top: 10,
+right: 10
+},
+xAxis: {
+type: 'category',
+data: xAxisValues,
+name: 'Дата',
+nameLocation:'middle',
+nameGap: 30,
+
+//axisLabel: [20000,40000,60000,80000,100000, 120000],
+axisLabel: {
+hideOverlap: false,
+custom: [20000, 400000,]
+},
+axisTick:{
+custom: [20000,400000]
+}
+},
+yAxis: {
+type: 'value'
+},
+series: [ 
+{
+name : 'Q зак., м3/сут.',
+data: volume_injection,
+type: 'line',
+symbol: 'line', // Изменено с 'line' на 'circle' для лучшей кликабельности
+symbolSize: 6, // Добавлен размер символа
+sampling: 'lttb',
+lineStyle: {
+color: 'green',
+width: 2,
+type: 'solid'
+},
+itemStyle: {
+borderWidth: 2, // Увеличена ширина границы
+borderColor: 'green', // Изменен цвет границы
+color: 'green' // Изменен цвет на зеленый для консистентности
+},
+emphasis: { // Добавлен эффект при наведении
+itemStyle: {
+borderWidth: 3,
+borderColor: 'darkgreen',
+color: 'lightgreen'
+}
+},
+select: { // Добавлен эффект при выборе
+itemStyle: {
+borderWidth: 4,
+borderColor: 'darkgreen'
+}
+},
+triggerLineEvent: true
+},
+{
+name: 'Триггер',
+data: y_volume_injection_trigger,
+tooltip: {
+alwaysShowContent: true,
+position: 'top'
+},
+z:10,
+type: 'scatter',
+symbol: 'circle',
+symbolSize: 8,
+itemStyle: {
+borderWidth: 0,
+borderColor: '#EE6666',
+color: 'red'
+}
+},
+{
+name: 'АГРП во время ИД',
+data: y_volume_injection_agrp,
+tooltip: {
+alwaysShowContent: true,
+position: 'top'
+},
+z:10,
+type: 'scatter',
+symbol: 'circle',
+symbolSize: 8,
+itemStyle: {
+borderWidth: 0,
+borderColor: '#EE6666',
+color: 'orange'
+} 
+}
+
+]
+};

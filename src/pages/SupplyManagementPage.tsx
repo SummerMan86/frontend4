@@ -47,6 +47,7 @@ import { create } from 'zustand';
 import ExpandableKPIGrid, { LegacyExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
 import YandexSupplyGraphMap from '../components/YandexSupplyGraphMap';
 import { supplyNodes, supplyEdges } from '../data/supplyTestData';
+import '../styles/gradientAnimations.css';
 import {
   IconTruck,
   IconPackage,
@@ -86,7 +87,9 @@ import {
   IconCalculator,
   IconAdjustments,
   IconBox,
-  IconAlertTriangle
+  IconAlertTriangle,
+  IconRoute,
+  IconMap2
 } from '@tabler/icons-react';
 
 // Компонент финансовой аналитики
@@ -834,37 +837,294 @@ interface KPICardProps {
   target?: string;
   trend: number;
   icon: React.ReactNode;
-  color: string;
+  color: 'blue' | 'green' | 'red' | 'orange' | 'violet' | 'yellow' | 'pink' | 'cyan' | 'teal' | 'indigo';
   type?: string;
+  onClick?: () => void;
+  size?: 'sm' | 'md' | 'lg';
+  customGradient?: string;
+  gradientDirection?: 'to-r' | 'to-br' | 'to-b' | 'to-bl' | 'to-l' | 'to-tl' | 'to-t' | 'to-tr';
+  animated?: boolean;
+  theme?: 'default' | 'ocean' | 'sunset' | 'forest' | 'cosmic' | 'warm' | 'cool';
 }
 
-const KPICard = ({ title, value, target, trend, icon, color }: KPICardProps) => {
+// Предустановленные градиенты для каждого цвета
+const colorGradients = {
+  blue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  green: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  red: 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%)',
+  orange: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  violet: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  yellow: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
+  pink: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)',
+  cyan: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+  teal: 'linear-gradient(135deg, #00b894 0%, #00cec9 100%)',
+  indigo: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+};
+
+// Направления градиентов
+const gradientDirections = {
+  'to-r': '90deg',
+  'to-br': '135deg',
+  'to-b': '180deg',
+  'to-bl': '225deg',
+  'to-l': '270deg',
+  'to-tl': '315deg',
+  'to-t': '0deg',
+  'to-tr': '45deg',
+};
+
+// Тематические наборы градиентов
+const themeGradients = {
+  default: colorGradients,
+  ocean: {
+    blue: 'linear-gradient(135deg, #667db6 0%, #0082c8 25%, #0082c8 75%, #667db6 100%)',
+    green: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+    red: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)',
+    orange: 'linear-gradient(135deg, #fab1a0 0%, #ffeaa7 100%)',
+    violet: 'linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)',
+    yellow: 'linear-gradient(135deg, #fdcb6e 0%, #fd79a8 100%)',
+    pink: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)',
+    cyan: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+    teal: 'linear-gradient(135deg, #00cec9 0%, #55a3ff 100%)',
+    indigo: 'linear-gradient(135deg, #667db6 0%, #0082c8 100%)',
+  },
+  sunset: {
+    blue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    green: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    red: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    orange: 'linear-gradient(135deg, #ffa726 0%, #ff7043 100%)',
+    violet: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    yellow: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
+    pink: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    cyan: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    teal: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)',
+    indigo: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  forest: {
+    blue: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+    green: 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)',
+    red: 'linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%)',
+    orange: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+    violet: 'linear-gradient(135deg, #8360c3 0%, #2ebf91 100%)',
+    yellow: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+    pink: 'linear-gradient(135deg, #ad5389 0%, #3c1053 100%)',
+    cyan: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+    teal: 'linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%)',
+    indigo: 'linear-gradient(135deg, #8360c3 0%, #2ebf91 100%)',
+  },
+  cosmic: {
+    blue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    green: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    red: 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%)',
+    orange: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    violet: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    yellow: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
+    pink: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    cyan: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    teal: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    indigo: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  warm: {
+    blue: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    green: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    red: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    orange: 'linear-gradient(135deg, #ffa726 0%, #ff7043 100%)',
+    violet: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    yellow: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
+    pink: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    cyan: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    teal: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)',
+    indigo: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  },
+  cool: {
+    blue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    green: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    red: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    orange: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    violet: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    yellow: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+    pink: 'linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%)',
+    cyan: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+    teal: 'linear-gradient(135deg, #00b894 0%, #00cec9 100%)',
+    indigo: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+  },
+};
+
+// Размеры для разных вариантов
+const cardSizes = {
+  sm: {
+    padding: 'sm',
+    iconSize: 32,
+    titleSize: 'xs',
+    valueSize: '1.4rem',
+    targetSize: 'xs',
+    trendSize: 'xs',
+  },
+  md: {
+    padding: 'md',
+    iconSize: 42,
+    titleSize: 'sm',
+    valueSize: '1.8rem',
+    targetSize: 'xs',
+    trendSize: 'sm',
+  },
+  lg: {
+    padding: 'lg',
+    iconSize: 52,
+    titleSize: 'md',
+    valueSize: '2.2rem',
+    targetSize: 'sm',
+    trendSize: 'md',
+  },
+};
+
+const KPICard = ({ 
+  title, 
+  value, 
+  target, 
+  trend, 
+  icon, 
+  color, 
+  onClick,
+  size = 'md',
+  customGradient,
+  gradientDirection = 'to-br',
+  animated = false,
+  theme = 'default'
+}: KPICardProps) => {
   const isPositive = trend > 0;
+  const sizeConfig = cardSizes[size];
+  
+  // Определяем градиент
+  let gradient: string;
+  if (customGradient) {
+    gradient = customGradient;
+  } else {
+    const themeColors = themeGradients[theme] || themeGradients.default;
+    const baseGradient = themeColors[color];
+    // Заменяем направление градиента
+    const direction = gradientDirections[gradientDirection];
+    gradient = baseGradient.replace(/\d+deg/, direction);
+  }
+  
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.transform = 'translateY(-4px)';
+    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.transform = 'translateY(0)';
+    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+  };
   
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Group justify="space-between" mb="xs">
-        <Text size="sm" c="dimmed" fw={500}>{title}</Text>
-        <ThemeIcon color={color} size="lg" radius="md">
-          {icon}
+    <Card 
+      shadow="sm" 
+      padding={sizeConfig.padding} 
+      radius="md" 
+      withBorder={false}
+      style={{
+        background: gradient,
+        color: 'white',
+        transition: 'all 0.3s ease',
+        cursor: onClick ? 'pointer' : 'default',
+        position: 'relative',
+        overflow: 'hidden',
+        ...(animated && {
+          backgroundSize: '200% 200%',
+          animation: 'gradientShift 4s ease infinite',
+        }),
+      }}
+      className={animated ? 'gradient-shift' : ''}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+    >
+      {/* Декоративный элемент */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: -50,
+          right: -50,
+          width: 100,
+          height: 100,
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '50%',
+          pointerEvents: 'none',
+        }}
+      />
+      
+      <Group justify="space-between" mb="xs" style={{ position: 'relative', zIndex: 1 }}>
+        <Text 
+          size={sizeConfig.titleSize} 
+          fw={500} 
+          style={{ opacity: 0.95 }}
+          lineClamp={2}
+        >
+          {title}
+        </Text>
+        <ThemeIcon 
+          size={sizeConfig.iconSize} 
+          radius="md" 
+          variant="light"
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ color: 'white' }}>
+            {icon}
+          </div>
         </ThemeIcon>
       </Group>
       
-      <Text size="xl" fw={700} mb="xs">{value}</Text>
+      <Text 
+        size={sizeConfig.valueSize} 
+        fw={700} 
+        mb="xs"
+        style={{ 
+          fontSize: sizeConfig.valueSize,
+          lineHeight: 1.2,
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {typeof value === 'string' && !isNaN(Number(value.replace(/[^0-9.-]/g, ''))) 
+          ? Number(value.replace(/[^0-9.-]/g, '')).toLocaleString() + value.replace(/[0-9.-]/g, '')
+          : value
+        }
+      </Text>
       
       {target && (
-        <Text size="xs" c="dimmed" mb="xs">
+        <Text 
+          size={sizeConfig.targetSize} 
+          mb="xs"
+          style={{ 
+            opacity: 0.9,
+            position: 'relative',
+            zIndex: 1
+          }}
+        >
           Цель: {target}
         </Text>
       )}
       
-      <Group gap="xs">
+      <Group gap="xs" style={{ position: 'relative', zIndex: 1 }}>
         {isPositive ? (
-          <IconTrendingUp size={16} color="var(--mantine-color-green-6)" />
+          <IconTrendingUp size={16} style={{ color: 'rgba(255, 255, 255, 0.9)' }} />
         ) : (
-          <IconTrendingDown size={16} color="var(--mantine-color-red-6)" />
+          <IconTrendingDown size={16} style={{ color: 'rgba(255, 255, 255, 0.9)' }} />
         )}
-        <Text size="xs" c={isPositive ? 'green' : 'red'}>
+        <Text 
+          size={sizeConfig.trendSize} 
+          fw={600}
+          style={{ 
+            color: isPositive ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)',
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            padding: '2px 6px',
+            borderRadius: '4px',
+          }}
+        >
           {isPositive ? '+' : ''}{trend}%
         </Text>
       </Group>
@@ -1360,7 +1620,839 @@ const SupplierAnalysis = () => {
   );
 };
 
+// Компонент анализа маршрутов
+const RouteAnalysis = () => {
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+  const chartRef4 = useRef<HTMLDivElement>(null);
+  const [chartReady1, setChartReady1] = useState(false);
+  const [chartReady2, setChartReady2] = useState(false);
+  const [chartReady3, setChartReady3] = useState(false);
+  const [chartReady4, setChartReady4] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
 
+  useEffect(() => {
+    const checkDimensions = (ref: React.RefObject<HTMLDivElement>, setReady: (ready: boolean) => void) => {
+      if (ref.current) {
+        const { clientWidth, clientHeight } = ref.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          setReady(true);
+        }
+      }
+    };
+
+    const timer1 = setTimeout(() => checkDimensions(chartRef1, setChartReady1), 100);
+    const timer2 = setTimeout(() => checkDimensions(chartRef2, setChartReady2), 150);
+    const timer3 = setTimeout(() => checkDimensions(chartRef3, setChartReady3), 200);
+    const timer4 = setTimeout(() => checkDimensions(chartRef4, setChartReady4), 250);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      clearTimeout(timer4);
+    };
+  }, []);
+
+  // Данные маршрутов
+  const routesData = [
+    {
+      id: 'sea-route-1',
+      name: 'Шанхай → Санкт-Петербург',
+      type: 'Морской',
+      icon: <IconShip size={20} />,
+      avgDays: 42,
+      costPerKg: 15,
+      successRate: 87,
+      reliability: 4.2,
+      volume: 2500,
+      providers: ['COSCO', 'MSC', 'Maersk'],
+      lastDeliveries: 15,
+      avgDelay: 3.2
+    },
+    {
+      id: 'rail-route-1',
+      name: 'Урумчи → Москва',
+      type: 'Железнодорожный',
+      icon: <IconTrain size={20} />,
+      avgDays: 28,
+      costPerKg: 22,
+      successRate: 92,
+      reliability: 4.6,
+      volume: 1800,
+      providers: ['РЖД', 'KTZ Express', 'UTLC'],
+      lastDeliveries: 12,
+      avgDelay: 1.8
+    },
+    {
+      id: 'air-route-1',
+      name: 'Пекин → Москва',
+      type: 'Авиационный',
+      icon: <IconPlane size={20} />,
+      avgDays: 8,
+      costPerKg: 85,
+      successRate: 96,
+      reliability: 4.8,
+      volume: 450,
+      providers: ['Aeroflot', 'Air China', 'S7'],
+      lastDeliveries: 8,
+      avgDelay: 0.5
+    },
+    {
+      id: 'truck-route-1',
+      name: 'Алматы → Москва',
+      type: 'Автомобильный',
+      icon: <IconTruck size={20} />,
+      avgDays: 18,
+      costPerKg: 35,
+      successRate: 89,
+      reliability: 4.3,
+      volume: 850,
+      providers: ['ПЭК', 'Деловые Линии', 'КИТ'],
+      lastDeliveries: 10,
+      avgDelay: 2.1
+    }
+  ];
+
+  // График сравнения маршрутов по времени и стоимости
+  const routeComparisonOption = {
+    title: {
+      text: 'Размер пузырька = объем перевозок',
+      textStyle: {
+        fontSize: 12,
+        color: '#666',
+        fontWeight: 'normal'
+      },
+      left: 'center',
+      top: 5
+    },
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e9ecef',
+      borderWidth: 1,
+      textStyle: {
+        color: '#333'
+      },
+      formatter: (params: any) => {
+        const route = routesData[params.dataIndex];
+        return `<div style="padding: 8px;">
+                <strong style="color: #1971c2;">${route.name}</strong><br/>
+                <span style="color: #666;">Тип:</span> ${route.type}<br/>
+                <span style="color: #666;">Время:</span> ${route.avgDays} дней<br/>
+                <span style="color: #666;">Стоимость:</span> ${route.costPerKg} ₽/кг<br/>
+                <span style="color: #666;">Успешность:</span> <span style="color: #37b24d;">${route.successRate}%</span><br/>
+                <span style="color: #666;">Объем:</span> ${route.volume} м³
+                </div>`;
+      }
+    },
+    legend: {
+      data: ['Морской', 'Железнодорожный', 'Авиационный', 'Автомобильный'],
+      bottom: 10,
+      itemGap: 20,
+      textStyle: {
+        fontSize: 12
+      }
+    },
+    grid: {
+      left: '12%',
+      right: '8%',
+      top: '15%',
+      bottom: '20%'
+    },
+    xAxis: {
+      type: 'value',
+      name: 'Время доставки (дни)',
+      nameLocation: 'middle',
+      nameGap: 30,
+      nameTextStyle: {
+        fontSize: 12,
+        color: '#666'
+      },
+      min: 0,
+      max: 50,
+      splitLine: {
+        lineStyle: {
+          color: '#f1f3f4',
+          type: 'dashed'
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: 'Стоимость (₽/кг)',
+      nameLocation: 'middle',
+      nameGap: 50,
+      nameTextStyle: {
+        fontSize: 12,
+        color: '#666'
+      },
+      min: 0,
+      max: 100,
+      splitLine: {
+        lineStyle: {
+          color: '#f1f3f4',
+          type: 'dashed'
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    series: [{
+      type: 'scatter',
+      symbolSize: (data: any) => Math.max(Math.sqrt(routesData[data[2]].volume) / 2.5, 15),
+      data: routesData.map((route, index) => [route.avgDays, route.costPerKg, index]),
+      itemStyle: {
+        color: (params: any) => {
+          const colors = {
+             0: '#228be6', // Морской - синий (нейтральный)
+             1: '#40c057', // Ж/д - зеленый (экологичный, положительный)
+             2: '#fd7e14', // Авиа - оранжевый (дорогой, предупреждение)
+             3: '#1971c2'  // Авто - темно-синий (нейтральный)
+           };
+          return colors[params.data[2] as keyof typeof colors];
+        },
+        opacity: 0.8,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      emphasis: {
+        itemStyle: {
+          opacity: 1,
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 0, 0, 0.3)'
+        }
+      }
+    }]
+  };
+
+  // График успешности поставок по маршрутам
+  const successRateOption = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e9ecef',
+      borderWidth: 1,
+      textStyle: {
+        color: '#333'
+      },
+      formatter: (params: any) => {
+        const data = params[0];
+        const rate = data.value;
+        const status = rate >= 95 ? 'Отлично' : rate >= 90 ? 'Хорошо' : 'Требует внимания';
+         const color = rate >= 95 ? '#40c057' : rate >= 90 ? '#fd7e14' : '#fa5252';
+        return `<div style="padding: 8px;">
+                <strong>${data.name}</strong><br/>
+                Успешность: <span style="color: ${color}; font-weight: bold;">${rate}%</span><br/>
+                Статус: <span style="color: ${color};">${status}</span>
+                </div>`;
+      }
+    },
+    grid: {
+      left: '8%',
+      right: '4%',
+      top: '10%',
+      bottom: '15%'
+    },
+    xAxis: {
+      type: 'category',
+      data: routesData.map(r => r.type),
+      axisLabel: {
+        fontSize: 11,
+        color: '#666',
+        interval: 0,
+        rotate: 0
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    yAxis: {
+      type: 'value',
+      min: 80,
+      max: 100,
+      axisLabel: {
+        formatter: '{value}%',
+        fontSize: 11,
+        color: '#666'
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#f1f3f4',
+          type: 'dashed'
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    series: [{
+      name: 'Успешность поставок',
+      type: 'bar',
+      data: routesData.map(r => r.successRate),
+      barWidth: '60%',
+      itemStyle: {
+        color: (params: any) => {
+          const rate = params.value;
+          if (rate >= 95) return '#40c057'; // Зеленый для отличных показателей (положительно)
+           if (rate >= 90) return '#fd7e14'; // Оранжевый для хороших показателей (предупреждение)
+           return '#fa5252'; // Красный для показателей, требующих внимания (негативно)
+        },
+        borderRadius: [4, 4, 0, 0]
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 0, 0, 0.3)'
+        }
+      },
+      label: {
+        show: true,
+        position: 'top',
+        formatter: '{c}%',
+        fontSize: 11,
+        color: '#333',
+        fontWeight: 'bold'
+      }
+    }]
+  };
+
+  // График динамики стоимости по месяцам
+  const costTrendOption = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e9ecef',
+      borderWidth: 1,
+      textStyle: {
+        color: '#333'
+      },
+      formatter: (params: any) => {
+        let result = `<div style="padding: 8px;"><strong>${params[0].name}</strong><br/>`;
+        params.forEach((param: any) => {
+          const trend = param.dataIndex > 0 ? 
+            (param.value > params.find((p: any) => p.seriesName === param.seriesName && p.dataIndex === param.dataIndex - 1)?.value ? '↗' : '↘') : '';
+          result += `<span style="color: ${param.color};">●</span> ${param.seriesName}: <strong>${param.value} ₽/кг</strong> ${trend}<br/>`;
+        });
+        result += '</div>';
+        return result;
+      }
+    },
+    legend: {
+      data: ['Морской', 'Ж/д', 'Авиа', 'Авто'],
+      top: 10,
+      itemGap: 20,
+      textStyle: {
+        fontSize: 12
+      }
+    },
+    grid: {
+      left: '8%',
+      right: '4%',
+      top: '15%',
+      bottom: '10%'
+    },
+    xAxis: {
+      type: 'category',
+      data: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
+      axisLabel: {
+        fontSize: 11,
+        color: '#666'
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '₽/кг',
+      nameLocation: 'middle',
+      nameGap: 40,
+      nameTextStyle: {
+        fontSize: 12,
+        color: '#666'
+      },
+      axisLabel: {
+        fontSize: 11,
+        color: '#666'
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#f1f3f4',
+          type: 'dashed'
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#dee2e6'
+        }
+      }
+    },
+    series: [
+      {
+        name: 'Морской',
+        type: 'line',
+        data: [14, 15, 16, 15, 14, 15],
+        smooth: true,
+        lineStyle: {
+           color: '#228be6',
+           width: 3
+         },
+         itemStyle: {
+           color: '#228be6',
+           borderColor: '#fff',
+           borderWidth: 2
+         },
+        symbol: 'circle',
+        symbolSize: 6,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(28, 126, 214, 0.4)'
+          }
+        }
+      },
+      {
+        name: 'Ж/д',
+        type: 'line',
+        data: [21, 22, 23, 22, 21, 22],
+        smooth: true,
+        lineStyle: {
+           color: '#40c057',
+           width: 3
+         },
+         itemStyle: {
+           color: '#40c057',
+           borderColor: '#fff',
+           borderWidth: 2
+         },
+        symbol: 'circle',
+        symbolSize: 6,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(55, 178, 77, 0.4)'
+          }
+        }
+      },
+      {
+        name: 'Авиа',
+        type: 'line',
+        data: [82, 85, 88, 85, 83, 85],
+        smooth: true,
+        lineStyle: {
+           color: '#1971c2',
+           width: 3
+         },
+         itemStyle: {
+           color: '#1971c2',
+           borderColor: '#fff',
+           borderWidth: 2
+         },
+        symbol: 'circle',
+        symbolSize: 6,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(240, 62, 62, 0.4)'
+          }
+        }
+      },
+      {
+        name: 'Авто',
+        type: 'line',
+        data: [33, 35, 36, 35, 34, 35],
+        smooth: true,
+        lineStyle: {
+          color: '#fd7e14',
+          width: 3
+        },
+        itemStyle: {
+          color: '#fd7e14',
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        symbol: 'circle',
+        symbolSize: 6,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(253, 126, 20, 0.4)'
+          }
+        }
+      }
+    ]
+  };
+
+  // График загрузки маршрутов
+  const volumeDistributionOption = {
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e9ecef',
+      borderWidth: 1,
+      textStyle: {
+        color: '#333'
+      },
+      formatter: (params: any) => {
+        const percentage = params.percent;
+        const value = params.value;
+        return `<div style="padding: 8px;">
+                <span style="color: ${params.color};">●</span> <strong>${params.name}</strong><br/>
+                Объем: <strong>${value} м³</strong><br/>
+                Доля: <strong>${percentage}%</strong>
+                </div>`;
+      }
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      top: 'middle',
+      textStyle: {
+        fontSize: 11
+      },
+      formatter: (name: string) => {
+        const route = routesData.find(r => r.type === name);
+        return `${name}\n${route?.volume} м³`;
+      }
+    },
+    series: [{
+      type: 'pie',
+      radius: ['45%', '75%'],
+      center: ['65%', '50%'],
+      avoidLabelOverlap: false,
+      label: {
+        show: true,
+        position: 'outside',
+        formatter: '{d}%',
+        fontSize: 11,
+        fontWeight: 'bold'
+      },
+      labelLine: {
+        show: true,
+        length: 15,
+        length2: 10
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: 'rgba(0, 0, 0, 0.3)'
+        },
+        label: {
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      data: routesData.map(route => {
+        // Цветовая схема основана на эффективности (соотношение успешности к стоимости)
+        const efficiency = route.successRate / route.costPerKg;
+        let color;
+        
+        // Авиационный - высокая успешность, но очень дорого (предупреждение)
+        if (route.type === 'Авиационный') {
+          color = '#fd7e14'; // Оранжевый - дорого, но надежно
+        }
+        // Железнодорожный - хорошая успешность, умеренная цена (положительно)
+        else if (route.type === 'Железнодорожный') {
+          color = '#40c057'; // Зеленый - оптимальное соотношение
+        }
+        // Морской - большой объем, но низкая успешность (нейтрально)
+        else if (route.type === 'Морской') {
+          color = '#228be6'; // Синий - нейтрально
+        }
+        // Автомобильный - средние показатели (нейтрально)
+        else {
+          color = '#495057'; // Серый - средние показатели
+        }
+        
+        return {
+          value: route.volume,
+          name: route.type,
+          itemStyle: {
+            color: color,
+            borderColor: '#fff',
+            borderWidth: 2
+          }
+        };
+      })
+    }]
+  };
+
+  return (
+    <Stack gap="md">
+      {/* KPI карточки маршрутов */}
+      <SimpleGrid cols={{ base: 2, md: 4 }}>
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between">
+            <div>
+              <Text size="xs" c="dimmed">Активных маршрутов</Text>
+              <Text size="xl" fw={700}>{routesData.length}</Text>
+            </div>
+            <ThemeIcon size="lg" variant="light" color="blue">
+              <IconRoute size={20} />
+            </ThemeIcon>
+          </Group>
+        </Card>
+        
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between">
+            <div>
+              <Text size="xs" c="dimmed">Средняя успешность</Text>
+              <Text size="xl" fw={700} c={Math.round(routesData.reduce((sum, r) => sum + r.successRate, 0) / routesData.length) >= 95 ? 'green' : Math.round(routesData.reduce((sum, r) => sum + r.successRate, 0) / routesData.length) >= 85 ? 'orange' : 'red'}>
+                {Math.round(routesData.reduce((sum, r) => sum + r.successRate, 0) / routesData.length)}%
+              </Text>
+            </div>
+            <ThemeIcon size="lg" variant="light" color={Math.round(routesData.reduce((sum, r) => sum + r.successRate, 0) / routesData.length) >= 95 ? 'green' : Math.round(routesData.reduce((sum, r) => sum + r.successRate, 0) / routesData.length) >= 85 ? 'orange' : 'red'}>
+              <IconCheck size={20} />
+            </ThemeIcon>
+          </Group>
+        </Card>
+        
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between">
+            <div>
+              <Text size="xs" c="dimmed">Общий объем</Text>
+              <Text size="xl" fw={700}>
+                {routesData.reduce((sum, r) => sum + r.volume, 0)} м³
+              </Text>
+            </div>
+            <ThemeIcon size="lg" variant="light" color="blue">
+              <IconBox size={20} />
+            </ThemeIcon>
+          </Group>
+        </Card>
+        
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between">
+            <div>
+              <Text size="xs" c="dimmed">Средняя задержка</Text>
+              <Text size="xl" fw={700} c={(routesData.reduce((sum, r) => sum + r.avgDelay, 0) / routesData.length) <= 1 ? 'green' : (routesData.reduce((sum, r) => sum + r.avgDelay, 0) / routesData.length) <= 3 ? 'orange' : 'red'}>
+                {(routesData.reduce((sum, r) => sum + r.avgDelay, 0) / routesData.length).toFixed(1)} дн.
+              </Text>
+            </div>
+            <ThemeIcon size="lg" variant="light" color={(routesData.reduce((sum, r) => sum + r.avgDelay, 0) / routesData.length) <= 1 ? 'green' : (routesData.reduce((sum, r) => sum + r.avgDelay, 0) / routesData.length) <= 3 ? 'orange' : 'red'}>
+              <IconClock size={20} />
+            </ThemeIcon>
+          </Group>
+        </Card>
+      </SimpleGrid>
+
+      {/* Графики аналитики */}
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text size="md" fw={500} mb="md">Сравнение маршрутов: время vs стоимость</Text>
+            <div ref={chartRef1} style={{ height: '300px', width: '100%' }}>
+              {chartReady1 && (
+                <ReactECharts 
+                  option={routeComparisonOption} 
+                  style={{ height: '100%', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                />
+              )}
+            </div>
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text size="md" fw={500} mb="md">Успешность поставок по типам</Text>
+            <div ref={chartRef2} style={{ height: '300px', width: '100%' }}>
+              {chartReady2 && (
+                <ReactECharts 
+                  option={successRateOption} 
+                  style={{ height: '100%', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                />
+              )}
+            </div>
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text size="md" fw={500} mb="md">Динамика стоимости доставки</Text>
+            <div ref={chartRef3} style={{ height: '300px', width: '100%' }}>
+              {chartReady3 && (
+                <ReactECharts 
+                  option={costTrendOption} 
+                  style={{ height: '100%', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                />
+              )}
+            </div>
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Text size="md" fw={500} mb="md">Распределение объемов</Text>
+            <div ref={chartRef4} style={{ height: '300px', width: '100%' }}>
+              {chartReady4 && (
+                <ReactECharts 
+                  option={volumeDistributionOption} 
+                  style={{ height: '100%', width: '100%' }}
+                  opts={{ renderer: 'canvas' }}
+                />
+              )}
+            </div>
+          </Card>
+        </Grid.Col>
+      </Grid>
+
+      {/* Детальная таблица маршрутов */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group justify="space-between" mb="md">
+          <Text size="lg" fw={500}>Детальная информация по маршрутам</Text>
+          <Button variant="light" size="xs" leftSection={<IconMap2 size={14} />}>
+            Показать на карте
+          </Button>
+        </Group>
+        
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Маршрут</Table.Th>
+              <Table.Th>Тип</Table.Th>
+              <Table.Th>Время</Table.Th>
+              <Table.Th>Стоимость</Table.Th>
+              <Table.Th>Успешность</Table.Th>
+              <Table.Th>Рейтинг</Table.Th>
+              <Table.Th>Объем</Table.Th>
+              <Table.Th>Провайдеры</Table.Th>
+              <Table.Th>Действия</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {routesData.map((route) => (
+              <Table.Tr key={route.id}>
+                <Table.Td>
+                  <Group gap="xs">
+                    {route.icon}
+                    <div>
+                      <Text size="sm" fw={500}>{route.name}</Text>
+                      <Text size="xs" c="dimmed">{route.lastDeliveries} поставок</Text>
+                    </div>
+                  </Group>
+                </Table.Td>
+                <Table.Td>
+                  <Badge 
+                    color={
+                      route.type === 'Морской' ? 'blue' :
+                      route.type === 'Железнодорожный' ? 'green' :
+                      route.type === 'Авиационный' ? 'orange' : 'blue'
+                    }
+                    variant="light"
+                  >
+                    {route.type}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{route.avgDays} дн.</Text>
+                  <Text size="xs" c="dimmed">±{route.avgDelay} дн.</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" fw={500}>{route.costPerKg} ₽/кг</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <Progress 
+                      value={route.successRate} 
+                      size="sm" 
+                      color={route.successRate >= 95 ? 'green' : route.successRate >= 90 ? 'orange' : 'red'}
+                      style={{ width: 60 }}
+                    />
+                    <Text size="sm">{route.successRate}%</Text>
+                  </Group>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <RingProgress
+                      size={30}
+                      thickness={4}
+                      sections={[{ value: (route.reliability / 5) * 100, color: 'blue' }]}
+                    />
+                    <Text size="sm">{route.reliability}/5</Text>
+                  </Group>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{route.volume} м³</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Tooltip label={route.providers.join(', ')}>
+                    <Text size="sm" truncate style={{ maxWidth: 100 }}>
+                      {route.providers.length} провайдера
+                    </Text>
+                  </Tooltip>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <ActionIcon variant="light" size="sm">
+                      <IconEye size={14} />
+                    </ActionIcon>
+                    <ActionIcon variant="light" size="sm">
+                      <IconEdit size={14} />
+                    </ActionIcon>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Card>
+
+      {/* Рекомендации по оптимизации */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Text size="lg" fw={500} mb="md">Рекомендации по оптимизации маршрутов</Text>
+        <SimpleGrid cols={{ base: 1, md: 2 }}>
+          <Alert icon={<IconTrendingUp size={16} />} color="green">
+            <Text size="sm" fw={500} mb="xs">Оптимизация стоимости</Text>
+            <Text size="xs">
+              Увеличение доли морских перевозок на 15% может снизить общие логистические затраты на 8-12%.
+            </Text>
+          </Alert>
+          
+          <Alert icon={<IconClock size={16} />} color="blue">
+            <Text size="sm" fw={500} mb="xs">Ускорение доставки</Text>
+            <Text size="xs">
+              Комбинирование ж/д и автоперевозок может сократить время доставки на 3-5 дней при росте стоимости на 15%.
+            </Text>
+          </Alert>
+          
+          <Alert icon={<IconAlertTriangle size={16} />} color="yellow">
+            <Text size="sm" fw={500} mb="xs">Риски маршрутов</Text>
+            <Text size="xs">
+              Морские перевозки имеют наибольшую вариативность сроков. Рекомендуется увеличить страховой запас на 20%.
+            </Text>
+          </Alert>
+          
+          <Alert icon={<IconChartBar size={16} />} color="purple">
+            <Text size="sm" fw={500} mb="xs">Балансировка портфеля</Text>
+            <Text size="xs">
+              Текущее распределение: 45% море, 32% ж/д, 8% авиа, 15% авто. Оптимальное: 50% море, 35% ж/д, 5% авиа, 10% авто.
+            </Text>
+          </Alert>
+        </SimpleGrid>
+      </Card>
+    </Stack>
+  );
+};
 
 // Главный компонент страницы
 export default function DeliveriesControlPage() {
@@ -1519,7 +2611,10 @@ export default function DeliveriesControlPage() {
             target: '85-95%',
             trend: 3.2,
             icon: <IconCheck size={20} />,
-            color: 'green'
+            color: 'green',
+            theme: 'forest',
+            animated: true,
+            gradientDirection: 'to-br'
           },
           {
             id: 'delivery-time',
@@ -1528,7 +2623,10 @@ export default function DeliveriesControlPage() {
             target: '25-30 дней',
             trend: -5.1,
             icon: <IconClock size={20} />,
-            color: 'blue'
+            color: 'gray',
+            theme: 'cool',
+            animated: true,
+            gradientDirection: 'to-r'
           },
           {
             id: 'logistics-cost',
@@ -1537,16 +2635,22 @@ export default function DeliveriesControlPage() {
             target: '15-20%',
             trend: -2.3,
             icon: <IconCurrencyRubel size={20} />,
-            color: 'orange'
+            color: 'indigo',
+            theme: 'cosmic',
+            animated: true,
+            gradientDirection: 'to-bl'
           },
           {
             id: 'quality',
-            title: 'Качество поставок',
+            title: 'Среднее качество поставок',
             value: `${kpiData.avgQualityRate}%`,
             target: '>95%',
             trend: 1.5,
             icon: <IconPackage size={20} />,
-            color: 'teal'
+            color: 'teal',
+            theme: 'cool',
+            animated: true,
+            gradientDirection: 'to-t'
           },
           {
             id: 'avg-volume',
@@ -1555,7 +2659,10 @@ export default function DeliveriesControlPage() {
             target: '8-12 м³',
             trend: 2.1,
             icon: <IconBox size={20} />,
-            color: 'violet'
+            color: 'violet',
+            theme: 'cosmic',
+            animated: true,
+            gradientDirection: 'to-tr'
           },
           {
             id: 'errors-incidents',
@@ -1564,7 +2671,10 @@ export default function DeliveriesControlPage() {
             target: '<5%',
             trend: -1.2,
             icon: <IconAlertTriangle size={20} />,
-            color: 'red'
+            color: 'red',
+            theme: 'warm',
+            animated: true,
+            gradientDirection: 'to-b'
           }
         ]}
         renderDetailContent={(cardId) => {
@@ -1959,9 +3069,9 @@ export default function DeliveriesControlPage() {
               return <Text>Детальная информация недоступна</Text>;
           }
         }}
-        columnsPerCard={2}
+        columnsPerCard={6}
         animationDuration={500}
-        animationTimingFunction="ease-in-out"
+        // Remove animationTimingFunction prop as it's not supported
       />
       
       {/* Визуализация маршрутов и статусов */}
@@ -2006,6 +3116,9 @@ export default function DeliveriesControlPage() {
             <Tabs.Tab value="inventory" leftSection={<IconChartLine size={16} />}>
               Склады и остатки
             </Tabs.Tab>
+            <Tabs.Tab value="routes" leftSection={<IconRoute size={16} />}>
+              Анализ маршрутов
+            </Tabs.Tab>
           </Tabs.List>
           
           <Tabs.Panel value="suppliers" pt="md">
@@ -2022,6 +3135,10 @@ export default function DeliveriesControlPage() {
           
           <Tabs.Panel value="inventory" pt="md">
             <InventoryAnalytics />
+          </Tabs.Panel>
+          
+          <Tabs.Panel value="routes" pt="md">
+            <RouteAnalysis />
           </Tabs.Panel>
         </Tabs>
       </Card>

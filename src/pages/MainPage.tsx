@@ -97,6 +97,7 @@ import {
 } from '@tabler/icons-react';
 import ReactECharts from 'echarts-for-react';
 import { notifications } from '@mantine/notifications';
+import TailwindTest from '../components/TailwindTest';
 
 // Типы данных
 interface Alert {
@@ -866,6 +867,11 @@ export default function MainPage() {
           {/* Панель алертов */}
           <Grid.Col span={4}>
             <AlertsPanel alerts={alerts} />
+          </Grid.Col>
+          
+          {/* Тест TailwindCSS */}
+          <Grid.Col span={4}>
+            <TailwindTest />
           </Grid.Col>
         </Grid>
       </Stack>

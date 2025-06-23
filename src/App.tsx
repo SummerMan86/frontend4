@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { CubeProvider } from '@cubejs-client/react';
 import cubeApi from './utils/cubeApi';
 import { BrowserRouter, Routes, Route, UNSAFE_NavigationContext } from 'react-router-dom';
@@ -16,6 +16,9 @@ const WarehouseAndLogisticsPageExt = lazy(() => import('./pages/WarehouseAndLogi
 const SupplyManagementPage = lazy(() => import('./pages/SupplyManagementPage'));
 const ProductAnalysisPage = lazy(() => import('./pages/ProductAnalysisPage'));
 const FinancialAnalysisPage = lazy(() => import('./pages/FinancialAnalysisPage'));
+const SalesAnalysisPage = lazy(() => import('./pages/SalesAnalysisPage'));
+const SalesDashboardPage = lazy(() => import('./pages/SalesDashboardPage'));
+const UnitEconomicsPage = lazy(() => import('./pages/UnitEconomicsPage'));
 const KPIDemoPage = lazy(() => import('./pages/KPIDemoPage'));
 const KPITestPage = lazy(() => import('./pages/KPITestPage'));
 const DeliveriesPage = lazy(() => import('./pages/DeliveriesPage'));
@@ -53,12 +56,15 @@ function App() {
                 <Route path="dashboard" element={<KpiDashboardPage2 />} />
                 <Route path="inventory" element={<OperationalControlPage />} />
                 <Route path="sales" element={<SupplierIncomesPage />} />
+                <Route path="sales-dashboard" element={<SalesDashboardPage />} />
                 <Route path="warehouse-logistics" element={<WarehouseAndLogisticsPage />} />
                 <Route path="warehouse-logistics-ext" element={<WarehouseAndLogisticsPageExt />} />
                 <Route path="supply-management" element={<SupplyManagementPage />} />
                 <Route path="operational-control" element={<OperationalControlPage />} />
                 <Route path="product-analysis" element={<ProductAnalysisPage />} />
                 <Route path="financial-analysis" element={<FinancialAnalysisPage />} />
+                <Route path="sales-analysis" element={<SalesAnalysisPage />} />
+                <Route path="unit-economics" element={<UnitEconomicsPage />} />
                 <Route path="kpi-demo" element={<KPIDemoPage />} />
                 <Route path="kpi-test" element={<KPITestPage />} />
                 <Route path="deliveries" element={<DeliveriesPage />} />

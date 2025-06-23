@@ -23,6 +23,7 @@ import {
   IconBuildingWarehouse,
   IconBrandWechat,
   IconTarget,
+  IconCalculator,
 } from '@tabler/icons-react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
@@ -32,6 +33,7 @@ const PATH_LABELS = {
   '/dashboard': 'Дашборд',
   '/product-analysis': 'Анализ товаров',
   '/sales': 'Продажи',
+  '/sales-dashboard': 'Анализ продаж',
   '/inventory': 'Инвентарь',
   '/warehouse-logistics': 'ABC анализ остатков',
   '/warehouse-logistics-ext': 'Остатки и ПВЗ',
@@ -41,6 +43,8 @@ const PATH_LABELS = {
   '/supplier-incomes': 'Доходы поставщика',
   '/reports': 'Доходы',
   '/financial-analysis': 'Финансовый анализ',
+  '/sales-analysis': 'Анализ продаж',
+  '/unit-economics': 'Юнит-экономика',
   '/operational-control': 'Оперативный контроль',
   '/kpi-demo': 'Демо KPI',
   '/supply-graph-test': 'Карта поставок',
@@ -54,6 +58,7 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/dashboard', icon: IconChartBar },
   { path: '/product-analysis', icon: IconShoppingCart },
   { path: '/sales', icon: IconShoppingCart },
+  { path: '/sales-dashboard', icon: IconChartBar },
   { path: '/inventory', icon: IconDatabase },
   { path: '/warehouse-logistics', icon: IconBuildingWarehouse },
   { path: '/warehouse-logistics-ext', icon: IconBuildingWarehouse },
@@ -63,6 +68,8 @@ const NAV_ITEMS: { path: PathKey; icon: React.FC<any>; showIndicator?: boolean }
   { path: '/supplier-incomes', icon: IconTruck },
   { path: '/reports', icon: IconReportAnalytics },
   { path: '/financial-analysis', icon: IconReportAnalytics },
+  { path: '/sales-analysis', icon: IconChartBar },
+  { path: '/unit-economics', icon: IconCalculator },
   { path: '/operational-control', icon: IconActivity, showIndicator: true },
   { path: '/kpi-demo', icon: IconTarget },
   { path: '/supply-graph-test', icon: IconTruck, showIndicator: true },

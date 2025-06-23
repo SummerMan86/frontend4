@@ -1,13 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/postcss'
+import autoprefixer from 'autoprefixer'
 import { dependencies } from './package.json';
-
 
 export default defineConfig({
   plugins: [react()],
   
   server: {
     port: 3000,
+  },
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss(),
+        autoprefixer,
+      ],
+    },
   },
   optimizeDeps: { include: [ 'echarts', 'echarts-for-react', 'ag-grid-community', 'ag-grid-react', ...Object.keys(dependencies).filter(d=>d.startsWith('@mantine')) ] },  
   define: {

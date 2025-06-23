@@ -1,4 +1,8 @@
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Исправление для атрибута inert в Mantine 8 + React 18 */
 [inert] {
   pointer-events: none;

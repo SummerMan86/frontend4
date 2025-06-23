@@ -1,0 +1,162 @@
+/* Анимации для градиентов KPI карточек */
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradientPulse {
+  0%, 100% {
+    background-size: 200% 200%;
+  }
+  50% {
+    background-size: 250% 250%;
+  }
+}
+
+@keyframes gradientRotate {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes gradientWave {
+  0%, 100% {
+    background-position: 0% 50%;
+    background-size: 200% 200%;
+  }
+  33% {
+    background-position: 50% 0%;
+    background-size: 300% 300%;
+  }
+  66% {
+    background-position: 100% 50%;
+    background-size: 200% 200%;
+  }
+}
+
+/* Классы для применения анимаций */
+.gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}
+
+.gradient-pulse {
+  animation: gradientPulse 3s ease-in-out infinite;
+}
+
+.gradient-rotate {
+  background-size: 300% 300%;
+  animation: gradientRotate 6s linear infinite;
+}
+
+.gradient-wave {
+  animation: gradientWave 5s ease-in-out infinite;
+}
+
+/* Hover эффекты для градиентов */
+.gradient-hover:hover {
+  background-size: 150% 150%;
+  transition: background-size 0.3s ease;
+}
+
+/* Специальные эффекты для разных тем */
+.theme-ocean {
+  background: linear-gradient(135deg, #667db6 0%, #0082c8 25%, #74b9ff 50%, #0984e3 75%, #667db6 100%);
+}
+
+.theme-sunset {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #ffa726 50%, #ff7043 75%, #ff9a9e 100%);
+}
+
+.theme-forest {
+  background: linear-gradient(135deg, #134e5e 0%, #71b280 25%, #56ab2f 50%, #a8e6cf 75%, #134e5e 100%);
+}
+
+.theme-cosmic {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #4facfe 50%, #00f2fe 75%, #667eea 100%);
+}
+
+.theme-warm {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #a8edea 50%, #fed6e3 75%, #ff9a9e 100%);
+}
+
+.theme-cool {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #74b9ff 50%, #0984e3 75%, #667eea 100%);
+}
+
+/* Адаптивные размеры для мобильных устройств */
+@media (max-width: 768px) {
+  .gradient-shift,
+  .gradient-pulse,
+  .gradient-rotate,
+  .gradient-wave {
+    animation-duration: 6s; /* Замедляем анимации на мобильных */
+  }
+}
+
+/* Уменьшение анимаций для пользователей с предпочтением reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .gradient-shift,
+  .gradient-pulse,
+  .gradient-rotate,
+  .gradient-wave {
+    animation: none;
+  }
+  
+  .gradient-hover:hover {
+    transition: none;
+  }
+}
+
+/* Дополнительные утилитарные классы */
+.gradient-direction-to-r {
+  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-br {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-b {
+  background: linear-gradient(180deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-bl {
+  background: linear-gradient(225deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-l {
+  background: linear-gradient(270deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-tl {
+  background: linear-gradient(315deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-t {
+  background: linear-gradient(0deg, var(--gradient-start), var(--gradient-end));
+}
+
+.gradient-direction-to-tr {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+}
