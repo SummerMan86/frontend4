@@ -7,9 +7,9 @@ import { ThemeProvider } from './theme';
 import { Loader, Center, Text, Stack } from '@mantine/core';
 
 // Lazy load all pages
+const OperationalControlPage = lazy(() => import('./pages/OperationalControlPage'));
 const MainPage = lazy(() => import('./pages/MainPage'));
 const KpiDashboardPage2 = lazy(() => import('./pages/KpiDashboardPage2'));
-const OperationalControlPage = lazy(() => import('./pages/OperationalControlPage'));
 const SupplierIncomesPage = lazy(() => import('./pages/SupplierIncomesPage'));
 const WarehouseAndLogisticsPage = lazy(() => import('./pages/WarehouseAndLogisticsPage'));
 const WarehouseAndLogisticsPageExt = lazy(() => import('./pages/WarehouseAndLogisticsPageExt'));
@@ -18,6 +18,8 @@ const ProductAnalysisPage = lazy(() => import('./pages/ProductAnalysisPage'));
 const FinancialAnalysisPage = lazy(() => import('./pages/FinancialAnalysisPage'));
 const SalesAnalysisPage = lazy(() => import('./pages/SalesAnalysisPage'));
 const SalesDashboardPage = lazy(() => import('./pages/SalesDashboardPage'));
+const SalesFunnelPage = lazy(() => import('./pages/SalesFunnelPage'));
+const AdvertisingAnalysisPage = lazy(() => import('./pages/AdvertisingAnalysisPage'));
 const UnitEconomicsPage = lazy(() => import('./pages/UnitEconomicsPage'));
 const KPIDemoPage = lazy(() => import('./pages/KPIDemoPage'));
 const KPITestPage = lazy(() => import('./pages/KPITestPage'));
@@ -57,6 +59,8 @@ function App() {
                 <Route path="inventory" element={<OperationalControlPage />} />
                 <Route path="sales" element={<SupplierIncomesPage />} />
                 <Route path="sales-dashboard" element={<SalesDashboardPage />} />
+                <Route path="sales-funnel" element={<SalesFunnelPage />} />
+                <Route path="advertising-analysis" element={<AdvertisingAnalysisPage />} />
                 <Route path="warehouse-logistics" element={<WarehouseAndLogisticsPage />} />
                 <Route path="warehouse-logistics-ext" element={<WarehouseAndLogisticsPageExt />} />
                 <Route path="supply-management" element={<SupplyManagementPage />} />

@@ -2584,9 +2584,6 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
                     <Tabs.Tab value="abcxyz" leftSection={<IconTarget size={16} />}>
                         ABC-XYZ
                     </Tabs.Tab>
-                    <Tabs.Tab value="deliveries" leftSection={<IconTruck size={16} />}>
-                        Поставки
-                    </Tabs.Tab>
                     <Tabs.Tab value="analytics" leftSection={<IconChartBar size={16} />}>
                         Аналитика
                     </Tabs.Tab>
@@ -2602,10 +2599,6 @@ const WarehouseAndLogisticsPageExt: React.FC = () => {
 
                 <Tabs.Panel value="abcxyz" pt="md">
                     {renderABCXYZ()}
-                </Tabs.Panel>
-
-                <Tabs.Panel value="deliveries" pt="md">
-                    {renderDeliveries()}
                 </Tabs.Panel>
 
                 <Tabs.Panel value="analytics" pt="md">

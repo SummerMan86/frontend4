@@ -1,109 +1,54 @@
-var option = {
-tooltip: {
-trigger: 'axis',
-formatter: function(params) {
-console.log('params[0]', params[0]);
-console.log('params[1]', params[1]);
-const xDate = params[0].name;
-const y = String(Math.round(params[0].value*100)/100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');;
-const name = params[0].seriesName;
+Uncaught TypeError: Cannot read properties of undefined (reading '6')
+    at AdvertisingAnalysisPage.tsx:724:32
+    at Array.map (<anonymous>)
+    at AdvertisingAnalysisPage.tsx:716:35
+    at AdvertisingAnalysisPage (AdvertisingAnalysisPage.tsx:1556:37)
+    at renderWithHooks (chunk-MXUSTU7W.js?v=c7b2f898:12171:26)
+    at updateFunctionComponent (chunk-MXUSTU7W.js?v=c7b2f898:14577:28)
+    at beginWork (chunk-MXUSTU7W.js?v=c7b2f898:15912:22)
+    at HTMLUnknownElement.callCallback2 (chunk-MXUSTU7W.js?v=c7b2f898:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-MXUSTU7W.js?v=c7b2f898:3699:24)
+    at invokeGuardedCallback (chunk-MXUSTU7W.js?v=c7b2f898:3733:39)
+chunk-MXUSTU7W.js?v=c7b2f898:14036 The above error occurred in the <AdvertisingAnalysisPage> component:
 
-return `${name}<br>
-Дата: ${xDate } <br>
-Q зак.: ${y} м3/сут. 
-`;
-}
-},
-legend: { 
-top: 10,
-right: 10
-},
-xAxis: {
-type: 'category',
-data: xAxisValues,
-name: 'Дата',
-nameLocation:'middle',
-nameGap: 30,
+    at AdvertisingAnalysisPage (http://localhost:3000/src/pages/AdvertisingAnalysisPage.tsx?t=1750955742473:131:17)
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:4104:5)
+    at Outlet (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:4511:26)
+    at div
+    at http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:3816:5
+    at main
+    at http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:3816:5
+    at http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:13158:17
+    at div
+    at http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:3816:5
+    at Provider (http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:904:23)
+    at http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:13590:17
+    at MyAppShell (http://localhost:3000/src/components/layout/AppShell.tsx?t=1750954764966:94:24)
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:4104:5)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:4575:5)
+    at Suspense
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:4518:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=c7b2f898:5267:5)
+    at CubeProvider (http://localhost:3000/node_modules/.vite/deps/@cubejs-client_react.js?v=c7b2f898:1894:3)
+    at MantineThemeProvider (http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:2175:3)
+    at MantineProvider (http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:2671:3)
+    at ThemeProvider (http://localhost:3000/src/theme/ThemeProvider.tsx:40:33)
+    at App
+    at MantineThemeProvider (http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:2175:3)
+    at MantineProvider (http://localhost:3000/node_modules/.vite/deps/chunk-XBXWMLBC.js?v=c7b2f898:2671:3)
+    at http://localhost:3000/node_modules/.vite/deps/chunk-Z5PUXNLE.js?v=c7b2f898:1380:45
 
-//axisLabel: [20000,40000,60000,80000,100000, 120000],
-axisLabel: {
-hideOverlap: false,
-custom: [20000, 400000,]
-},
-axisTick:{
-custom: [20000,400000]
-}
-},
-yAxis: {
-type: 'value'
-},
-series: [ 
-{
-name : 'Q зак., м3/сут.',
-data: volume_injection,
-type: 'line',
-symbol: 'line', // Изменено с 'line' на 'circle' для лучшей кликабельности
-symbolSize: 6, // Добавлен размер символа
-sampling: 'lttb',
-lineStyle: {
-color: 'green',
-width: 2,
-type: 'solid'
-},
-itemStyle: {
-borderWidth: 2, // Увеличена ширина границы
-borderColor: 'green', // Изменен цвет границы
-color: 'green' // Изменен цвет на зеленый для консистентности
-},
-emphasis: { // Добавлен эффект при наведении
-itemStyle: {
-borderWidth: 3,
-borderColor: 'darkgreen',
-color: 'lightgreen'
-}
-},
-select: { // Добавлен эффект при выборе
-itemStyle: {
-borderWidth: 4,
-borderColor: 'darkgreen'
-}
-},
-triggerLineEvent: true
-},
-{
-name: 'Триггер',
-data: y_volume_injection_trigger,
-tooltip: {
-alwaysShowContent: true,
-position: 'top'
-},
-z:10,
-type: 'scatter',
-symbol: 'circle',
-symbolSize: 8,
-itemStyle: {
-borderWidth: 0,
-borderColor: '#EE6666',
-color: 'red'
-}
-},
-{
-name: 'АГРП во время ИД',
-data: y_volume_injection_agrp,
-tooltip: {
-alwaysShowContent: true,
-position: 'top'
-},
-z:10,
-type: 'scatter',
-symbol: 'circle',
-symbolSize: 8,
-itemStyle: {
-borderWidth: 0,
-borderColor: '#EE6666',
-color: 'orange'
-} 
-}
-
-]
-};
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-MXUSTU7W.js?v=c7b2f898:14036
+chunk-MXUSTU7W.js?v=c7b2f898:19409 Uncaught TypeError: Cannot read properties of undefined (reading '6')
+    at AdvertisingAnalysisPage.tsx:724:32
+    at Array.map (<anonymous>)
+    at AdvertisingAnalysisPage.tsx:716:35
+    at AdvertisingAnalysisPage (AdvertisingAnalysisPage.tsx:1556:37)
+    at renderWithHooks (chunk-MXUSTU7W.js?v=c7b2f898:12171:26)
+    at updateFunctionComponent (chunk-MXUSTU7W.js?v=c7b2f898:14577:28)
+    at beginWork (chunk-MXUSTU7W.js?v=c7b2f898:15912:22)
+    at beginWork$1 (chunk-MXUSTU7W.js?v=c7b2f898:19749:22)
+    at performUnitOfWork (chunk-MXUSTU7W.js?v=c7b2f898:19194:20)
+    at workLoopSync (chunk-MXUSTU7W.js?v=c7b2f898:19133:13)

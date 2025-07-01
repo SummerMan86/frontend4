@@ -137,31 +137,36 @@ export function AppNavigation({ collapsed = false, debug = false }: AppNavigatio
       icon: <IconDashboard size="1.2rem" stroke={1.5} />
     },
     {
+      id: 'sales',
+      label: 'Продажи',
+      path: '/sales',
+      icon: <IconChartPie size="1.2rem" stroke={1.5} />,
+      children: [
+        { id: 'sales-analysis', label: 'Анализ продаж', path: '/sales-analysis' },
+        { id: 'sales-dashboard', label: 'Дашборд продаж', path: '/sales-dashboard' },
+        { id: 'sales-funnel', label: 'Воронка продаж', path: '/sales-funnel' },
+        { id: 'supplier-incomes', label: 'Доходы поставщиков', path: '/supplier-incomes' },
+        { id: 'unit-economics', label: 'Юнит-экономика', path: '/unit-economics' },
+        { id: 'advertising-analysis', label: 'Анализ рекламы', path: '/advertising-analysis' },
+      ],
+    },
+    {
       id: 'product-analysis',
       label: 'Анализ товаров',
       path: '/product-analysis',
       icon: <IconShoppingCart size="1.2rem" stroke={1.5} />
     },
     {
-      id: 'sales',
-      label: 'Sales Analysis',
-      path: '/sales',
-      icon: <IconChartPie size="1.2rem" stroke={1.5} />,
-      children: [
-        { id: 'by-product', label: 'Sales by Product', path: '/sales/by-product' },
-        { id: 'by-region', label: 'Sales by Region', path: '/sales/by-region', notifications: 3 },
-        { id: 'trends', label: 'Sales Trends', path: '/sales/trends' },
-      ],
-    },
-    {
       id: 'inventory',
       label: 'Inventory',
       path: '/inventory',
-      icon: <IconShoppingCart size="1.2rem" stroke={1.5} />,
-      children: [
-        { id: 'stock', label: 'Stock Levels', path: '/inventory/stock' },
-        { id: 'forecast', label: 'Restock Forecast', path: '/inventory/forecast' },
-      ],
+      icon: <IconPackage size="1.2rem" stroke={1.5} />
+    },
+    {
+      id: 'financial-analysis',
+      label: 'Финансовый анализ',
+      path: '/financial-analysis',
+      icon: <IconCurrencyDollar size="1.2rem" stroke={1.5} />
     },
     {
       id: 'warehouse-logistics',

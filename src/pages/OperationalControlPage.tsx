@@ -94,6 +94,7 @@ import { notifications } from '@mantine/notifications';
 import { useDisclosure, useHover } from '@mantine/hooks';
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts-for-react';
+import AdsAnalytics from '../components/AdsAnalytics';
 
 // ============================================
 // TYPES & INTERFACES
@@ -2571,7 +2572,7 @@ const FinancialPanel = () => {
 
 // Main Page Component
 const OperationalControlPage = () => {
-  const [view, setView] = useState<'summary' | 'detailed' | 'analytics'>('summary');
+  const [view, setView] = useState<'summary' | 'detailed' | 'analytics' | 'ads'>('summary');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
@@ -2652,7 +2653,7 @@ const OperationalControlPage = () => {
     <Container size="xl" py="md">
       {/* Main content */}
       {!loading && (
-        <Tabs value={view} onChange={(value: string | null) => value && setView(value as 'summary' | 'detailed' | 'analytics')}>
+        <Tabs value={view} onChange={(value: string | null) => value && setView(value as 'summary' | 'detailed' | 'analytics' | 'ads')}>
           <Tabs.List>
             <Tabs.Tab value="summary" leftSection={<IconChartLine size={16} />}>
               Обзор
@@ -2662,6 +2663,9 @@ const OperationalControlPage = () => {
             </Tabs.Tab>
             <Tabs.Tab value="analytics" leftSection={<IconChartBar size={16} />}>
               Аналитика
+            </Tabs.Tab>
+            <Tabs.Tab value="ads" leftSection={<IconAd size={16} />}>
+              Реклама
             </Tabs.Tab>
           </Tabs.List>
 
@@ -2936,6 +2940,10 @@ const OperationalControlPage = () => {
                 </Grid.Col>
               </Grid>
             </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="ads" pt="md">
+            <AdsAnalytics />
           </Tabs.Panel>
         </Tabs>
       )}
