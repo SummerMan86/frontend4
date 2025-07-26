@@ -27,6 +27,8 @@ import { KPISparklineCard } from '../components/KPISparklineCard';
 import { KPISparklineExamples } from '../components/KPISparklineCard.examples';
 import { SimpleKPIExamples } from '../components/SimpleKPISparklineChart.examples';
 import KPICardDropDown from '../components/KPICardDropDown';
+import ComplexKPI from '../components/ComplexKPI';
+import { IconChartBar, IconCash, IconCoins } from '@tabler/icons-react';
 import ReactECharts from 'echarts-for-react';
 import { ExpandableKPIGrid, type KPICardData } from '../components/ExpandableKPIGrid';
 
@@ -756,6 +758,127 @@ export const KPIDemoPage: React.FC = () => {
 
         <Divider />
 
+        {/* ComplexKPI компонент */}
+        <div>
+          <Title order={2} mb="md">🎯 ComplexKPI - Продвинутые KPI карточки</Title>
+          <Text mb="lg" c="gray.6">
+            Демонстрация нового ComplexKPI компонента с мини-графиками, целями и прогрессом
+          </Text>
+          
+          <Text fw={600} mb="sm">Финансовые метрики</Text>
+          <Group mb="lg">
+            <ComplexKPI
+              id="revenue"
+              title="Выручка"
+              icon={IconCash}
+              value="1.34M₽"
+              target="1.5M₽"
+              progress={89}
+              trend={12.5}
+              status="success"
+              subtitle="+12.5% к прошлому месяцу"
+              unit="₽"
+              chartData={[120, 132, 101, 134, 90, 230, 210, 145, 167, 189, 201, 234]}
+              action={{
+                label: "Подробнее",
+                onClick: () => alert('Переход к детальной аналитике выручки')
+              }}
+            />
+            
+            <ComplexKPI
+              id="profit"
+              title="Прибыль"
+              icon={IconCoins}
+              value="340K₽"
+              target="400K₽"
+              progress={85}
+              trend={8.2}
+              status="warning"
+              subtitle="+8.2% к прошлому месяцу"
+              unit="₽"
+              chartData={[80, 95, 78, 102, 67, 145, 134, 98, 123, 145, 156, 178]}
+              action={{
+                label: "Анализ",
+                onClick: () => alert('Анализ прибыльности')
+              }}
+            />
+            
+            <ComplexKPI
+              id="margin"
+              title="Маржинальность"
+              icon={IconPercentage}
+              value="25.4%"
+              target="30%"
+              progress={75}
+              trend={-2.1}
+              status="danger"
+              subtitle="-2.1% к прошлому месяцу"
+              unit="%"
+              chartData={[30, 28, 32, 29, 25, 27, 24, 26, 25, 23, 25, 24]}
+              action={{
+                label: "Оптимизация",
+                onClick: () => alert('План оптимизации маржи')
+              }}
+            />
+          </Group>
+          
+          <Text fw={600} mb="sm">Операционные метрики</Text>
+          <Group mb="lg">
+            <ComplexKPI
+              id="orders"
+              title="Заказы"
+              icon={IconChartBar}
+              value="1,247"
+              target="1,500"
+              progress={83}
+              trend={15.3}
+              status="success"
+              subtitle="+15.3% к прошлому месяцу"
+              unit="шт"
+              chartData={[100, 120, 95, 140, 85, 160, 145, 130, 155, 170, 180, 195]}
+            />
+            
+            <ComplexKPI
+              id="conversion"
+              title="Конверсия"
+              icon={IconPercentage}
+              value="4.2%"
+              trend={0.8}
+              status="info"
+              subtitle="+0.8% к прошлому месяцу"
+              unit="%"
+              chartData={[3.8, 4.1, 3.9, 4.3, 3.7, 4.5, 4.2, 4.0, 4.4, 4.6, 4.3, 4.2]}
+            />
+          </Group>
+          
+          <Text fw={600} mb="sm">Простые варианты (без графиков)</Text>
+          <Group>
+            <ComplexKPI
+              id="customers"
+              title="Клиенты"
+              icon={IconChartBar}
+              value="2,847"
+              trend={5.7}
+              status="success"
+              subtitle="Активных клиентов"
+              unit="чел"
+            />
+            
+            <ComplexKPI
+              id="avg-check"
+              title="Средний чек"
+              icon={IconCash}
+              value="1,075₽"
+              trend={-3.2}
+              status="warning"
+              subtitle="За последние 30 дней"
+              unit="₽"
+            />
+          </Group>
+        </div>
+
+        <Divider />
+
         {/* Полноширинные KPI карточки */}
         <div>
           <Title order={2} mb="md">📊 Полноширинные KPI карточки</Title>
@@ -1035,11 +1158,10 @@ function FullWidthKPISection() {
 
   return (
     <ExpandableKPIGrid
-      data={kpiData}
+      kpiData={kpiData}
       renderDetailContent={renderDetailContent}
-      columnsPerCard={4}
+      cardsPerRow={4}
       animationDuration={500}
-      animationTimingFunction="ease-in-out"
     />
   );
 };

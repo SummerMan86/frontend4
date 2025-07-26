@@ -1,0 +1,56 @@
+[33mc1e2b31[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Черновой вариант дашборда
+[33m0451dc6[m Продажи в2
+[33m80b583c[m Продажи в1
+[33m90f667b[m KPI с детализацией
+[33m726c096[m Карта поставок
+[33m922f211[m Карта поставок
+[33m578e0e6[m KPI с детализацией
+[33m7c54145[m KPI с детализацией
+[33m91e4191[m KPI с детализацией
+[33ma6ee64e[m Поставки норм
+[33m62d983e[m Поставки
+[33mc7171c7[m Навигация в стиле WB и фин анализ 2
+[33mf04ec82[m Навигация в стиле WB и фин анализ
+[33mbc5b5f7[m Управление складом и логистика
+[33md1dfe0d[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage warehouselogistics
+[33m57f1cc4[m Навигация и фильтры базово плюс ...warehouselogistics ext
+[33m5aae206[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage warehouselogistics
+[33m15ffd50[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage warehouselogistics
+[33md5382e7[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage
+[33m0238c0e[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage
+[33m090a2d3[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage mainpage
+[33mfdfe520[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage ok2
+[33m2a25050[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage ok
+[33m8f5d184[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage ok
+[33m39ffe99[m Навигация и фильтры базово плюс kpidashboardpage operationalcontrolpage
+[33mc05706a[m Навигация и фильтры базово плюс kpidashboardpage bug fix and hover
+[33m618c881[m Навигация и фильтры базово плюс kpidashboardpage bug fix and hover
+[33me87d675[m Навигация и фильтры базово плюс kpidashboardpage bug fix and hover
+[33m36a2333[m Навигация и фильтры базово плюс kpidashboardpage bug fix ok
+[33md85902d[m Навигация и фильтры базово плюс kpidashboardpage bug fix 2
+[33m71065f8[m Навигация и фильтры базово плюс kpidashboardpage bug fix 2
+[33m3590285[m Навигация и фильтры базово плюс kpidashboardpage bug10
+[33m570d596[m Навигация и фильтры базово плюс kpidashboardpage bug fix1
+[33mc1a12a5[m Навигация и фильтры базово плюс kpidashboardpage bug8
+[33m7ebe5c9[m Навигация и фильтры базово плюс kpidashboardpage bug8
+[33m89f571d[m Навигация и фильтры базово плюс kpidashboardpage bug6
+[33m0c4e25a[m Навигация и фильтры базово плюс kpidashboardpage bug5
+[33m90f87bd[m Навигация и фильтры базово плюс kpidashboardpage bug4
+[33m50f64ed[m Навигация и фильтры базово плюс kpidashboardpage bug3
+[33m5aaf447[m Навигация и фильтры базово плюс kpidashboardpage bug
+[33m32f0e5e[m Навигация и фильтры базово плюс kpidashboardpage test
+[33mb7d8933[m Навигация и фильтры базово плюс карточки как в progressmarket
+[33m9a44e2c[m Навигация и фильтры базово
+[33m0405433[m публикация в открытый доступ, рабочая версия с NavPannel, таблицей и фильтрами reingen v2 рабочие артикулы некрасивый datepicker
+[33m42711c9[m публикация в открытый доступ, рабочая версия с NavPannel, таблицей и фильтрами reingen 1
+[33mefa4275[m публикация в открытый доступ, рабочая версия с NavPannel, таблицей и фильтрами v1
+[33m769b6a6[m публикация в открытый доступ, рабочая версия с NavPannel, таблицей и фильтрами dpdebug
+[33m4f48abf[m публикация в открытый доступ, рабочая версия с NavPannel Mantine
+[33m328634e[m добавлен NavPannel, рабочая версия
+[33me2f5213[m добавлен AG Grid table, рабочая версия
+[33m80ac8a9[m добавлен AG Grid table, добавляется навигация
+[33mf58625a[m исправлен cubejs, добавление AG Grid table
+[33m8c92c7d[m исправления для cubejs2
+[33m875a9d6[m исправления для cubejs
+[33mcb9616c[m исправлены глобальные переменные для cubejs
+[33m0544783[m Initial commit for frontend4

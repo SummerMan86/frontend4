@@ -3,7 +3,7 @@ import { Container, Title, SimpleGrid, Stack, Text, Group, Badge } from '@mantin
 import {
   IconTruck,
   IconClock,
-  IconCurrencyRuble,
+  IconCurrencyRubel,
   IconShield,
   IconPackage,
   IconAlertTriangle,
@@ -63,7 +63,7 @@ const EnhancedKPICardExample = () => {
                   value="12.8%"
                   target="12%"
                   trend={0.8}
-                  icon={<IconCurrencyRuble size={20} />}
+                  icon={<IconCurrencyRubel size={20} />}
                   color="orange"
                   theme="sunset"
                   size="sm"

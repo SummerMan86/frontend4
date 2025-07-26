@@ -9,14 +9,17 @@
  * boolean атрибутом.
  */
 
-// Сохраняем оригинальный console.warn
+// Сохраняем оригинальные методы консоли
 const originalWarn = console.warn;
+const originalError = console.error;
 
 // Список предупреждений, которые нужно подавить
 const SUPPRESSED_WARNINGS = [
   'Warning: Received `true` for a non-boolean attribute `inert`',
   'Warning: Received `false` for a non-boolean attribute `inert`',
-  'Warning: React does not recognize the `inert` prop on a DOM element'
+  'Warning: React does not recognize the `inert` prop on a DOM element',
+  'Received `false` for a non-boolean attribute `inert`',
+  'Received `true` for a non-boolean attribute `inert`'
 ];
 
 /**
@@ -25,16 +28,28 @@ const SUPPRESSED_WARNINGS = [
  */
 export const suppressInertWarnings = () => {
   if (process.env.NODE_ENV === 'development') {
+    const checkAndSuppressMessage = (message: any) => {
+      return SUPPRESSED_WARNINGS.some(warning => 
+        typeof message === 'string' && (
+          message.includes(warning) ||
+          message.includes('non-boolean attribute `inert`') ||
+          message.includes('inert="false"') ||
+          message.includes('inert="true"')
+        )
+      );
+    };
+
     console.warn = (...args: any[]) => {
       const message = args[0];
-      
-      // Проверяем, содержит ли сообщение одно из подавляемых предупреждений
-      const shouldSuppress = SUPPRESSED_WARNINGS.some(warning => 
-        typeof message === 'string' && message.includes(warning.split('`')[0])
-      );
-      
-      if (!shouldSuppress) {
+      if (!checkAndSuppressMessage(message)) {
         originalWarn.apply(console, args);
+      }
+    };
+
+    console.error = (...args: any[]) => {
+      const message = args[0];
+      if (!checkAndSuppressMessage(message)) {
+        originalError.apply(console, args);
       }
     };
     
@@ -43,10 +58,11 @@ export const suppressInertWarnings = () => {
 };
 
 /**
- * Восстанавливает оригинальное поведение console.warn
+ * Восстанавливает оригинальное поведение консоли
  */
 export const restoreWarnings = () => {
   console.warn = originalWarn;
+  console.error = originalError;
 };
 
 /**

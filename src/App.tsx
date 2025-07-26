@@ -23,6 +23,10 @@ const AdvertisingAnalysisPage = lazy(() => import('./pages/AdvertisingAnalysisPa
 const UnitEconomicsPage = lazy(() => import('./pages/UnitEconomicsPage'));
 const KPIDemoPage = lazy(() => import('./pages/KPIDemoPage'));
 const KPITestPage = lazy(() => import('./pages/KPITestPage'));
+const ComplexKPIDemoPage = lazy(() => import('./pages/ComplexKPIDemoPage'));
+const InteractiveComplexKPIDemoPage = lazy(() => import('./pages/InteractiveComplexKPIDemoPage'));
+const ComplexKPIWithDetailDemoPage = lazy(() => import('./pages/ComplexKPIWithDetailDemoPage'));
+const EnhancedKPIDetailRendererDemoPage = lazy(() => import('./pages/EnhancedKPIDetailRendererDemoPage'));
 const DeliveriesPage = lazy(() => import('./pages/DeliveriesPage'));
 const RoutesMapTestPage = lazy(() => import('./pages/RoutesMapTestPage'));
 const SupplyGraphTestPage = lazy(() => import('./pages/SupplyGraphTestPage'));
@@ -71,6 +75,10 @@ function App() {
                 <Route path="unit-economics" element={<UnitEconomicsPage />} />
                 <Route path="kpi-demo" element={<KPIDemoPage />} />
                 <Route path="kpi-test" element={<KPITestPage />} />
+                <Route path="complex-kpi-demo" element={<ComplexKPIDemoPage />} />
+                <Route path="/interactive-complex-kpi-demo" element={<InteractiveComplexKPIDemoPage />} />
+            <Route path="/complex-kpi-with-detail-demo" element={<ComplexKPIWithDetailDemoPage />} />
+                <Route path="enhanced-kpi-detail-demo" element={<EnhancedKPIDetailRendererDemoPage />} />
                 <Route path="deliveries" element={<DeliveriesPage />} />
                 <Route path="/routes-map-test" element={<RoutesMapTestPage />} />
             <Route path="/supply-graph-test" element={<SupplyGraphTestPage />} />

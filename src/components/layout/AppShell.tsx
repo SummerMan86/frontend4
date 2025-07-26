@@ -58,6 +58,7 @@ const PATH_LABELS = {
   '/unit-economics': 'Юнит-экономика',
   '/operational-control': 'Оперативный контроль',
   '/kpi-demo': 'Демо KPI',
+  '/complex-kpi-demo': 'ComplexKPI Демо',
   '/supply-graph-test': 'Карта поставок',
   '/settings': 'Настройки',
 } as const;
@@ -104,6 +105,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'financial-analysis', label: 'Финансовый анализ', path: '/financial-analysis', icon: IconReportAnalytics },
   { id: 'operational-control', label: 'Оперативный контроль', path: '/operational-control', icon: IconActivity, showIndicator: true },
   { id: 'kpi-demo', label: 'Демо KPI', path: '/kpi-demo', icon: IconTarget },
+  { id: 'complex-kpi-demo', label: 'ComplexKPI Демо', path: '/complex-kpi-demo', icon: IconChartDots },
   { id: 'supply-graph-test', label: 'Карта поставок', path: '/supply-graph-test', icon: IconTruck, showIndicator: true },
 ];
 
